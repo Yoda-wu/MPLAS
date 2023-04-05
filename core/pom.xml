@@ -85,7 +85,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>libs/</classpathPrefix>
-                            <mainClass>ghaffarian.progex.Main</mainClass>
+                            <mainClass>com.scut.mplas.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -145,7 +145,23 @@
             </plugin>
             <plugin>
                 <artifactId>maven-install-plugin</artifactId>
-                <version>2.5.2</version>
+
+            </plugin>
+            <plugin>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-maven-plugin</artifactId>
+                <version>4.6</version>
+                <configuration>
+                    <visitor>true</visitor>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>antlr</id>
+                        <goals>
+                            <goal>antlr4</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

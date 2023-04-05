@@ -1,7 +1,7 @@
 package com.scut.mplas.util;
 
-import com.scut.mplas.common.response.BaseResponse;
-import com.scut.mplas.common.response.ResponseCode;
+import com.scut.mplas.entity.response.BaseResponse;
+import com.scut.mplas.entity.response.ResponseCode;
 import org.springframework.stereotype.Component;
 
 @Component
