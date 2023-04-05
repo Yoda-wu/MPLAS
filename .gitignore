@@ -8,3 +8,4 @@ target/
 *.iml
 #忽略所有out目录
 out/
+generate/
