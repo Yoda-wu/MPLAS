@@ -1,0 +1,357 @@
+{
+  "directed": true,
+  "label": "AST of Test1.java",
+  "type": "Abstract Syntax Tree (AST)",
+  "file": "Test1.java",
+
+  "nodes": [
+    {
+      "id": 0,
+      "line": 0,
+      "type": "ROOT",
+      "label": "Test1.java",
+      "normalized": "Test1.java"
+    },
+    {
+      "id": 1,
+      "line": 2,
+      "type": "CLASS",
+      "label": "CLASS",
+      "normalized": "CLASS"
+    },
+    {
+      "id": 2,
+      "line": 2,
+      "type": "MODIFIER",
+      "label": "public",
+      "normalized": "public"
+    },
+    {
+      "id": 3,
+      "line": 2,
+      "type": "NAME",
+      "label": "Test1",
+      "normalized": "Test1"
+    },
+    {
+      "id": 4,
+      "line": 4,
+      "type": "METHOD",
+      "label": "METHOD",
+      "normalized": "METHOD"
+    },
+    {
+      "id": 5,
+      "line": 4,
+      "type": "MODIFIER",
+      "label": "public static",
+      "normalized": "public static"
+    },
+    {
+      "id": 6,
+      "line": 4,
+      "type": "RETURN",
+      "label": "void",
+      "normalized": "void"
+    },
+    {
+      "id": 7,
+      "line": 4,
+      "type": "NAME",
+      "label": "main",
+      "normalized": "$METHOD_1"
+    },
+    {
+      "id": 8,
+      "line": 4,
+      "type": "PARAMS",
+      "label": "PARAMS",
+      "normalized": "PARAMS"
+    },
+    {
+      "id": 9,
+      "line": 4,
+      "type": "VAR",
+      "label": "VAR",
+      "normalized": "VAR"
+    },
+    {
+      "id": 10,
+      "line": 4,
+      "type": "TYPE",
+      "label": "String[]",
+      "normalized": "String[]"
+    },
+    {
+      "id": 11,
+      "line": 4,
+      "type": "NAME",
+      "label": "args",
+      "normalized": "$VARL_1"
+    },
+    {
+      "id": 12,
+      "line": 4,
+      "type": "BLOCK",
+      "label": "BLOCK",
+      "normalized": "BLOCK"
+    },
+    {
+      "id": 13,
+      "line": 5,
+      "type": "VAR",
+      "label": "VAR",
+      "normalized": "VAR"
+    },
+    {
+      "id": 14,
+      "line": 5,
+      "type": "TYPE",
+      "label": "int",
+      "normalized": "int"
+    },
+    {
+      "id": 15,
+      "line": 5,
+      "type": "NAME",
+      "label": "i",
+      "normalized": "$VARL_2"
+    },
+    {
+      "id": 16,
+      "line": 5,
+      "type": "INIT",
+      "label": "= 0",
+      "normalized": "= 0"
+    },
+    {
+      "id": 17,
+      "line": 6,
+      "type": "",
+      "label": "i++",
+      "normalized": "$VARL_2++"
+    },
+    {
+      "id": 18,
+      "line": 7,
+      "type": "IF",
+      "label": "IF",
+      "normalized": "IF"
+    },
+    {
+      "id": 19,
+      "line": 7,
+      "type": "COND",
+      "label": "i > 0",
+      "normalized": "$VARL_2 > 0"
+    },
+    {
+      "id": 20,
+      "line": 7,
+      "type": "THEN",
+      "label": "THEN",
+      "normalized": "THEN"
+    },
+    {
+      "id": 21,
+      "line": 8,
+      "type": "",
+      "label": "System.out.println('Positive')",
+      "normalized": "System.out.println('Positive')"
+    },
+    {
+      "id": 22,
+      "line": 9,
+      "type": "",
+      "label": "i *= 2",
+      "normalized": "$VARL_2 ?= 2"
+    },
+    {
+      "id": 23,
+      "line": 10,
+      "type": "ELSE",
+      "label": "ELSE",
+      "normalized": "ELSE"
+    },
+    {
+      "id": 24,
+      "line": 11,
+      "type": "",
+      "label": "System.out.println('Non-positive')",
+      "normalized": "System.out.println('Non-positive')"
+    },
+    {
+      "id": 25,
+      "line": 12,
+      "type": "",
+      "label": "i *= -2",
+      "normalized": "$VARL_2 ?= -2"
+    },
+    {
+      "id": 26,
+      "line": 14,
+      "type": "",
+      "label": "System.out.println('End')",
+      "normalized": "System.out.println('End')"
+    }
+  ],
+
+  "edges": [
+    {
+      "id": 0,
+      "source": 0,
+      "target": 1,
+      "label": ""
+    },
+    {
+      "id": 1,
+      "source": 1,
+      "target": 2,
+      "label": ""
+    },
+    {
+      "id": 2,
+      "source": 1,
+      "target": 3,
+      "label": ""
+    },
+    {
+      "id": 3,
+      "source": 1,
+      "target": 4,
+      "label": ""
+    },
+    {
+      "id": 4,
+      "source": 4,
+      "target": 5,
+      "label": ""
+    },
+    {
+      "id": 5,
+      "source": 4,
+      "target": 6,
+      "label": ""
+    },
+    {
+      "id": 6,
+      "source": 4,
+      "target": 7,
+      "label": ""
+    },
+    {
+      "id": 7,
+      "source": 4,
+      "target": 8,
+      "label": ""
+    },
+    {
+      "id": 8,
+      "source": 8,
+      "target": 9,
+      "label": ""
+    },
+    {
+      "id": 9,
+      "source": 9,
+      "target": 10,
+      "label": ""
+    },
+    {
+      "id": 10,
+      "source": 9,
+      "target": 11,
+      "label": ""
+    },
+    {
+      "id": 11,
+      "source": 4,
+      "target": 12,
+      "label": ""
+    },
+    {
+      "id": 12,
+      "source": 12,
+      "target": 13,
+      "label": ""
+    },
+    {
+      "id": 13,
+      "source": 13,
+      "target": 14,
+      "label": ""
+    },
+    {
+      "id": 14,
+      "source": 13,
+      "target": 15,
+      "label": ""
+    },
+    {
+      "id": 15,
+      "source": 13,
+      "target": 16,
+      "label": ""
+    },
+    {
+      "id": 16,
+      "source": 12,
+      "target": 17,
+      "label": ""
+    },
+    {
+      "id": 17,
+      "source": 12,
+      "target": 18,
+      "label": ""
+    },
+    {
+      "id": 18,
+      "source": 18,
+      "target": 19,
+      "label": ""
+    },
+    {
+      "id": 19,
+      "source": 18,
+      "target": 20,
+      "label": ""
+    },
+    {
+      "id": 20,
+      "source": 20,
+      "target": 21,
+      "label": ""
+    },
+    {
+      "id": 21,
+      "source": 20,
+      "target": 22,
+      "label": ""
+    },
+    {
+      "id": 22,
+      "source": 18,
+      "target": 23,
+      "label": ""
+    },
+    {
+      "id": 23,
+      "source": 23,
+      "target": 24,
+      "label": ""
+    },
+    {
+      "id": 24,
+      "source": 23,
+      "target": 25,
+      "label": ""
+    },
+    {
+      "id": 25,
+      "source": 12,
+      "target": 26,
+      "label": ""
+    }
+  ]
+}
