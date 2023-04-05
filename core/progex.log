@@ -1,13 +1,13 @@
-======= LOG CREATED on 周二 2023/4月/04 21:48:24:656 =======
+======= LOG CREATED on 周三 2023/4月/05 22:37:28:855 =======
 
 PROGEX (Program Graph Extractor)  [ v3.4.5 ]
 Visit project website @ https://github.com/ghaffarian/progex
 
 PROGEX execution config:
   Language = Java
-  Output format = JSON
-  Output directory = out/java/basic/PDG/\
-  Analysis types = [PDG]
+  Output format = GML
+  Output directory = out/java/basic/AST/\
+  Analysis types = [AST]
   Input paths = 
         src/test/resources/java/basic/
 
@@ -15,47 +15,14 @@ PROGEX execution config:
 # Java source files = 9
 
 
-Program-Dependence Analysis
-===========================
-Parsing all source files ... 
-Done.
-
-Extracting class-infos ... 
-Done.
-
-Initializing method-DEF infos ... 
-Done.
-
-Extracting & Parsing imports ... 
-Done.
-
-Analyzing imports DEF-USE ... 
-Done.
-
-Iterative DEF-USE analysis ... 
-Done.
-
-Extracting CFGs ... 
-Done.
-
-Adding data-flow edges ... 
-Done.
-
-CDS of PDG exported to: out/java/basic/PDG/\Test1-PDG-CTRL.json
-DDS of PDG exported to: out/java/basic/PDG/\Test1-PDG-DATA.json
-CDS of PDG exported to: out/java/basic/PDG/\Test2-PDG-CTRL.json
-DDS of PDG exported to: out/java/basic/PDG/\Test2-PDG-DATA.json
-CDS of PDG exported to: out/java/basic/PDG/\Test3-PDG-CTRL.json
-DDS of PDG exported to: out/java/basic/PDG/\Test3-PDG-DATA.json
-CDS of PDG exported to: out/java/basic/PDG/\Test4-PDG-CTRL.json
-DDS of PDG exported to: out/java/basic/PDG/\Test4-PDG-DATA.json
-CDS of PDG exported to: out/java/basic/PDG/\Test5-PDG-CTRL.json
-DDS of PDG exported to: out/java/basic/PDG/\Test5-PDG-DATA.json
-CDS of PDG exported to: out/java/basic/PDG/\Test6-PDG-CTRL.json
-DDS of PDG exported to: out/java/basic/PDG/\Test6-PDG-DATA.json
-CDS of PDG exported to: out/java/basic/PDG/\Test7-PDG-CTRL.json
-DDS of PDG exported to: out/java/basic/PDG/\Test7-PDG-DATA.json
-CDS of PDG exported to: out/java/basic/PDG/\Test8-PDG-CTRL.json
-DDS of PDG exported to: out/java/basic/PDG/\Test8-PDG-DATA.json
-CDS of PDG exported to: out/java/basic/PDG/\Test9-PDG-CTRL.json
-DDS of PDG exported to: out/java/basic/PDG/\Test9-PDG-DATA.json
+Abstract Syntax Analysis
+========================
+AST exported to: out/java/basic/AST/\Test1-AST.gml
+AST exported to: out/java/basic/AST/\Test2-AST.gml
+AST exported to: out/java/basic/AST/\Test3-AST.gml
+AST exported to: out/java/basic/AST/\Test4-AST.gml
+AST exported to: out/java/basic/AST/\Test5-AST.gml
+AST exported to: out/java/basic/AST/\Test6-AST.gml
+AST exported to: out/java/basic/AST/\Test7-AST.gml
+AST exported to: out/java/basic/AST/\Test8-AST.gml
+AST exported to: out/java/basic/AST/\Test9-AST.gml

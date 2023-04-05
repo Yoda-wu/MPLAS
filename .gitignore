@@ -8,3 +8,5 @@ target/
 *.iml
 #忽略所有out目录
 out/
+#忽略grogex日志文件
+progex.log
