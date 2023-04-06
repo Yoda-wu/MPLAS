@@ -1,7 +1,10 @@
 /*** In The Name of Allah ***/
-package com.scut.mplas;
+package com.scut.mplas.java;
 
 import java.io.File;
+
+import com.scut.mplas.Execution;
+import com.scut.mplas.Main;
 import com.scut.mplas.utils.FileUtils;
 
 import static org.junit.Assert.*;
