@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.scut.mplas.entity.response.BaseResponse;
 import com.scut.mplas.API;
 import com.scut.mplas.Execution;
+import com.scut.mplas.entity.response.ResponseCode;
 import com.scut.mplas.service.CodeAnalysisServiceFactory;
 import com.scut.mplas.util.AnalysisArgsBuilder;
 import com.scut.mplas.util.ResponseBuilder;
@@ -24,6 +25,11 @@ public class ApplicationController {
     public BaseResponse GenerateAST(@RequestParam String lang,  @RequestBody MultipartFile data){
         // Your Code here
         BaseResponse successResponse =responseBuilder.getSuccessResponse();
+
+        //防止空指针异常
+        if (CodeAnalysisServiceFactory.getService(lang)==null){
+            return responseBuilder.getFailResponse(ResponseCode.PARAM_UN_VALID);
+        }
         Object res = CodeAnalysisServiceFactory.getService(lang).analysis(Execution.Analysis.AST, data);
         successResponse.setData(res);
         return successResponse;

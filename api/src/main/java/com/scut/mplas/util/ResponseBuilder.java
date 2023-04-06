@@ -28,4 +28,11 @@ public class ResponseBuilder {
     public BaseResponse getFailResponse(){
         return new BaseResponse(ResponseCode.FAIL);
     }
+
+    /**
+     * @return a fail response with responseCode
+     */
+    public BaseResponse getFailResponse(ResponseCode responseCode){
+        return new BaseResponse(responseCode);
+    }
 }

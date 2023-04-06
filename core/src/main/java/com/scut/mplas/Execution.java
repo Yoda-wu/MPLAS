@@ -79,6 +79,7 @@ public class Execution {
 	public enum Languages {
 		C		("C", ".c"),
 		JAVA	    ("Java", ".java"),
+		JAVASCRIPT("JavaScript",".js"),
 		PYTHON	("Python", ".py");
 		
 		private Languages(String str, String suffix) {
