@@ -8,16 +8,17 @@ import java.io.InputStream;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Map;
+
+import com.scut.mplas.java.parser.JavaBaseVisitor;
+import com.scut.mplas.java.parser.JavaLexer;
+import com.scut.mplas.java.parser.JavaParser;
+import com.scut.mplas.graphs.ast.ASNode;
+import com.scut.mplas.graphs.ast.AbstractSyntaxTree;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
-import com.scut.mplas.graphs.ast.ASNode;
-import com.scut.mplas.graphs.ast.AbstractSyntaxTree;
-import com.scut.mplas.java.parser.JavaBaseVisitor;
-import com.scut.mplas.java.parser.JavaLexer;
-import com.scut.mplas.java.parser.JavaParser;
 import ghaffarian.nanologger.Logger;
 import java.util.LinkedHashMap;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -52,7 +53,16 @@ public class JavaASTBuilder {
 		ParseTree tree = parser.compilationUnit();
 		return build(javaFile.getPath(), tree, null, null);
 	}
-	
+    public static AbstractSyntaxTree build(String fileName, InputStream inputStream) throws IOException {
+
+        InputStream inFile = inputStream;
+        ANTLRInputStream input = new ANTLRInputStream(inFile);
+        JavaLexer lexer = new JavaLexer(input);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        JavaParser parser = new JavaParser(tokens);
+        ParseTree tree = parser.compilationUnit();
+        return build(fileName, tree, null, null);
+    }
 	/**
 	 * ‌Build and return the Abstract Syntax Tree (AST) for the given Parse-Tree.
 	 * The 'ctxProps' map includes contextual-properties for particular nodes 

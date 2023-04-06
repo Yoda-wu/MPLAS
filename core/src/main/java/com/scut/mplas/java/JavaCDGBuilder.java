@@ -1,6 +1,12 @@
 /*** In The Name of Allah ***/
 package com.scut.mplas.java;
 
+import com.scut.mplas.java.parser.JavaBaseVisitor;
+import com.scut.mplas.java.parser.JavaLexer;
+import com.scut.mplas.java.parser.JavaParser;
+import com.scut.mplas.graphs.pdg.CDEdge;
+import com.scut.mplas.graphs.pdg.ControlDependenceGraph;
+import com.scut.mplas.graphs.pdg.PDNode;
 import ghaffarian.graphs.*;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,12 +21,6 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
-import com.scut.mplas.graphs.pdg.CDEdge;
-import com.scut.mplas.graphs.pdg.ControlDependenceGraph;
-import com.scut.mplas.graphs.pdg.PDNode;
-import com.scut.mplas.java.parser.JavaBaseVisitor;
-import com.scut.mplas.java.parser.JavaLexer;
-import com.scut.mplas.java.parser.JavaParser;
 import ghaffarian.nanologger.Logger;
 
 /**

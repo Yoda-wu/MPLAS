@@ -52,6 +52,14 @@ public abstract class AbstractProgramGraph<N, E> extends Digraph<N, E>  {
              			break;
 		}
 	}
+
+    /**
+     * export JSON string to api layer
+     */
+    public String exportJson()throws IOException {
+        return  exportJSON();
+    }
+
     
     /**
      * Export this program graph to DOT format. 
@@ -87,13 +95,14 @@ public abstract class AbstractProgramGraph<N, E> extends Digraph<N, E>  {
 	 * Export this program graph to JSON format.
 	 * The JSON file will be saved in current working directory.
 	 */
-    public void exportJSON() throws IOException {
-        exportJSON(System.getProperty("user.dir"));
-    }
+    public abstract String exportJSON() throws IOException ;
+
+
 	
 	/**
 	 * Export this program graph to JSON format.
 	 * The JSON file will be saved inside the given directory path.
 	 */
 	public abstract void exportJSON(String outDir) throws IOException;
+
 }

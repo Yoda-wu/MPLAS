@@ -1,6 +1,8 @@
 /*** In The Name of Allah ***/
 package com.scut.mplas.graphs.pdg;
 
+import com.scut.mplas.graphs.AbstractProgramGraph;
+import com.scut.mplas.utils.StringUtils;
 import ghaffarian.graphs.Edge;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,9 +10,9 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import com.scut.mplas.utils.StringUtils;
+
 import ghaffarian.nanologger.Logger;
-import com.scut.mplas.graphs.AbstractProgramGraph;
+
 import java.io.IOException;
 import java.util.Map.Entry;
 
@@ -118,8 +120,13 @@ public class ControlDependenceGraph extends AbstractProgramGraph<PDNode, CDEdge>
 		}
 		Logger.info("CDS of PDG exported to: " + filepath);
     }
-	
-    @Override
+
+	@Override
+	public String exportJSON() throws IOException {
+		return null;
+	}
+
+	@Override
 	public void exportJSON(String outDir) throws FileNotFoundException {
         if (!outDir.endsWith(File.separator))
             outDir += File.separator;
@@ -174,5 +181,6 @@ public class ControlDependenceGraph extends AbstractProgramGraph<PDNode, CDEdge>
 			Logger.error(ex);
 		}
 		Logger.info("CDS of PDG exported to: " + filepath);
+
 	}
 }

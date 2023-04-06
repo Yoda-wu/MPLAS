@@ -1,6 +1,12 @@
 /*** In The Name of Allah ***/
 package com.scut.mplas.java;
 
+import com.scut.mplas.java.parser.JavaBaseVisitor;
+import com.scut.mplas.java.parser.JavaLexer;
+import com.scut.mplas.java.parser.JavaParser;
+import com.scut.mplas.graphs.cfg.CFEdge;
+import com.scut.mplas.graphs.cfg.CFNode;
+import com.scut.mplas.graphs.cfg.ControlFlowGraph;
 import ghaffarian.graphs.*;
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,12 +23,6 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
-import com.scut.mplas.graphs.cfg.CFEdge;
-import com.scut.mplas.graphs.cfg.CFNode;
-import com.scut.mplas.graphs.cfg.ControlFlowGraph;
-import com.scut.mplas.java.parser.JavaBaseVisitor;
-import com.scut.mplas.java.parser.JavaLexer;
-import com.scut.mplas.java.parser.JavaParser;
 import ghaffarian.nanologger.Logger;
 
 /**
@@ -54,6 +54,17 @@ public class JavaCFGBuilder {
 		JavaParser parser = new JavaParser(tokens);
 		ParseTree tree = parser.compilationUnit();
 		return build(javaFile.getName(), tree, null, null);
+	}
+
+	public static ControlFlowGraph build(String fileName, InputStream inputStream) throws IOException {
+
+		InputStream inFile = inputStream;
+		ANTLRInputStream input = new ANTLRInputStream(inFile);
+		JavaLexer lexer = new JavaLexer(input);
+		CommonTokenStream tokens = new CommonTokenStream(lexer);
+		JavaParser parser = new JavaParser(tokens);
+		ParseTree tree = parser.compilationUnit();
+		return build(fileName, tree, null, null);
 	}
 	
 	/**

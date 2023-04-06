@@ -3,8 +3,10 @@ package com.scut.mplas;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+
 import com.scut.mplas.graphs.ast.ASTBuilder;
 import com.scut.mplas.graphs.ast.AbstractSyntaxTree;
 import com.scut.mplas.graphs.cfg.CFGBuilder;
@@ -33,7 +35,10 @@ public class Execution {
 	private String outputDir;
 	private Languages lang;
 	private Formats format;
-	
+
+	private InputStream inputStream;
+	private String fileName;
+
 	public Execution() {
         debugMode = false;
 		analysisTypes = new ArrayList<>();
@@ -43,6 +48,8 @@ public class Execution {
 		outputDir = System.getProperty("user.dir");
 		if (!outputDir.endsWith(File.separator))
 			outputDir += File.separator;
+		inputStream = null;
+		fileName = "";
 	}
 	
 	/**
@@ -95,7 +102,12 @@ public class Execution {
 	
 	
 	/*=======================================================*/
-	
+	public void setInputStream(InputStream inputStream){
+		this.inputStream = inputStream;
+	}
+	public void setFileName(String fileName){
+		this.fileName = fileName;
+	}
 	
 	public void addAnalysisOption(Analysis opt) {
 		analysisTypes.add(opt);
@@ -139,25 +151,113 @@ public class Execution {
 		str.append("\n  Output format = ").append(format);
 		str.append("\n  Output directory = ").append(outputDir);
 		str.append("\n  Analysis types = ").append(Arrays.toString(analysisTypes.toArray()));
+		str.append("\n  File name = ").append(fileName);
 		str.append("\n  Input paths = \n");
 		for (String path: inputPaths)
 			str.append("        ").append(path).append('\n');
 		return str.toString();
 	}
-	
+	/**
+	 * Execute the PROGEX program with the given options and return a JSON string
+	 */
+	public String ExecuteForAPI(){
+		Logger.info(toString());
+		for (Analysis analysis: analysisTypes) {
+
+			Logger.debug("\nMemory Status");
+			Logger.debug("=============");
+			Logger.debug(SystemUtils.getMemoryStats());
+
+			switch (analysis.type) {
+				//
+				case "AST":
+					Logger.info("\nAbstract Syntax Analysis");
+					Logger.info("========================");
+					Logger.debug("START: " + Logger.time() + '\n');
+
+					try {
+						AbstractSyntaxTree ast = ASTBuilder.build(lang.name, fileName,inputStream);
+						return  ast.exportJson();
+					} catch (IOException ex) {
+						Logger.error(ex);
+					}
+					break;
+				//
+				case "CFG":
+					Logger.info("\nControl-Flow Analysis");
+					Logger.info("=====================");
+					Logger.debug("START: " + Logger.time() + '\n');
+					try {
+						ControlFlowGraph cfg = CFGBuilder.build(lang.name, fileName,inputStream);
+						return cfg.exportJson();
+					} catch (IOException ex) {
+						Logger.error(ex);
+					}
+					break;
+				//
+				case "ICFG":
+//					Logger.info("\nInterprocedural Control-Flow Analysis");
+//					Logger.info("=====================================");
+//					Logger.debug("START: " + Logger.time() + '\n');
+//					try {
+//						ControlFlowGraph icfg = ICFGBuilder.buildForAll(lang.name, filePaths);
+//						icfg.export(format.toString(), outputDir);
+//					} catch (IOException ex) {
+//						Logger.error(ex);
+//					}
+//					break;
+				//
+				case "PDG":
+					Logger.info("\nProgram-Dependence Analysis");
+					Logger.info("===========================");
+					Logger.debug("START: " + Logger.time() + '\n');
+//					try {
+//						for (ProgramDependeceGraph pdg: PDGBuilder.buildForAll(lang.name, filePaths)) {
+//							pdg.CDS.export(format.toString(), outputDir);
+//							pdg.DDS.export(format.toString(), outputDir);
+//							if (debugMode) {
+//								pdg.DDS.getCFG().export(format.toString(), outputDir);
+//								pdg.DDS.printAllNodesUseDefs(Logger.Level.DEBUG);
+//							}
+//						}
+//					} catch (IOException ex) {
+//						Logger.error(ex);
+//					}
+					break;
+				//
+				case "INFO":
+					Logger.info("\nCode Information Analysis");
+					Logger.info("=========================");
+					Logger.debug("START: " + Logger.time() + '\n');
+//					for (String srcFile : filePaths)
+//						analyzeInfo(lang.name, srcFile);
+					break;
+				//
+				default:
+					Logger.info("\n\'" + analysis.type + "\' analysis is not supported!\n");
+			}
+			Logger.debug("\nFINISH: " + Logger.time());
+		}
+		//
+		Logger.debug("\nMemory Status");
+		Logger.debug("=============");
+		Logger.debug(SystemUtils.getMemoryStats());
+		return "{}";
+	}
+
 	/**
 	 * Execute the PROGEX program with the given options.
 	 */
 	public void execute() {
-		if (inputPaths.isEmpty()) {
-			Logger.info("No input path provided!\nAbort.");
+		if (inputPaths.isEmpty() && inputStream == null ) {
+			Logger.info("No input  provided!\nAbort.");
 			System.exit(0);
 		}
 		if (analysisTypes.isEmpty()) {
 			Logger.info("No analysis type provided!\nAbort.");
 			System.exit(0);
 		}
-		
+
 		Logger.info(toString());
 		
 		// 1. Extract source files from input-paths, based on selected language
@@ -187,14 +287,15 @@ public class Execution {
 					Logger.info("\nAbstract Syntax Analysis");
 					Logger.info("========================");
 					Logger.debug("START: " + Logger.time() + '\n');
-					for (String srcFile : filePaths) {
-						try {
-                            AbstractSyntaxTree ast = ASTBuilder.build(lang.name, srcFile);
-							ast.export(format.toString(), outputDir);
-						} catch (IOException ex) {
-							Logger.error(ex);
+
+						for (String srcFile : filePaths) {
+							try {
+								AbstractSyntaxTree ast = ASTBuilder.build(lang.name, srcFile);
+								ast.export(format.toString(), outputDir);
+							} catch (IOException ex) {
+								Logger.error(ex);
+							}
 						}
-					}
 					break;
 				//
 				case "CFG":

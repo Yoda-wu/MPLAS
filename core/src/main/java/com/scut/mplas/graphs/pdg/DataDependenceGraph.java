@@ -1,6 +1,11 @@
 /*** In The Name of Allah ***/
 package com.scut.mplas.graphs.pdg;
 
+import com.scut.mplas.graphs.AbstractProgramGraph;
+import com.scut.mplas.graphs.cfg.CFEdge;
+import com.scut.mplas.graphs.cfg.CFNode;
+import com.scut.mplas.graphs.cfg.ControlFlowGraph;
+import com.scut.mplas.utils.StringUtils;
 import ghaffarian.graphs.Edge;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,12 +13,9 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Map;
-import com.scut.mplas.graphs.cfg.CFEdge;
-import com.scut.mplas.graphs.cfg.CFNode;
-import com.scut.mplas.graphs.cfg.ControlFlowGraph;
-import com.scut.mplas.utils.StringUtils;
+
 import ghaffarian.nanologger.Logger;
-import com.scut.mplas.graphs.AbstractProgramGraph;
+
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -188,7 +190,12 @@ public class DataDependenceGraph extends AbstractProgramGraph<PDNode, DDEdge> {
 		Logger.info("DDS of PDG exported to: " + filepath);
     }
 
-    @Override
+	@Override
+	public String exportJSON() throws IOException {
+		return null;
+	}
+
+	@Override
 	public void exportJSON(String outDir) throws FileNotFoundException {
         if (!outDir.endsWith(File.separator))
             outDir += File.separator;
@@ -267,5 +274,6 @@ public class DataDependenceGraph extends AbstractProgramGraph<PDNode, DDEdge> {
 			Logger.error(ex);
 		}
 		Logger.info("DDS of PDG exported to: " + filepath);
+
 	}
 }

@@ -2,6 +2,8 @@
 package com.scut.mplas.graphs.cfg;
 
 import java.io.IOException;
+import java.io.InputStream;
+
 import com.scut.mplas.java.JavaCFGBuilder;
 
 /**
@@ -22,6 +24,21 @@ public class CFGBuilder {
 			//
 			case "Java":
 				return JavaCFGBuilder.build(srcFilePath);
+			//
+			case "Python":
+				return null;
+			//
+			default:
+				return null;
+		}
+	}
+	public static ControlFlowGraph build(String lang, String fileName, InputStream inputStream) throws IOException {
+		switch (lang) {
+			case "C":
+				return null;
+			//
+			case "Java":
+				return JavaCFGBuilder.build(fileName, inputStream);
 			//
 			case "Python":
 				return null;

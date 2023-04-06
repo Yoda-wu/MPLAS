@@ -1,4 +1,4 @@
-======= LOG CREATED on 周三 2023/4月/05 23:25:38:103 =======
+======= LOG CREATED on 周四 2023/4月/06 10:47:06:269 =======
 
 PROGEX (Program Graph Extractor)  [ v3.4.5 ]
 Visit project website @ https://github.com/ghaffarian/progex
@@ -6,8 +6,9 @@ Visit project website @ https://github.com/ghaffarian/progex
 PROGEX execution config:
   Language = Java
   Output format = GML
-  Output directory = out/java/basic/AST/\
+  Output directory = ../generate/java/basic/AST/\
   Analysis types = [AST]
+  File name = 
   Input paths = 
         src/test/resources/java/basic/
 
@@ -17,12 +18,12 @@ PROGEX execution config:
 
 Abstract Syntax Analysis
 ========================
-AST exported to: out/java/basic/AST/\Test1-AST.gml
-AST exported to: out/java/basic/AST/\Test2-AST.gml
-AST exported to: out/java/basic/AST/\Test3-AST.gml
-AST exported to: out/java/basic/AST/\Test4-AST.gml
-AST exported to: out/java/basic/AST/\Test5-AST.gml
-AST exported to: out/java/basic/AST/\Test6-AST.gml
-AST exported to: out/java/basic/AST/\Test7-AST.gml
-AST exported to: out/java/basic/AST/\Test8-AST.gml
-AST exported to: out/java/basic/AST/\Test9-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test1-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test2-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test3-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test4-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test5-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test6-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test7-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test8-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test9-AST.gml

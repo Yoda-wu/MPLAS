@@ -1,6 +1,15 @@
 /*** In The Name of Allah ***/
 package com.scut.mplas.java;
 
+import com.scut.mplas.java.parser.JavaBaseVisitor;
+import com.scut.mplas.java.parser.JavaLexer;
+import com.scut.mplas.java.parser.JavaParser;
+import com.scut.mplas.graphs.cfg.CFNode;
+import com.scut.mplas.graphs.cfg.CFPathTraversal;
+import com.scut.mplas.graphs.cfg.ControlFlowGraph;
+import com.scut.mplas.graphs.pdg.DDEdge;
+import com.scut.mplas.graphs.pdg.DataDependenceGraph;
+import com.scut.mplas.graphs.pdg.PDNode;
 import ghaffarian.graphs.*;
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,15 +34,6 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import com.scut.mplas.graphs.cfg.CFNode;
-import com.scut.mplas.graphs.cfg.CFPathTraversal;
-import com.scut.mplas.graphs.cfg.ControlFlowGraph;
-import com.scut.mplas.graphs.pdg.DDEdge;
-import com.scut.mplas.graphs.pdg.DataDependenceGraph;
-import com.scut.mplas.graphs.pdg.PDNode;
-import com.scut.mplas.java.parser.JavaBaseVisitor;
-import com.scut.mplas.java.parser.JavaLexer;
-import com.scut.mplas.java.parser.JavaParser;
 import ghaffarian.nanologger.Logger;
 
 /**

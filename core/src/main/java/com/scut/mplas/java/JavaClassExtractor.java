@@ -12,12 +12,13 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTree;
+
 import com.scut.mplas.java.parser.JavaBaseVisitor;
 import com.scut.mplas.java.parser.JavaLexer;
 import com.scut.mplas.java.parser.JavaParser;
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
 
 /**
  * A utility class for building JavaClass structures from a given Java source file.
