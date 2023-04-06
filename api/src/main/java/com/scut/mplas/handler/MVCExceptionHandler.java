@@ -1,6 +1,5 @@
 package com.scut.mplas.handler;
 
-
 import com.scut.mplas.entity.response.BaseResponse;
 import com.scut.mplas.exception.BusinessException;
 import com.scut.mplas.util.ResponseBuilder;
