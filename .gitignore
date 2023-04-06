@@ -9,3 +9,5 @@ target/
 #忽略所有out目录
 out/
 generate/
+#忽略progex日志文件
+progex.log
