@@ -1,6 +1,6 @@
 package com.scut.mplas.exception;
 
-import com.scut.mplas.common.response.ResponseCode;
+import com.scut.mplas.entity.response.ResponseCode;
 
 public class BusinessException extends RuntimeException{
     private final ResponseCode responseCode;
