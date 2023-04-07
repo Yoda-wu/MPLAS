@@ -1,4 +1,4 @@
-let ast={
+let ast1={
     "directed": true,
     "label": "AST of Test1.java",
     "type": "Abstract Syntax Tree (AST)",
@@ -477,10 +477,10 @@ let ast={
   }
 
 
-
+/* 
 
   //获取某个节点node下一层子节点的集合nodes
-  function getNextNodes(node){
+  function getNextNodes(node,ast){
     let nodes=[];
     let i=0;
     for (let index = 0; index < ast.edges.length; index++) {
@@ -506,9 +506,9 @@ let ast={
       //console.log(nodes,index);
     }
     return nodes;
-  }
+  } 
 
-
+ */
   //计算每一个节点在树中应该占据的位置大小，通过子树所要占据的位置决定子树根节点的大小
   //从最底层开始，没有子节点就赋1，否则要加上子节点所需要的位置大小
   //比如一个节点有三个子节点，分别需要3,2,1个位置块，那么它需要六个位置块
@@ -569,7 +569,7 @@ let ast={
 //this.getStart(ast);
 
 
-function drawAST(){
+function drawAST(ast){
   let start=getStart(ast);
   let node_count=getCount(ast);
   let realStartX=[];
@@ -596,8 +596,8 @@ export{
     drawLine,
     getNodesLine,
     getLine,
-    getNextNodes,
-    getNodes,
+    //getNextNodes,
+    //getNodes,
     getCount,
     getStart,
     drawAST
@@ -611,7 +611,7 @@ export{
         */
 //this.drawAST();
 
-let title="type:"+ast.nodes[1].type;
+//let title="type:"+ast.nodes[1].type;
 //console.log(title);
 
 

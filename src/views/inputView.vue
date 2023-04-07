@@ -12,7 +12,7 @@
             <el-submenu index="2">
                 <template slot="title"><i class="el-icon-message"></i>图形化</template>
                 <el-menu-item index="1-1">
-                    <router-link to="/AST">AST</router-link>
+                    <router-link :to="{path:'/ast',query:{ast}}">AST</router-link>
                 </el-menu-item>
                 <el-menu-item index="1-2">
                     <router-link to="/CFG">CFG</router-link>
@@ -67,7 +67,7 @@
                 :on-error="upError"
                 :on-change="uploadFile"
                 :file-list="fileList"
-                :limit="1">
+                :limit="3">
                 <i class="el-icon-upload"></i>
                 <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
                 <!-- <div class="el-upload__tip" slot="tip">只能上传.cpp/.py文件</div> -->
@@ -106,13 +106,108 @@ export default{
                 label: 'JavaScript'
                 }],
             value: '1',
-            fileList:[]
-
+            fileList:[],
+            file:'',
+            ast:{
+                "directed": true,
+                "label": "AST of Test1.java",
+                "type": "Abstract Syntax Tree (AST)",
+                "file": "Test1.java",
+                "nodes": [
+                    {
+                        "id": 0,
+                        "line": 0,
+                        "type": "ROOT",
+                        "label": "Test1.java",
+                        "normalized": "Test1.java"
+                    },
+                    {
+                        "id": 1,
+                        "line": 2,
+                        "type": "CLASS",
+                        "label": "CLASS",
+                        "normalized": "CLASS"
+                    },
+                    {
+                        "id": 2,
+                        "line": 2,
+                        "type": "MODIFIER",
+                        "label": "public",
+                        "normalized": "public"
+                    },
+                    {
+                        "id": 3,
+                        "line": 2,
+                        "type": "NAME",
+                        "label": "Test1",
+                        "normalized": "Test1"
+                    },
+                    {
+                        "id": 4,
+                        "line": 4,
+                        "type": "METHOD",
+                        "label": "METHOD",
+                        "normalized": "METHOD"
+                    },
+                    {
+                        "id": 5,
+                        "line": 4,
+                        "type": "MODIFIER",
+                        "label": "public static",
+                        "normalized": "public static"
+                    },
+                    {
+                        "id": 6,
+                        "line": 4,
+                        "type": "RETURN",
+                        "label": "void",
+                        "normalized": "void"
+                    }
+                ],
+                "edges": [
+                    {
+                        "id": 0,
+                        "source": 0,
+                        "target": 1,
+                        "label": ""
+                    },
+                    {
+                        "id": 1,
+                        "source": 1,
+                        "target": 2,
+                        "label": ""
+                    },
+                    {
+                        "id": 2,
+                        "source": 1,
+                        "target": 3,
+                        "label": ""
+                    },
+                    {
+                        "id": 3,
+                        "source": 1,
+                        "target": 4,
+                        "label": ""
+                    },
+                    {
+                        "id": 4,
+                        "source": 4,
+                        "target": 5,
+                        "label": ""
+                    },
+                    {
+                        "id": 5,
+                        "source": 4,
+                        "target": 6,
+                        "label": ""
+                    }
+                ]
+            }
         }
     },
     methods: {
         add(){
-            const data=this.value;
+            const data=this.options[this.value-1].label;
             this.$router.push({path:"/AST",query:{data}})
 
         },
@@ -125,15 +220,15 @@ export default{
                 let file = item.raw
                 formData.append('file', file)
                 axios({
-                    url: 'http://localhost:8081/feedback/fileList', //后端提供的接口
+                    url: 'https://mock.apifox.cn/m1/2527665-0-default/ast', //后端提供的接口
                     method: 'post',
                     data: formData,
                     headers: {
-                        'Content-Type': 'multipart/form-data'
+                        'lang': 'java'
                     }
                 })
             },
-            upSuccess(res) {
+        upSuccess(res) {
                 this.$message({
                     type: 'success',
                     message: '上传成功',
@@ -141,8 +236,8 @@ export default{
                     offset: 80,
                 })
             },
-            // 上传失败
-            upError() {
+        // 上传失败
+        upError() {
                 this.$message({
                     type: 'error',
                     message: '上传失败',
@@ -150,16 +245,16 @@ export default{
                     offset: 80,
                 });
             },
-            handleExceed(files, fileList) {
+        handleExceed(files, fileList) {
                 this.$message.warning(`当前限制选择 3 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
             },
-            beforeRemove(file, fileList) {
+        beforeRemove(file, fileList) {
                 return this.$confirm(`确定移除 ${ file.name }？`);
             }
     },
     mounted() {
-       axios.post("http://yapi.smart-xwork.cn/mock/169327/emp/list",this.value).then((result)=>{
-            this.tableData=result.data.data;
+       axios.post("https://mock.apifox.cn/m1/2527665-0-default/ast",this.label).then((result)=>{
+            this.file=result.data.data;
        });
     },
     /* mounted() {
