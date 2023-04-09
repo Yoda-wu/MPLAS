@@ -56,7 +56,14 @@ public class ASNode {
         CASE        ("CASE"),
         DEFAULT     ("DEFAULT"),
         LABELED     ("LABELED"),
-        SYNC        ("SYNCHRONIZED");
+        SYNC        ("SYNCHRONIZED"),
+        //JavaScript的相关关键字
+        VOID        ("VOID"),
+        EMPTY       ("EMPTY"),
+        FUNCTION    ("FUNCTION"),
+        WITH        ("WITH"),
+        CASEBLOCK   ("CASEBLOCK"),
+        CASECLAUSES  ("CASECLAUSES");
 
         public final String label;
 
