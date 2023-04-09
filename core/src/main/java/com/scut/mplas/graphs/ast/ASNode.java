@@ -7,11 +7,11 @@ import java.util.Set;
 
 /**
  * Class type of Abstract Syntax (AS) nodes.
- * 
+ *
  * @author Seyed Mohammad Ghaffarian
  */
 public class ASNode {
-	
+
     /**
      * Enumeration of different types for AS nodes.
      */
@@ -63,7 +63,45 @@ public class ASNode {
         FUNCTION    ("FUNCTION"),
         WITH        ("WITH"),
         CASEBLOCK   ("CASEBLOCK"),
-        CASECLAUSES  ("CASECLAUSES");
+        CASECLAUSES  ("CASECLAUSES"),
+        //C++的相关关键字
+        AUTO  ("AUTO"),
+        BOOL  ("BOOL"),
+        CHAR  ("CHAR"),
+        BREAK ("BREAK"),
+        CONST  ("CONST"),
+        CONST_CASE  ("CONST_CASE"),
+        DELETE  ("DELETE"),
+        CONTINUE  ("CONTINUE"),
+        DO  ("DO"),
+        DOUBLE  ("DOUBLE"),
+        DYNAMIC_CAST  ("DYNAMIC_CAST"),
+        ENUM  ("ENUM"),
+        EXPLICIT  ("EXPLICIT"),
+        INT  ("INT"),
+        LONG  ("LONG"),
+        MUTABLE  ("MUTABLE"),
+        NAMESPACE  ("NAMESPACE"),
+        NEW  ("NEW"),
+        OPERATOR  ("OPERATOR"),
+        PRIVATE  ("PRIVATE"),
+        EXPORT  ("EXPORT"),
+        EXTERN  ("EXTERN"),
+        FALSE  ("FALSE"),
+        FLOAT  ("FLOAT"),
+        FRIEND  ("FRIEND"),
+        GOTO  ("GOTO"),
+        INLINE  ("INLINE"),
+        PRITECTED  ("PRITECTED"),
+        PUBILC  ("PUBLIC"),
+        REGISTER  ("REGISTER"),
+        REINTERPRET_CAST  ("REINTERPRET_CAST"),
+
+
+
+
+
+        ASM  ("ASM");
 
         public final String label;
 
@@ -77,7 +115,7 @@ public class ASNode {
         }
     }
 
-    
+
     private Map<String, Object> properties;
 
     public ASNode(Type type) {
@@ -109,7 +147,7 @@ public class ASNode {
     public final String getCode() {
         return (String) properties.get("code");
     }
-    
+
     public final void setNormalizedCode(String normal) {
         if (normal != null)
             properties.put("normalized", normal);
@@ -121,7 +159,7 @@ public class ASNode {
             return normalized;
         return (String) properties.get("code");
     }
-    
+
     public final void setProperty(String key, Object value) {
         properties.put(key.toLowerCase(), value);
     }
