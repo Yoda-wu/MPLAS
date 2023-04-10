@@ -7,16 +7,15 @@ import java.util.Set;
 
 /**
  * Class type of Abstract Syntax (AS) nodes.
- * 
+ *
  * @author Seyed Mohammad Ghaffarian
  */
 public class ASNode {
-	
+
     /**
      * Enumeration of different types for AS nodes.
      */
     public enum Type {
-        // ---------------------- JAVA ----------------------
         ROOT        ("ROOT"),
         IMPORTS     ("IMPORTS"),
         IMPORT      ("IMPORT"),
@@ -58,16 +57,54 @@ public class ASNode {
         DEFAULT     ("DEFAULT"),
         LABELED     ("LABELED"),
         SYNC        ("SYNCHRONIZED"),
+        //JavaScript的相关关键字
+        VOID        ("VOID"),
+        EMPTY       ("EMPTY"),
+        FUNCTION    ("FUNCTION"),
+        WITH        ("WITH"),
+        CASEBLOCK   ("CASEBLOCK"),
+        CASECLAUSES  ("CASECLAUSES"),
+        //C++的相关关键字
+        AUTO  ("AUTO"),
+        BOOL  ("BOOL"),
+        CHAR  ("CHAR"),
+        BREAK ("BREAK"),
+        CONST  ("CONST"),
+        CONST_CASE  ("CONST_CASE"),
+        DELETE  ("DELETE"),
+        CONTINUE  ("CONTINUE"),
+        DO  ("DO"),
+        DOUBLE  ("DOUBLE"),
+        DYNAMIC_CAST  ("DYNAMIC_CAST"),
+        ENUM  ("ENUM"),
+        EXPLICIT  ("EXPLICIT"),
+        INT  ("INT"),
+        LONG  ("LONG"),
+        MUTABLE  ("MUTABLE"),
+        NAMESPACE  ("NAMESPACE"),
+        NEW  ("NEW"),
+        OPERATOR  ("OPERATOR"),
+        PRIVATE  ("PRIVATE"),
+        EXPORT  ("EXPORT"),
+        EXTERN  ("EXTERN"),
+        FALSE  ("FALSE"),
+        FLOAT  ("FLOAT"),
+        FRIEND  ("FRIEND"),
+        GOTO  ("GOTO"),
+        INLINE  ("INLINE"),
+        PRITECTED  ("PRITECTED"),
+        PUBILC  ("PUBLIC"),
+        REGISTER  ("REGISTER"),
+        REINTERPRET_CAST  ("REINTERPRET_CAST"),
 
+        ASM  ("ASM"),
         // ---------------------- RUBY ----------------------
         RUBY_EXPRESSION ("EXPRESSION"),
         RUBY_TERMINATOR("terminator"),
         RUBY_FUNCTION_DEF("function_definition"),
         RUBY_FUNCTION_INLINE("function_inline_call"),
         RUBY_REQUIRE_BLOCK("require_block"),
-        RUBY_PIR_INLINE("pir_inline")
-        ;
-
+        RUBY_PIR_INLINE("pir_inline");
         public final String label;
 
         private Type(String lbl) {
@@ -80,7 +117,7 @@ public class ASNode {
         }
     }
 
-    
+
     private Map<String, Object> properties;
 
     public ASNode(Type type) {
@@ -112,7 +149,7 @@ public class ASNode {
     public final String getCode() {
         return (String) properties.get("code");
     }
-    
+
     public final void setNormalizedCode(String normal) {
         if (normal != null)
             properties.put("normalized", normal);
@@ -124,7 +161,7 @@ public class ASNode {
             return normalized;
         return (String) properties.get("code");
     }
-    
+
     public final void setProperty(String key, Object value) {
         properties.put(key.toLowerCase(), value);
     }
