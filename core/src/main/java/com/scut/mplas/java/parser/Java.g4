@@ -166,7 +166,6 @@ interfaceMemberDeclaration
     :   constDeclaration
     |   interfaceMethodDeclaration
     |   genericInterfaceMethodDeclaration
-    |   interfaceDeclaration
     |   annotationTypeDeclaration
     |   classDeclaration
     |   enumDeclaration

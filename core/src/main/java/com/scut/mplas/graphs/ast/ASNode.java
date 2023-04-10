@@ -97,12 +97,14 @@ public class ASNode {
         REGISTER  ("REGISTER"),
         REINTERPRET_CAST  ("REINTERPRET_CAST"),
 
-
-
-
-
-        ASM  ("ASM");
-
+        ASM  ("ASM"),
+        // ---------------------- RUBY ----------------------
+        RUBY_EXPRESSION ("EXPRESSION"),
+        RUBY_TERMINATOR("terminator"),
+        RUBY_FUNCTION_DEF("function_definition"),
+        RUBY_FUNCTION_INLINE("function_inline_call"),
+        RUBY_REQUIRE_BLOCK("require_block"),
+        RUBY_PIR_INLINE("pir_inline");
         public final String label;
 
         private Type(String lbl) {
