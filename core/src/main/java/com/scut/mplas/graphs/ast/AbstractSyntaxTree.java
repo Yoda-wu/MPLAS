@@ -159,8 +159,6 @@ public class AbstractSyntaxTree extends AbstractProgramGraph<ASNode, ASEdge> {
             Map<ASNode, Integer> nodeIDs = new LinkedHashMap<>();
             int nodeCounter = 0;
             for (ASNode node: allVertices) {
-
-
                 sb.append("    {");
                 sb.append("      \"id\": " + nodeCounter + ",");
                 sb.append("      \"line\": " + node.getLineOfCode() + ",");
@@ -177,23 +175,16 @@ public class AbstractSyntaxTree extends AbstractProgramGraph<ASNode, ASEdge> {
                 nodeIDs.put(node, nodeCounter);
                 ++nodeCounter;
                 if (nodeCounter == allVertices.size()){
-
                     sb.append("    }");
                 }
-
                 else{
-
                     sb.append("    },");
                 }
-
             }
             //
-
             sb.append("  ],\n\n  \"edges\": [");
             int edgeCounter = 0;
             for (Edge<ASNode, ASEdge> edge: allEdges) {
-
-
                 sb.append("    {");
                 sb.append("      \"id\": " + edgeCounter + ",");
                 sb.append("      \"source\": " + nodeIDs.get(edge.source) + ",");
@@ -204,19 +195,13 @@ public class AbstractSyntaxTree extends AbstractProgramGraph<ASNode, ASEdge> {
                 // Digraph::addDefaultEdge(V, V) which is addEdge(V, new E(), V) using a default constructor.
                 ++edgeCounter;
                 if (edgeCounter == allEdges.size()){
-
                     sb.append("    }");
                 }
                 else{
-
                     sb.append("    },");
                 }
-
             }
-
             sb.append("  ]\n}");
-
-
         Logger.info("AST exported to: " + fileName);
         Logger.info(sb.toString());
 
