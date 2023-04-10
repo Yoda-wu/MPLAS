@@ -118,13 +118,45 @@ public class CppASTBuilder {
         }
 
         //TODO 待解决
-        @Override public String visitProgram(CppParser.PrimaryExpressionContext ctx) {
-//            // packageDeclaration :  annotation* 'package' qualifiedName ';'
-//            ASNode node = new ASNode(ASNode.Type.PACKAGE);
+        @Override public String visitProgram(CppParser.TranslationUnitContext ctx) {
+             //packageDeclaration :  annotation* 'package' qualifiedName ';'
+            ASNode node = new ASNode(ASNode.Type.PACKAGE);
 //            node.setCode(ctx.qualifiedName().getText());
-//            node.setLineOfCode(ctx.getStart().getLine());
-//            Logger.debug("Adding package");
-//            AST.addVertex(node);
-//            AST.addEdge(parentStack.peek(), node);
+          node.setLineOfCode(ctx.getStart().getLine());
+            Logger.debug("Adding package");
+            AST.addVertex(node);
+            AST.addEdge(parentStack.peek(), node);
             return "";
         }
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override public String visitSourceElement(CppParser. PrimaryExpressionContext ctx) {
+            return visitChildren(ctx);
+        }
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override public String visitStatement(CppParser.StatementContext ctx) { return visitChildren(ctx); }
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override public String visitBlock(CppParser. BlockDeclarationContext ctx) {
+            return visitChildren(ctx);
+        }
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override public String visitStatementList(CppParser.StatementContext ctx) { return visitChildren(ctx); }
