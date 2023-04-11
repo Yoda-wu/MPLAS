@@ -64,6 +64,8 @@ public class ASNode {
         WITH        ("WITH"),
         CASEBLOCK   ("CASEBLOCK"),
         CASECLAUSES  ("CASECLAUSES"),
+
+
         //C++的相关关键字
         AUTO  ("AUTO"),
         BOOL  ("BOOL"),
@@ -80,13 +82,13 @@ public class ASNode {
         EXPLICIT  ("EXPLICIT"),
         INT  ("INT"),
         LONG  ("LONG"),
-        MUTABLE  ("MUTABLE"),
+
         NAMESPACE  ("NAMESPACE"),
         NEW  ("NEW"),
         OPERATOR  ("OPERATOR"),
         PRIVATE  ("PRIVATE"),
         EXPORT  ("EXPORT"),
-        EXTERN  ("EXTERN"),
+
         FALSE  ("FALSE"),
         FLOAT  ("FLOAT"),
         FRIEND  ("FRIEND"),
@@ -94,8 +96,22 @@ public class ASNode {
         INLINE  ("INLINE"),
         PRITECTED  ("PRITECTED"),
         PUBILC  ("PUBLIC"),
+
         REGISTER  ("REGISTER"),
+        STATIC("STATIC"),
+        THREAD_LOCAL("THREAD_LOCAL"),
+        EXTERN  ("EXTERN"),
+        MUTABLE  ("MUTABLE"),
+
         REINTERPRET_CAST  ("REINTERPRET_CAST"),
+        EXCEPT("EXCEPT"),
+        SPECIFIER("SPECIFIER"),
+        VIRTUAL_SPECIFIER("VIRTUAL_SPECIFIER"),
+        INITIALIZER("INITIALIZER"),
+        HANDLERSEQ("HANDLERSEQ"),
+        HANDLER("HANDLER"),
+
+        BALANCEDTOKENSEQ("BALANCEDTOKENSEQ"),
 
         ASM  ("ASM"),
         // ---------------------- RUBY ----------------------
