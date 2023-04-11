@@ -111,6 +111,8 @@ public class ASNode {
         HANDLERSEQ("HANDLERSEQ"),
         HANDLER("HANDLER"),
 
+        BALANCEDTOKENSEQ("BALANCEDTOKENSEQ"),
+
         ASM  ("ASM"),
         // ---------------------- RUBY ----------------------
         RUBY_EXPRESSION ("EXPRESSION"),

@@ -952,7 +952,7 @@ public class CppASTBuilder {
          */
         @Override public String visitBalancedTokenSeq(CppParser.BalancedTokenSeqContext ctx) {
             //balancedTokenSeq: balancedtoken+;
-            ASNode balancedTokenSeqNode = new ASNode(ASNode.Type.BalancedTokenSeq);
+            ASNode balancedTokenSeqNode = new ASNode(ASNode.Type.BALANCEDTOKENSEQ);
             balancedTokenSeqNode.setLineOfCode(ctx.getStart().getLine());
             balancedTokenSeqNode.setCode(ctx.getText());
             AST.addVertex(balancedTokenSeqNode);
