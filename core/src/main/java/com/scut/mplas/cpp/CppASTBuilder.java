@@ -580,13 +580,11 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitStaticAssertDeclaration(CppParser.StaticAssertDeclarationContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+        @Override public String visitStaticAssertDeclaration(CppParser.StaticAssertDeclarationContext ctx)
+        //staticAssertDeclaration:
+        //Static_assert LeftParen constantExpression Comma StringLiteral RightParen Semi;
+        { return ctx.Static_assert().getText()+" "+ctx.LeftParen().getText()+" "+visit(ctx.constantExpression())+" "+ctx.Comma().getText()+" "+ctx.StringLiteral().getText()+" "+ctx. RightParen().getText()+" "+ctx. Semi().getText(); }
+
         @Override public String visitEmptyDeclaration(CppParser.EmptyDeclarationContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
@@ -594,13 +592,12 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitAttributeDeclaration(CppParser.AttributeDeclarationContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+        @Override public String visitAttributeDeclaration(CppParser.AttributeDeclarationContext ctx)
+        //attributeDeclaration: attributeSpecifierSeq Semi;
+        {
+            return visit(ctx.attributeSpecifierSeq())+" "+visit(ctx.Semi());
+        }
+
         @Override public String visitDeclSpecifier(CppParser.DeclSpecifierContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
@@ -819,13 +816,10 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitNamespaceAliasDefinition(CppParser.NamespaceAliasDefinitionContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+        @Override public String visitNamespaceAliasDefinition(CppParser.NamespaceAliasDefinitionContext ctx)
+        //namespaceAliasDefinition:Namespace Identifier Assign qualifiednamespacespecifier Semi;
+        { return ctx.Namespace().getText()+" "+ctx.Identifier().getText()+" "+ctx.Assign().getText()+" "+visit(ctx.qualifiednamespacespecifier())+" "+ctx.Semi().getText(); }
+
         @Override public String visitQualifiednamespacespecifier(CppParser.QualifiednamespacespecifierContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
@@ -1053,20 +1047,20 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitCvQualifier(CppParser.CvQualifierContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitRefqualifier(CppParser.RefqualifierContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+        @Override public String visitCvQualifier(CppParser.CvQualifierContext ctx)
+        //cvQualifier: Const | Volatile;
+        { if (ctx.Const()!=null){
+            return ctx.Const().getText();
+        }
+            return ctx.Volatile().getText(); }
+
+        @Override public String visitRefqualifier(CppParser.RefqualifierContext ctx)
+       //refqualifier: And | AndAnd;
+        { if (ctx.And()!=null){
+            return ctx.And().getText();
+        }
+            return ctx.AndAnd().getText(); }
+
         @Override public String visitDeclaratorid(CppParser.DeclaratoridContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
