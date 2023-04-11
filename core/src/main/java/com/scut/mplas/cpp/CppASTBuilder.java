@@ -1481,7 +1481,11 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitHandler(CppParser.HandlerContext ctx) { return visitChildren(ctx); }
+        @Override public String visitHandler(CppParser.HandlerContext ctx)
+        //Catch LeftParen exceptionDeclaration RightParen compoundStatement;
+        { 
+            return ctx.Catch().getText()+" "+ctx.LeftParen().getText()+" "+visit(ctx.exceptionDeclaration())+" "+ctx.RightParen().getText()+" "+visit(ctx.compoundStatement());
+        }
         /**
          * {@inheritDoc}
          *
@@ -1523,7 +1527,14 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitNoeExceptSpecification(CppParser.NoeExceptSpecificationContext ctx) { return visitChildren(ctx); }
+        @Override public String visitNoeExceptSpecification(CppParser.NoeExceptSpecificationContext ctx)
+        //Noexcept LeftParen constantExpression RightParen| Noexcept;
+        {
+            if(ctx.Noexcept()!=null){
+                return ctx.Noexcept().getText();
+            }
+            return ctx.Noexcept().getText()+" "+ctx.LeftParen().getText()+" "+visit(ctx.constantExpression())+" "+ctx.RightParen().getText();
+        }
         /**
          * {@inheritDoc}
          *
@@ -1537,7 +1548,23 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitLiteral(CppParser.LiteralContext ctx) { return visitChildren(ctx); }
+        @Override public String visitLiteral(CppParser.LiteralContext ctx)
+        {
+            if (ctx.IntegerLiteral() != null) {
+                return ctx.IntegerLiteral().getText();
+            } else if (ctx.CharacterLiteral() != null)
+            {return ctx.CharacterLiteral().getText();}
+            else if (ctx.FloatingLiteral() != null) {
+                return ctx.FloatingLiteral().getText();
+            } else if (ctx.StringLiteral() != null) {
+                return ctx.StringLiteral().getText();
+            } else if (ctx.BooleanLiteral() != null) {
+                return ctx.BooleanLiteral().getText();
+            } else if (ctx.PointerLiteral() != null) {
+                return ctx.PointerLiteral().getText();
+            }
+            return ctx.UserDefinedLiteral().getText();
+        }
 
 
 
