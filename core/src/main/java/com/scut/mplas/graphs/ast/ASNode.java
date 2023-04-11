@@ -100,9 +100,12 @@ public class ASNode {
         ASM  ("ASM"),
         // ---------------------- RUBY ----------------------
         RUBY_EXPRESSION ("EXPRESSION"),
-        RUBY_TERMINATOR("terminator"),
-        RUBY_FUNCTION_DEF("function_definition"),
-        RUBY_FUNCTION_INLINE("function_inline_call"),
+        RUBY_TERMINATOR("TERMINATOR"),
+        RUBY_FUNCTION("FUNCTION"),
+        RUBY_FUNCTION_DEF("FUNCTION_DEF"),
+        RUBY_FUNCTION_CALL("FUNCTION_CALL"),
+        RUBY_VAR("VAR"),
+        RUBY_FUNCTION_END("FUNCTION_END"),
         RUBY_REQUIRE_BLOCK("require_block"),
         RUBY_PIR_INLINE("pir_inline"),
         RUBY_RVALUE("rvalue"),
@@ -110,6 +113,7 @@ public class ASNode {
         RUBY_GLOBAL_SET("global_set"),
         RUBY_GLOBAL_RESULT("global_result"),
         RUBY_GLOBAL_ID("global_id")
+
 
         ;
         public final String label;

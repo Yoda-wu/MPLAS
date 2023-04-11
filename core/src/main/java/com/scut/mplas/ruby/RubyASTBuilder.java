@@ -107,7 +107,7 @@ public class RubyASTBuilder {
             //           | pir_inline
             //           ;
             if (ctx.function_definition() != null) {
-                ASNode funcDefNode = new ASNode(ASNode.Type.RUBY_FUNCTION_DEF);
+                ASNode funcDefNode = new ASNode(ASNode.Type.RUBY_FUNCTION);
                 funcDefNode.setLineOfCode(ctx.function_definition().getStart().getLine());
                 AST.addVertex(funcDefNode);
                 AST.addEdge(parentStack.peek(), funcDefNode);
@@ -115,21 +115,23 @@ public class RubyASTBuilder {
                 visit(ctx.function_definition());
                 parentStack.pop();
             } else if (ctx.function_inline_call() != null) {
-                ASNode funcInlineCallNode = new ASNode(ASNode.Type.RUBY_FUNCTION_INLINE);
+                ASNode funcInlineCallNode = new ASNode(ASNode.Type.RUBY_FUNCTION_CALL);
                 funcInlineCallNode.setLineOfCode(ctx.function_definition().getStart().getLine());
+                funcInlineCallNode.setCode(visit(ctx.function_inline_call()));
                 AST.addVertex(funcInlineCallNode);
                 AST.addEdge(parentStack.peek(), funcInlineCallNode);
-                parentStack.push(funcInlineCallNode);
-                visit(ctx.function_inline_call());
-                parentStack.pop();
+//                parentStack.push(funcInlineCallNode);
+//                visit(ctx.function_inline_call());
+//                parentStack.pop();
             } else if (ctx.require_block() != null) {
                 ASNode requireBlockNode = new ASNode(ASNode.Type.RUBY_REQUIRE_BLOCK);
                 requireBlockNode.setLineOfCode(ctx.require_block().getStart().getLine());
+                requireBlockNode.setCode(visitRequire_block(ctx.require_block()));
                 AST.addVertex(requireBlockNode);
                 AST.addEdge(parentStack.peek(), requireBlockNode);
-                parentStack.push(requireBlockNode);
-                visit(ctx.function_inline_call());
-                parentStack.pop();
+//                parentStack.push(requireBlockNode);
+//                visit(ctx.function_inline_call());
+//                parentStack.pop();
             } else if (ctx.pir_inline() != null) {
                 ASNode pirNode = new ASNode(ASNode.Type.RUBY_PIR_INLINE);
                 pirNode.setLineOfCode(ctx.pir_inline().getStart().getLine());
@@ -186,12 +188,13 @@ public class RubyASTBuilder {
 
         @Override
         public String visitFunction_inline_call(RubyParser.Function_inline_callContext ctx) {
-            return super.visitFunction_inline_call(ctx);
+            return visitFunction_call(ctx.function_call());
         }
 
         @Override
         public String visitRequire_block(RubyParser.Require_blockContext ctx) {
-            return super.visitRequire_block(ctx);
+
+            return ctx.REQUIRE().getText() + ctx.literal_t().LITERAL().getText();
         }
 
         @Override
@@ -206,37 +209,79 @@ public class RubyASTBuilder {
 
         @Override
         public String visitFunction_definition(RubyParser.Function_definitionContext ctx) {
-            return super.visitFunction_definition(ctx);
+            visit(ctx.function_definition_header());
+            visit(ctx.function_definition_body());
+            ASNode funcEND = new ASNode(ASNode.Type.RUBY_FUNCTION_END);
+            funcEND.setLineOfCode(ctx.getStart().getLine());
+            funcEND.setCode("END");
+            AST.addVertex(funcEND);
+            AST.addEdge(parentStack.peek(), funcEND);
+            return "";
         }
 
         @Override
         public String visitFunction_definition_body(RubyParser.Function_definition_bodyContext ctx) {
-            return super.visitFunction_definition_body(ctx);
+            return visit(ctx.expression_list());
         }
 
         @Override
         public String visitFunction_definition_header(RubyParser.Function_definition_headerContext ctx) {
-            return super.visitFunction_definition_header(ctx);
+            ++methodsCounter;
+            ASNode funcDEF = new ASNode(ASNode.Type.RUBY_FUNCTION_DEF);
+            funcDEF.setLineOfCode(ctx.getStart().getLine());
+            funcDEF.setCode("DEF");
+            AST.addVertex(funcDEF);
+            AST.addEdge(parentStack.peek(), funcDEF);
+
+            ASNode funcName = new ASNode(ASNode.Type.NAME);
+            funcName.setCode(visitFunction_name(ctx.function_name()));
+            funcName.setLineOfCode(ctx.function_name().getStart().getLine());
+            String normalized = "$FUNC_"+methodsCounter;
+            funcName.setNormalizedCode(normalized);
+            methods.put(funcName.getCode(), normalized);
+            AST.addVertex(funcName);
+            AST.addEdge(parentStack.peek(),funcName);
+
+            if(ctx.function_definition_params()!= null ){
+                visit(ctx.function_definition_params());
+            }
+            return "";
         }
 
         @Override
         public String visitFunction_name(RubyParser.Function_nameContext ctx) {
-            return super.visitFunction_name(ctx);
+            if(ctx.id_function() != null){
+                return ctx.id_function().getText();
+            }
+            return ctx.id_().getText();
         }
 
         @Override
         public String visitFunction_definition_params(RubyParser.Function_definition_paramsContext ctx) {
-            return super.visitFunction_definition_params(ctx);
+            if(ctx.function_definition_params_list() != null ){
+                visit(ctx.function_definition_params_list());
+            }
+            return "";
         }
 
         @Override
         public String visitFunction_definition_params_list(RubyParser.Function_definition_params_listContext ctx) {
-            return super.visitFunction_definition_params_list(ctx);
+            ++varsCounter;
+            String id = visitFunction_definition_param_id(ctx.function_definition_param_id());
+            String normalized = "$VARL_"+varsCounter;
+            vars.put(id, normalized);
+            ASNode param = new ASNode(ASNode.Type.RUBY_VAR);
+            param.setLineOfCode(ctx.function_definition_param_id().getStart().getLine());
+            param.setCode(id);
+            param.setNormalizedCode(normalized);
+            AST.addVertex(param);
+            AST.addEdge(parentStack.peek(), param);
+            return "";
         }
 
         @Override
         public String visitFunction_definition_param_id(RubyParser.Function_definition_param_idContext ctx) {
-            return super.visitFunction_definition_param_id(ctx);
+            return ctx.id_().getText();
         }
 
         @Override
@@ -246,17 +291,21 @@ public class RubyASTBuilder {
 
         @Override
         public String visitFunction_call(RubyParser.Function_callContext ctx) {
-            return super.visitFunction_call(ctx);
+            return visitFunction_name(ctx.function_name())+'(' + visitFunction_call_param_list(ctx.function_call_param_list()) + ')';
         }
 
         @Override
         public String visitFunction_call_param_list(RubyParser.Function_call_param_listContext ctx) {
-            return super.visitFunction_call_param_list(ctx);
+            return visit(ctx.function_call_params());
         }
 
         @Override
         public String visitFunction_call_params(RubyParser.Function_call_paramsContext ctx) {
-            return super.visitFunction_call_params(ctx);
+            if(ctx.function_param() != null ){
+                return visit(ctx.function_param());
+            }
+
+            return visit(ctx.function_call_params()) + ',' + visit(ctx.function_param());
         }
 
         @Override
