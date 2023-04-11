@@ -6,6 +6,7 @@ import com.scut.mplas.graphs.ast.AbstractSyntaxTree;
 import com.scut.mplas.cpp.parser.CppBaseVisitor;
 import com.scut.mplas.cpp.parser.CppLexer;
 import com.scut.mplas.cpp.parser.CppParser;
+import com.scut.mplas.javascript.parser.JavaScriptParser;
 import ghaffarian.nanologger.Logger;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -501,13 +502,16 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitForInitStatement(CppParser.ForInitStatementContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+        @Override public String visitForInitStatement(CppParser.ForInitStatementContext ctx)
+        //forInitStatement: expressionStatement | simpleDeclaration;
+        {
+                if (ctx.expressionStatement() != null) {
+                    return ctx.expressionStatement().getText();
+                } else
+                    return ctx.simpleDeclaration().getText();
+        }
+
+
         @Override public String visitForRangeDeclaration(CppParser.ForRangeDeclarationContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
@@ -515,13 +519,14 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitForRangeInitializer(CppParser.ForRangeInitializerContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+        @Override public String visitForRangeInitializer(CppParser.ForRangeInitializerContext ctx)
+        //forRangeInitializer: expression | bracedInitList;
+        {
+            if (ctx.expression() != null) {
+                return ctx.expression().getText();
+            } else
+                return ctx.bracedInitList().getText();
+        }
         @Override public String visitJumpStatement(CppParser.JumpStatementContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
@@ -757,7 +762,9 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitEnumerator(CppParser.EnumeratorContext ctx) { return visitChildren(ctx); }
+        @Override public String visitEnumerator(CppParser.EnumeratorContext ctx)
+        //enumerator: Identifier;
+        { return visit(ctx.Identifier()); }
         /**
          * {@inheritDoc}
          *
@@ -840,7 +847,8 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitAsmDefinition(CppParser.AsmDefinitionContext ctx) { return visitChildren(ctx); }
+        @Override public String visitAsmDefinition(CppParser.AsmDefinitionContext ctx) {
+            return visitChildren(ctx); }
         /**
          * {@inheritDoc}
          *
@@ -903,14 +911,79 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitBalancedTokenSeq(CppParser.BalancedTokenSeqContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitBalancedtoken(CppParser.BalancedtokenContext ctx) { return visitChildren(ctx); }
+        @Override public String visitBalancedTokenSeq(CppParser.BalancedTokenSeqContext ctx) {
+            //balancedTokenSeq: balancedtoken+;
+            ASNode balancedTokenSeqNode = new ASNode(ASNode.Type.BalancedTokenSeq);
+            balancedTokenSeqNode.setLineOfCode(ctx.getStart().getLine());
+            balancedTokenSeqNode.setCode(ctx.getText());
+            AST.addVertex(balancedTokenSeqNode);
+            AST.addEdge(parentStack.peek(), balancedTokenSeqNode);
+            parentStack.push(balancedTokenSeqNode);
+            for (CppParser.BalancedtokenContext balancedContext : ctx.balancedtoken()) {
+
+                visitBalancedtoken(balancedContext);
+            }
+            parentStack.pop();
+            return "";
+
+
+      //todo
+      //private void visitBalancedToken(ASNode visitBalancedTokenSeqNode, List<CppParser.BalancedtokenContext> BalancedTokenSeq)
+       //{
+           /*
+           balancedtoken:
+            LeftParen balancedTokenSeq RightParen
+                    | LeftBracket balancedTokenSeq RightBracket
+	                | LeftBrace balancedTokenSeq RightBrace
+                    | ~(
+                    LeftParen
+                            | RightParen
+                            | LeftBrace
+                            | RightBrace
+                            | LeftBracket
+                            | RightBracket )+;
+       */
+                   //for (CppParser.BalancedtokenContext balancedToken : BalancedTokenSeq) {
+
+                    //}
+
+
+                //}
+            }
+        @Override public String visitBalancedtoken(CppParser.BalancedtokenContext ctx) {/*
+            balancedtoken:
+            LeftParen balancedTokenSeq RightParen
+                    | LeftBracket balancedTokenSeq RightBracket
+	                | LeftBrace balancedTokenSeq RightBrace
+                    | ~(
+                    LeftParen
+                            | RightParen
+                            | LeftBrace
+                            | RightBrace
+                            | LeftBracket
+                            | RightBracket
+            )+;
+            */
+            if (ctx.LeftParen() != null) {
+                return ctx.LeftParen() + " " + visit(ctx.balancedTokenSeq()) + " " + ctx.RightParen();
+            } else if (ctx.LeftBracket() != null) {
+                return ctx.LeftBracket() + " " + visit(ctx.balancedTokenSeq()) + " " + ctx.RightParen();
+            } else if (ctx.LeftBrace() != null) {
+                return ctx.LeftBrace() + " " + visit(ctx.balancedTokenSeq()) + " " + ctx.RightBrace();
+
+            /*todo
+           ~(
+                    LeftParen
+                            | RightParen
+                            | LeftBrace
+                            | RightBrace
+                            | LeftBracket
+                            | RightBracket
+            )+;*/
+            }
+            return"";
+        }
+
         /**
          * {@inheritDoc}
          *
@@ -1474,5 +1547,23 @@ public class CppASTBuilder {
 
 
 
+//=====================================================================//
+//                          PRIVATE METHODS                            //
+//=====================================================================//
+
+        /**
+         * Get the original program text for the given parser-rule context.
+         * This is required for preserving white-spaces.
+         */
+        private String getOriginalCodeText(ParserRuleContext ctx) {
+            if (ctx == null)
+                return "";
+            int start = ctx.start.getStartIndex();
+            int stop = ctx.stop.getStopIndex();
+            Interval interval = new Interval(start, stop);
+            return ctx.start.getInputStream().getText(interval);
+        }
+
     }
 }
+
