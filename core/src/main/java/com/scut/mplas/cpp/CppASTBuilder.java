@@ -531,13 +531,16 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitForInitStatement(CppParser.ForInitStatementContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+        @Override public String visitForInitStatement(CppParser.ForInitStatementContext ctx)
+        //forInitStatement: expressionStatement | simpleDeclaration;
+        {
+                if (ctx.expressionStatement() != null) {
+                    return ctx.expressionStatement().getText();
+                } else
+                    return ctx.simpleDeclaration().getText();
+        }
+
+
         @Override public String visitForRangeDeclaration(CppParser.ForRangeDeclarationContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
@@ -545,13 +548,14 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitForRangeInitializer(CppParser.ForRangeInitializerContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+        @Override public String visitForRangeInitializer(CppParser.ForRangeInitializerContext ctx)
+        //forRangeInitializer: expression | bracedInitList;
+        {
+            if (ctx.expression() != null) {
+                return ctx.expression().getText();
+            } else
+                return ctx.bracedInitList().getText();
+        }
         @Override public String visitJumpStatement(CppParser.JumpStatementContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
@@ -607,13 +611,11 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitStaticAssertDeclaration(CppParser.StaticAssertDeclarationContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+        @Override public String visitStaticAssertDeclaration(CppParser.StaticAssertDeclarationContext ctx)
+        //staticAssertDeclaration:
+        //Static_assert LeftParen constantExpression Comma StringLiteral RightParen Semi;
+        { return ctx.Static_assert().getText()+" "+ctx.LeftParen().getText()+" "+visit(ctx.constantExpression())+" "+ctx.Comma().getText()+" "+ctx.StringLiteral().getText()+" "+ctx. RightParen().getText()+" "+ctx. Semi().getText(); }
+
         @Override public String visitEmptyDeclaration(CppParser.EmptyDeclarationContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
@@ -621,13 +623,12 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitAttributeDeclaration(CppParser.AttributeDeclarationContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+        @Override public String visitAttributeDeclaration(CppParser.AttributeDeclarationContext ctx)
+        //attributeDeclaration: attributeSpecifierSeq Semi;
+        {
+            return visit(ctx.attributeSpecifierSeq())+" "+visit(ctx.Semi());
+        }
+
         @Override public String visitDeclSpecifier(CppParser.DeclSpecifierContext ctx) { return visitChildren(ctx); }
 
         @Override public String visitDeclSpecifierSeq(CppParser.DeclSpecifierSeqContext ctx) {
@@ -861,13 +862,10 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitNamespaceAliasDefinition(CppParser.NamespaceAliasDefinitionContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+        @Override public String visitNamespaceAliasDefinition(CppParser.NamespaceAliasDefinitionContext ctx)
+        //namespaceAliasDefinition:Namespace Identifier Assign qualifiednamespacespecifier Semi;
+        { return ctx.Namespace().getText()+" "+ctx.Identifier().getText()+" "+ctx.Assign().getText()+" "+visit(ctx.qualifiednamespacespecifier())+" "+ctx.Semi().getText(); }
+
         @Override public String visitQualifiednamespacespecifier(CppParser.QualifiednamespacespecifierContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
@@ -897,8 +895,13 @@ public class CppASTBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitLinkageSpecification(CppParser.LinkageSpecificationContext ctx) { return visitChildren(ctx); }
-
-        @Override public String visitAttributeSpecifierSeq(CppParser.AttributeSpecifierSeqContext ctx) {return visitChildren(ctx);}
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override public String visitAttributeSpecifierSeq(CppParser.AttributeSpecifierSeqContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
          *
@@ -947,14 +950,79 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitBalancedTokenSeq(CppParser.BalancedTokenSeqContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitBalancedtoken(CppParser.BalancedtokenContext ctx) { return visitChildren(ctx); }
+        @Override public String visitBalancedTokenSeq(CppParser.BalancedTokenSeqContext ctx) {
+            //balancedTokenSeq: balancedtoken+;
+            ASNode balancedTokenSeqNode = new ASNode(ASNode.Type.BalancedTokenSeq);
+            balancedTokenSeqNode.setLineOfCode(ctx.getStart().getLine());
+            balancedTokenSeqNode.setCode(ctx.getText());
+            AST.addVertex(balancedTokenSeqNode);
+            AST.addEdge(parentStack.peek(), balancedTokenSeqNode);
+            parentStack.push(balancedTokenSeqNode);
+            for (CppParser.BalancedtokenContext balancedContext : ctx.balancedtoken()) {
+
+                visitBalancedtoken(balancedContext);
+            }
+            parentStack.pop();
+            return "";
+
+
+      //todo
+      //private void visitBalancedToken(ASNode visitBalancedTokenSeqNode, List<CppParser.BalancedtokenContext> BalancedTokenSeq)
+       //{
+           /*
+           balancedtoken:
+            LeftParen balancedTokenSeq RightParen
+                    | LeftBracket balancedTokenSeq RightBracket
+	                | LeftBrace balancedTokenSeq RightBrace
+                    | ~(
+                    LeftParen
+                            | RightParen
+                            | LeftBrace
+                            | RightBrace
+                            | LeftBracket
+                            | RightBracket )+;
+       */
+                   //for (CppParser.BalancedtokenContext balancedToken : BalancedTokenSeq) {
+
+                    //}
+
+
+                //}
+            }
+        @Override public String visitBalancedtoken(CppParser.BalancedtokenContext ctx) {/*
+            balancedtoken:
+            LeftParen balancedTokenSeq RightParen
+                    | LeftBracket balancedTokenSeq RightBracket
+	                | LeftBrace balancedTokenSeq RightBrace
+                    | ~(
+                    LeftParen
+                            | RightParen
+                            | LeftBrace
+                            | RightBrace
+                            | LeftBracket
+                            | RightBracket
+            )+;
+            */
+            if (ctx.LeftParen() != null) {
+                return ctx.LeftParen() + " " + visit(ctx.balancedTokenSeq()) + " " + ctx.RightParen();
+            } else if (ctx.LeftBracket() != null) {
+                return ctx.LeftBracket() + " " + visit(ctx.balancedTokenSeq()) + " " + ctx.RightParen();
+            } else if (ctx.LeftBrace() != null) {
+                return ctx.LeftBrace() + " " + visit(ctx.balancedTokenSeq()) + " " + ctx.RightBrace();
+
+            /*todo
+           ~(
+                    LeftParen
+                            | RightParen
+                            | LeftBrace
+                            | RightBrace
+                            | LeftBracket
+                            | RightBracket
+            )+;*/
+            }
+            return"";
+        }
+
         /**
          * {@inheritDoc}
          *
@@ -969,12 +1037,13 @@ public class CppASTBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitInitDeclarator(CppParser.InitDeclaratorContext ctx) { return visitChildren(ctx); }
-
-
-        @Override public String visitDeclarator(CppParser.DeclaratorContext ctx) {
-
-            return visitChildren(ctx);
-        }
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override public String visitDeclarator(CppParser.DeclaratorContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
          *
@@ -1705,7 +1774,14 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitNoeExceptSpecification(CppParser.NoeExceptSpecificationContext ctx) { return visitChildren(ctx); }
+        @Override public String visitNoeExceptSpecification(CppParser.NoeExceptSpecificationContext ctx)
+        //Noexcept LeftParen constantExpression RightParen| Noexcept;
+        {
+            if(ctx.Noexcept()!=null){
+                return ctx.Noexcept().getText();
+            }
+            return ctx.Noexcept().getText()+" "+ctx.LeftParen().getText()+" "+visit(ctx.constantExpression())+" "+ctx.RightParen().getText();
+        }
         /**
          * {@inheritDoc}
          *
@@ -1719,7 +1795,24 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitLiteral(CppParser.LiteralContext ctx) { return visitChildren(ctx); }
+        @Override public String visitLiteral(CppParser.LiteralContext ctx)
+        {
+            if (ctx.IntegerLiteral() != null) {
+                return ctx.IntegerLiteral().getText();
+            } else if (ctx.CharacterLiteral() != null)
+            {return ctx.CharacterLiteral().getText();}
+            else if (ctx.FloatingLiteral() != null) {
+                return ctx.FloatingLiteral().getText();
+            } else if (ctx.StringLiteral() != null) {
+                return ctx.StringLiteral().getText();
+            } else if (ctx.BooleanLiteral() != null) {
+                return ctx.BooleanLiteral().getText();
+            } else if (ctx.PointerLiteral() != null) {
+                return ctx.PointerLiteral().getText();
+            }
+            return ctx.UserDefinedLiteral().getText();
+        }
+
 
 
         //=====================================================================//
