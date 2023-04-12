@@ -170,7 +170,7 @@ public class RubyASTBuilder {
         public String visitGlobal_set(RubyParser.Global_setContext ctx) {
             ASNode globalSet = new ASNode(ASNode.Type.RUBY_GLOBAL_GET);
             globalSet.setLineOfCode(ctx.getStart().getLine());
-            globalSet.setCode(ctx.global_name.getText()  + ctx.op.getInputStream().toString() +visitAll_result(ctx.all_result()));
+            globalSet.setCode(ctx.global_name.getText() + ctx.op.getInputStream().toString() + visitAll_result(ctx.all_result()));
             AST.addVertex(globalSet);
             AST.addEdge(parentStack.peek(), globalSet);
             return globalSet.getCode();
@@ -209,6 +209,7 @@ public class RubyASTBuilder {
 
         @Override
         public String visitFunction_definition(RubyParser.Function_definitionContext ctx) {
+            // function_definition : function_definition_header function_definition_body END;
             visit(ctx.function_definition_header());
             visit(ctx.function_definition_body());
             ASNode funcEND = new ASNode(ASNode.Type.RUBY_FUNCTION_END);
@@ -221,11 +222,23 @@ public class RubyASTBuilder {
 
         @Override
         public String visitFunction_definition_body(RubyParser.Function_definition_bodyContext ctx) {
-            return visit(ctx.expression_list());
+            // function_definition_body : expression_list;
+            ASNode funcBody = new ASNode(ASNode.Type.BLOCK);
+            funcBody.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(funcBody);
+            AST.addEdge(parentStack.peek(), funcBody);
+            parentStack.push(funcBody);
+            visit(ctx.expression_list());
+            parentStack.pop();
+            resetLocalVars();
+            return "";
         }
 
         @Override
         public String visitFunction_definition_header(RubyParser.Function_definition_headerContext ctx) {
+            // function_definition_header : DEF function_name crlf
+            //                           | DEF function_name function_definition_params crlf
+            //                           ;
             ++methodsCounter;
             ASNode funcDEF = new ASNode(ASNode.Type.RUBY_FUNCTION_DEF);
             funcDEF.setLineOfCode(ctx.getStart().getLine());
@@ -236,13 +249,13 @@ public class RubyASTBuilder {
             ASNode funcName = new ASNode(ASNode.Type.NAME);
             funcName.setCode(visitFunction_name(ctx.function_name()));
             funcName.setLineOfCode(ctx.function_name().getStart().getLine());
-            String normalized = "$FUNC_"+methodsCounter;
+            String normalized = "$FUNC_" + methodsCounter;
             funcName.setNormalizedCode(normalized);
             methods.put(funcName.getCode(), normalized);
             AST.addVertex(funcName);
-            AST.addEdge(parentStack.peek(),funcName);
+            AST.addEdge(parentStack.peek(), funcName);
 
-            if(ctx.function_definition_params()!= null ){
+            if (ctx.function_definition_params() != null) {
                 visit(ctx.function_definition_params());
             }
             return "";
@@ -250,7 +263,10 @@ public class RubyASTBuilder {
 
         @Override
         public String visitFunction_name(RubyParser.Function_nameContext ctx) {
-            if(ctx.id_function() != null){
+            // function_name : id_function
+            //              | id_
+            //              ;
+            if (ctx.id_function() != null) {
                 return ctx.id_function().getText();
             }
             return ctx.id_().getText();
@@ -258,7 +274,7 @@ public class RubyASTBuilder {
 
         @Override
         public String visitFunction_definition_params(RubyParser.Function_definition_paramsContext ctx) {
-            if(ctx.function_definition_params_list() != null ){
+            if (ctx.function_definition_params_list() != null) {
                 visit(ctx.function_definition_params_list());
             }
             return "";
@@ -266,9 +282,13 @@ public class RubyASTBuilder {
 
         @Override
         public String visitFunction_definition_params_list(RubyParser.Function_definition_params_listContext ctx) {
+            // function_definition_params_list : function_definition_param_id
+            //                                | function_definition_params_list COMMA function_definition_param_id
+            //                                ;
+            // function_definition_param_id : id_;
             ++varsCounter;
             String id = visitFunction_definition_param_id(ctx.function_definition_param_id());
-            String normalized = "$VARL_"+varsCounter;
+            String normalized = "$VARL_" + varsCounter;
             vars.put(id, normalized);
             ASNode param = new ASNode(ASNode.Type.RUBY_VAR);
             param.setLineOfCode(ctx.function_definition_param_id().getStart().getLine());
@@ -286,12 +306,24 @@ public class RubyASTBuilder {
 
         @Override
         public String visitReturn_statement(RubyParser.Return_statementContext ctx) {
-            return super.visitReturn_statement(ctx);
+            ASNode returnNode = new ASNode(ASNode.Type.RETURN);
+            returnNode.setLineOfCode(ctx.start.getLine());
+            AST.addVertex(returnNode);
+            AST.addEdge(parentStack.peek(), returnNode);
+
+            ASNode result = new ASNode(ASNode.Type.RUBY_RESULT);
+            result.setLineOfCode(ctx.all_result().start.getLine());
+            String normalize = visitAll_result(ctx.all_result());
+            result.setCode(normalize);
+            result.setNormalizedCode(normalize);
+            AST.addVertex(result);
+            AST.addEdge(parentStack.peek(), result);
+            return "";
         }
 
         @Override
         public String visitFunction_call(RubyParser.Function_callContext ctx) {
-            return visitFunction_name(ctx.function_name())+'(' + visitFunction_call_param_list(ctx.function_call_param_list()) + ')';
+            return visitFunction_name(ctx.function_name()) + '(' + visitFunction_call_param_list(ctx.function_call_param_list()) + ')';
         }
 
         @Override
@@ -301,7 +333,7 @@ public class RubyASTBuilder {
 
         @Override
         public String visitFunction_call_params(RubyParser.Function_call_paramsContext ctx) {
-            if(ctx.function_param() != null ){
+            if (ctx.function_param() != null) {
                 return visit(ctx.function_param());
             }
 
@@ -330,7 +362,17 @@ public class RubyASTBuilder {
 
         @Override
         public String visitAll_result(RubyParser.All_resultContext ctx) {
-            return super.visitAll_result(ctx);
+            if(ctx.int_result() != null ){
+                return visit(ctx.int_result());
+            }else if (ctx.float_result() != null ){
+                return  visit(ctx.float_result());
+            }else if(ctx.string_result() != null ){
+                return visit(ctx.string_result());
+            }else if(ctx.dynamic_result() != null ){
+                return visit(ctx.dynamic_result());
+            }else {
+                return visit(ctx.global_result());
+            }
         }
 
 
@@ -347,7 +389,7 @@ public class RubyASTBuilder {
 
         @Override
         public String visitElsif_statement(RubyParser.Elsif_statementContext ctx) {
-            return super.visitElsif_statement(ctx);
+            return visit(ctx.if_elsif_statement());
         }
 
         @Override
@@ -357,7 +399,48 @@ public class RubyASTBuilder {
 
         @Override
         public String visitIf_statement(RubyParser.If_statementContext ctx) {
-            return super.visitIf_statement(ctx);
+            ASNode ifNode = new ASNode(ASNode.Type.IF);
+            ifNode.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(ifNode);
+            AST.addEdge(parentStack.peek(), ifNode);
+
+            ASNode condNode = new ASNode(ASNode.Type.CONDITION);
+            condNode.setLineOfCode(ctx.cond_expression().getStart().getLine());
+            condNode.setCode(getOriginalCodeText(ctx.cond_expression().comparison_list()));
+            condNode.setNormalizedCode(visit(ctx.cond_expression().comparison_list()));
+            AST.addVertex(condNode);
+            AST.addEdge(parentStack.peek(), condNode);
+
+
+            ASNode thenNode = new ASNode(ASNode.Type.THEN);
+            thenNode.setLineOfCode(ctx.statement_body(0).getStart().getLine());
+            AST.addVertex(thenNode);
+            AST.addEdge(parentStack.peek(), thenNode);
+            parentStack.push(thenNode);
+            visit(ctx.statement_body(0));
+            parentStack.pop();
+
+            if(ctx.else_token() != null ){
+                ASNode elseNode = new ASNode(ASNode.Type.ELSE);
+                elseNode.setLineOfCode(ctx.statement_body(1).getStart().getLine());
+                AST.addVertex(elseNode);
+                AST.addEdge(parentStack.peek(), elseNode);
+                parentStack.push(elseNode);
+                visit(ctx.statement_body(1));
+                parentStack.pop();
+            }
+            if(ctx.elsif_statement() != null ){
+                ASNode elsifNode = new ASNode(ASNode.Type.RUBY_ELSEIF);
+                elsifNode.setLineOfCode( ctx.elsif_statement().getStart().getLine());
+                AST.addVertex(elsifNode);
+                AST.addEdge(parentStack.peek(), elsifNode);
+                parentStack.push(elsifNode);
+                visit(ctx.elsif_statement());
+                parentStack.pop();
+            }
+
+
+            return "";
         }
 
         @Override
@@ -407,12 +490,21 @@ public class RubyASTBuilder {
 
         @Override
         public String visitStatement_body(RubyParser.Statement_bodyContext ctx) {
-            return super.visitStatement_body(ctx);
+            return visit(ctx.statement_expression_list());
         }
 
         @Override
         public String visitStatement_expression_list(RubyParser.Statement_expression_listContext ctx) {
-            return super.visitStatement_expression_list(ctx);
+            if(ctx.RETRY() != null ){
+                ASNode retryNode = new ASNode(ASNode.Type.RUBY_RETRY);
+                retryNode.setLineOfCode(ctx.getStart().getLine());
+                retryNode.setCode(retryNode.getType().label);
+                AST.addVertex(retryNode);
+                AST.addEdge(parentStack.peek(), retryNode);
+            }else if (ctx.expression() != null ){
+                visit(ctx.expression());
+            }
+            return visit(ctx.statement_expression_list());
         }
 
         @Override
@@ -467,7 +559,7 @@ public class RubyASTBuilder {
 
         @Override
         public String visitDynamic_result(RubyParser.Dynamic_resultContext ctx) {
-            return super.visitDynamic_result(ctx);
+            return getOriginalCodeText(ctx);
         }
 
         @Override
@@ -477,27 +569,32 @@ public class RubyASTBuilder {
 
         @Override
         public String visitInt_result(RubyParser.Int_resultContext ctx) {
-            return super.visitInt_result(ctx);
+
+            return getOriginalCodeText(ctx);
         }
 
         @Override
         public String visitFloat_result(RubyParser.Float_resultContext ctx) {
-            return super.visitFloat_result(ctx);
+            return getOriginalCodeText(ctx);
         }
 
         @Override
         public String visitString_result(RubyParser.String_resultContext ctx) {
-            return super.visitString_result(ctx);
+            return getOriginalCodeText(ctx);
         }
 
         @Override
         public String visitComparison_list(RubyParser.Comparison_listContext ctx) {
-            return super.visitComparison_list(ctx);
+
+            if(ctx.LEFT_RBRACKET() != null && ctx.RIGHT_RBRACKET() != null ) {
+                return '(' + visit(ctx.comparison_list()) + ')';
+            }
+            return visit(ctx.comparison()) + ctx.op.getInputStream().toString() + visit(ctx.comparison_list());
         }
 
         @Override
         public String visitComparison(RubyParser.ComparisonContext ctx) {
-            return super.visitComparison(ctx);
+            return ctx.left.getText() + ctx.op.getInputStream().toString() + ctx.right.getText();
         }
 
         @Override

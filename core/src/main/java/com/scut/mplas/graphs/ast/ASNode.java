@@ -106,12 +106,16 @@ public class ASNode {
         RUBY_FUNCTION_CALL("FUNCTION_CALL"),
         RUBY_VAR("VAR"),
         RUBY_FUNCTION_END("FUNCTION_END"),
-        RUBY_REQUIRE_BLOCK("require_block"),
+        RUBY_REQUIRE_BLOCK("REQUIRE_BLOCK"),
         RUBY_PIR_INLINE("pir_inline"),
-        RUBY_RVALUE("rvalue"),
+        RUBY_RVALUE("RVALUE"),
+
         RUBY_GLOBAL_GET("global_get"),
         RUBY_GLOBAL_SET("global_set"),
-        RUBY_GLOBAL_RESULT("global_result"),
+        RUBY_GLOBAL_RESULT("GLOBAL_RESULT"),
+        RUBY_RESULT("RESULT"),
+        RUBY_RETRY("RETRY"),
+        RUBY_ELSEIF("ELSIF"),
         RUBY_GLOBAL_ID("global_id")
 
 
