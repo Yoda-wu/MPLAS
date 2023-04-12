@@ -112,6 +112,7 @@ public class ASNode {
         HANDLER("HANDLER"),
 
         BALANCEDTOKENSEQ("BALANCEDTOKENSEQ"),
+        FORINITSTATEMENT("FORINITSTATEMENT"),
 
         ASM  ("ASM"),
         // ---------------------- RUBY ----------------------
