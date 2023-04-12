@@ -110,6 +110,15 @@ public class ASNode {
         INITIALIZER("INITIALIZER"),
         HANDLERSEQ("HANDLERSEQ"),
         HANDLER("HANDLER"),
+        TEMPLATE("TEMPLATE"),
+        TEMPLATE_SPECIALIZATION("template_specialization"),
+        ALIAS("ALIAS"),
+        USING("USING"),
+        STATIC_ASSERT("STATIC_ASSERT"),
+        MESSAGE("MESSAGE"),
+        BASE("BASE"),
+        PROTECTED("PROTECTED"),
+        BIT_FIELD("BIT_FIELD"),
 
         BALANCEDTOKENSEQ("BALANCEDTOKENSEQ"),
 
