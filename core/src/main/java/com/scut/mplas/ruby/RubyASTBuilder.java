@@ -212,7 +212,7 @@ public class RubyASTBuilder {
             // function_definition : function_definition_header function_definition_body END;
             visit(ctx.function_definition_header());
             visit(ctx.function_definition_body());
-            ASNode funcEND = new ASNode(ASNode.Type.RUBY_FUNCTION_END);
+            ASNode funcEND = new ASNode(ASNode.Type.RUBY_END);
             funcEND.setLineOfCode(ctx.getStart().getLine());
             funcEND.setCode("END");
             AST.addVertex(funcEND);
@@ -394,7 +394,40 @@ public class RubyASTBuilder {
 
         @Override
         public String visitIf_elsif_statement(RubyParser.If_elsif_statementContext ctx) {
-            return super.visitIf_elsif_statement(ctx);
+            ASNode elsIFNode = new ASNode(ASNode.Type.CONDITION);
+            ASNode condNode = new ASNode(ASNode.Type.CONDITION);
+            condNode.setLineOfCode(ctx.cond_expression().getStart().getLine());
+            condNode.setCode(getOriginalCodeText(ctx.cond_expression().comparison_list()));
+            condNode.setNormalizedCode(visit(ctx.cond_expression().comparison_list()));
+            AST.addVertex(condNode);
+            AST.addEdge(parentStack.peek(), condNode);
+
+            ASNode thenNode = new ASNode(ASNode.Type.THEN);
+            thenNode.setLineOfCode(ctx.statement_body(0).getStart().getLine());
+            AST.addVertex(thenNode);
+            AST.addEdge(parentStack.peek(), thenNode);
+            parentStack.push(thenNode);
+            visit(ctx.statement_body(0));
+            parentStack.pop();
+
+            if(ctx.else_token() != null ){
+                ASNode elseNode = new ASNode(ASNode.Type.ELSE);
+                elseNode.setLineOfCode(ctx.statement_body(1).getStart().getLine());
+                AST.addVertex(elseNode);
+                AST.addEdge(parentStack.peek(), elseNode);
+                parentStack.push(elseNode);
+                visit(ctx.statement_body(1));
+                parentStack.pop();
+            }
+            if(ctx.if_elsif_statement() != null ){
+                ASNode elsifNode = new ASNode(ASNode.Type.RUBY_ELSEIF);
+                elsifNode.setLineOfCode( ctx.if_elsif_statement().getStart().getLine());
+                AST.addVertex(elsifNode);
+                AST.addEdge(parentStack.peek(), elsifNode);
+                visit(ctx.if_elsif_statement());
+            }
+
+            return "";
         }
 
         @Override
@@ -434,11 +467,14 @@ public class RubyASTBuilder {
                 elsifNode.setLineOfCode( ctx.elsif_statement().getStart().getLine());
                 AST.addVertex(elsifNode);
                 AST.addEdge(parentStack.peek(), elsifNode);
-                parentStack.push(elsifNode);
                 visit(ctx.elsif_statement());
-                parentStack.pop();
             }
 
+            ASNode endNode = new ASNode(ASNode.Type.RUBY_END);
+            endNode.setLineOfCode(ctx.getStop().getLine());
+            endNode.setCode(endNode.getType().labels);
+            AST.addVertex(endNode);
+            AST.addEdge(parentStack.peek(), endNode);
 
             return "";
         }
