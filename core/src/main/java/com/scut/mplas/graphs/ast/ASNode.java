@@ -64,6 +64,11 @@ public class ASNode {
         WITH        ("WITH"),
         CASEBLOCK   ("CASEBLOCK"),
         CASECLAUSES  ("CASECLAUSES"),
+        IMPORTNAMESPACE("IMPORTNAMESPACE"),
+        MODULEITEMS  ("MODULEITEMS"),
+        MODULEITEM  ("MODULEITEM"),
+        ALIASNAME   ("ALIASNAME"),
+        STATEMENTLIST("STATEMENTLIST"),
 
 
         //C++的相关关键字
