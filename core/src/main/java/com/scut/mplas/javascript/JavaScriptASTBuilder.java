@@ -114,38 +114,88 @@ public class JavaScriptASTBuilder {
 //            AST.addEdge(parentStack.peek(), node);
             return "";
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
         @Override public String visitSourceElement(JavaScriptParser.SourceElementContext ctx) {
-            return visitChildren(ctx);
+            return visitStatement(ctx.statement());
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitStatement(JavaScriptParser.StatementContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
+        @Override public String visitStatement(JavaScriptParser.StatementContext ctx) {
+            if (ctx.block()!=null&&!ctx.block().isEmpty()){
+                return visitBlock(ctx.block());
+            }else if (ctx.variableStatement()!=null&&!ctx.variableStatement().isEmpty()){
+                return visitVariableStatement(ctx.variableStatement());
+            }else if (ctx.expressionStatement()!=null&&!ctx.exportStatement().isEmpty()){
+                return visitExpressionStatement(ctx.expressionStatement());
+            } else if (ctx.emptyStatement_()!=null&&!ctx.emptyStatement_().isEmpty()){
+                return visitEmptyStatement_(ctx.emptyStatement_());
+            }else if (ctx.classDeclaration()!=null&&!ctx.classDeclaration().isEmpty()){
+                return visitClassDeclaration(ctx.classDeclaration());
+            }else if (ctx.expressionStatement()!=null&&!ctx.expressionStatement().isEmpty()){
+                return visitExpressionStatement(ctx.expressionStatement());
+            }else if (ctx.ifStatement()!=null&&!ctx.ifStatement().isEmpty()){
+                return visitIfStatement(ctx.ifStatement());
+            }else if (ctx.iterationStatement()!=null&&!ctx.iterationStatement().isEmpty()){
+                return visitIterationStatement(ctx.iterationStatement());
+            }else if (ctx.continueStatement()!=null&&!ctx.continueStatement().isEmpty()){
+                return visitContinueStatement(ctx.continueStatement());
+            }else if (ctx.breakStatement()!=null&&!ctx.breakStatement().isEmpty()){
+                return visitBreakStatement(ctx.breakStatement());
+            }else if (ctx.returnStatement()!=null&&!ctx.returnStatement().isEmpty()){
+                return visitReturnStatement(ctx.returnStatement());
+            }else if (ctx.yieldStatement()!=null&&!ctx.yieldStatement().isEmpty()){
+                return visitYieldStatement(ctx.yieldStatement());
+            }else if (ctx.withStatement()!=null&&!ctx.withStatement().isEmpty()){
+                return visitWithStatement(ctx.withStatement());
+            }else if (ctx.labelledStatement()!=null&&!ctx.labelledStatement().isEmpty()){
+                return visitLabelledStatement(ctx.labelledStatement());
+            }else if (ctx.switchStatement()!=null&&!ctx.switchStatement().isEmpty()){
+                return visitSwitchStatement(ctx.switchStatement());
+            }else if (ctx.throwStatement()!=null&&!ctx.throwStatement().isEmpty()){
+                return visitThrowStatement(ctx.throwStatement());
+            }else if (ctx.tryStatement()!=null&&!ctx.tryStatement().isEmpty()){
+                return visitTryStatement(ctx.tryStatement());
+            }else if (ctx.debuggerStatement()!=null&&!ctx.debuggerStatement().isEmpty()){
+                return visitDebuggerStatement(ctx.debuggerStatement());
+            }
+            return visitFunctionDeclaration(ctx.functionDeclaration());
+        }
+
+        private String visitIterationStatement(JavaScriptParser.IterationStatementContext iterationStatement) {
+            //TODO
+            // : Do statement While '(' expressionSequence ')' eos                                                                       # DoStatement
+            //    | While '(' expressionSequence ')' statement                                                                              # WhileStatement
+            //    | For '(' (expressionSequence | variableDeclarationList)? ';' expressionSequence? ';' expressionSequence? ')' statement   # ForStatement
+            //    | For '(' (singleExpression | variableDeclarationList) In expressionSequence ')' statement                                # ForInStatement
+            //    // strange, 'of' is an identifier. and this.p("of") not work in sometime.
+            //    | For Await? '(' (singleExpression | variableDeclarationList) identifier{this.p("of")}? expressionSequence ')' statement  # ForOfStatement
+            //    ;
+            return "";
+        }
+
+
         @Override public String visitBlock(JavaScriptParser.BlockContext ctx) {
-            return visitChildren(ctx);
+            ASNode node=new ASNode(ASNode.Type.BLOCK);
+            node.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(node);
+            parentStack.add(node);
+            String res="{"+visitStatementList(ctx.statementList())+"}";
+            parentStack.pop();
+            return res;
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitStatementList(JavaScriptParser.StatementListContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitStatementList(JavaScriptParser.StatementListContext ctx) {
+            ASNode node=new ASNode(ASNode.Type.STATEMENTLIST);
+            node.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(node);
+            AST.addEdge(parentStack.peek(),node);
+            parentStack.add(node);
+            StringBuffer stringBuffer=new StringBuffer();
+            for(int i=0;i<ctx.statement().size();i++){
+                stringBuffer.append(visitStatement(ctx.statement(i)));
+            }
+            parentStack.pop();
+            return stringBuffer.toString();
+        }
 
         @Override public String visitImportStatement(JavaScriptParser.ImportStatementContext ctx) {
             //Import importFromBlock
@@ -159,13 +209,21 @@ public class JavaScriptASTBuilder {
                     +visit(ctx.moduleItems())+" "+visit(ctx.importFrom())+" "+visit(ctx.eos())
                     +" | "+visit(ctx.StringLiteral())+ " "+visit(ctx.eos());
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitModuleItems(JavaScriptParser.ModuleItemsContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitModuleItems(JavaScriptParser.ModuleItemsContext ctx) {
+            StringBuffer stringBuffer=new StringBuffer();
+            stringBuffer.append("{");
+            ASNode node=new ASNode(ASNode.Type.MODULEITEMS);
+            node.setLineOfCode(ctx.getStart().getLine());
+            parentStack.add(node);
+            stringBuffer.append(visitAliasName(ctx.aliasName(0)));
+            for(int i=1;i<ctx.aliasName().size();i++){
+                stringBuffer.append(","+visitAliasName(ctx.aliasName(i)));
+            }
+            parentStack.pop();
+            stringBuffer.append("}");
+            return stringBuffer.toString();
+        }
 
         @Override public String visitImportDefault(JavaScriptParser.ImportDefaultContext ctx) {
             return visit(ctx.aliasName())+" ,";
@@ -190,61 +248,91 @@ public class JavaScriptASTBuilder {
         @Override public String visitImportFrom(JavaScriptParser.ImportFromContext ctx) {
             return visit(ctx.From())+" "+visit(ctx.StringLiteral()) ;
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitAliasName(JavaScriptParser.AliasNameContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitExportDeclaration(JavaScriptParser.ExportDeclarationContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitExportDefaultDeclaration(JavaScriptParser.ExportDefaultDeclarationContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitExportFromBlock(JavaScriptParser.ExportFromBlockContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitDeclaration(JavaScriptParser.DeclarationContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitVariableStatement(JavaScriptParser.VariableStatementContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitVariableDeclarationList(JavaScriptParser.VariableDeclarationListContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
+        @Override public String visitAliasName(JavaScriptParser.AliasNameContext ctx) {
+            ASNode node=new ASNode(ASNode.Type.ALIASNAME);
+            node.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(node);
+            AST.addEdge(parentStack.peek(),node);
+            return visitIdentifierName(ctx.identifierName(0))+" "+ctx.As().getText()+" "+visitIdentifierName(ctx.identifierName(1));
+        }
+
+        @Override public String visitExportDeclaration(JavaScriptParser.ExportDeclarationContext ctx) {
+            ASNode exportNode=new ASNode(ASNode.Type.EXPORT);
+            exportNode.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(exportNode);
+            ASNode statementNode=new ASNode(ASNode.Type.STATEMENT);
+            statementNode.setLineOfCode(ctx.getStart().getLine());
+            AST.addEdge(exportNode,statementNode);
+            AST.addVertex(statementNode);
+            AST.addEdge(parentStack.peek(),statementNode);
+            parentStack.add(statementNode);
+            String res="";
+            if (ctx.exportFromBlock()!=null&&!ctx.exportFromBlock().isEmpty()){
+                res=ctx.Export().getText()+" "+visitExportFromBlock(ctx.exportFromBlock())+" "+visitEos(ctx.eos());
+            }else{
+                res=ctx.Export().getText()+" "+visitDeclaration(ctx.declaration())+" "+visitEos(ctx.eos());
+            }
+            parentStack.pop();
+            return res;
+        }
+
+        @Override public String visitExportDefaultDeclaration(JavaScriptParser.ExportDefaultDeclarationContext ctx) {
+            ASNode exportNode=new ASNode(ASNode.Type.EXPORT);
+            exportNode.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(exportNode);
+            ASNode statementNode=new ASNode(ASNode.Type.STATEMENT);
+                statementNode.setLineOfCode(ctx.getStart().getLine());
+                AST.addEdge(exportNode,statementNode);
+                AST.addVertex(statementNode);
+                AST.addEdge(parentStack.peek(),statementNode);
+                return ctx.Export().getText()+" "+ctx.Default().getText()+" "+visit(ctx.singleExpression())+" "+visitEos(ctx.eos());
+        }
+
+        @Override public String visitExportFromBlock(JavaScriptParser.ExportFromBlockContext ctx) {
+            if(ctx.importNamespace()!=null&&ctx.importNamespace().isEmpty()){
+                ASNode importNamespace=new ASNode(ASNode.Type.IMPORTNAMESPACE);
+                importNamespace.setLineOfCode(ctx.getStart().getLine());
+                AST.addVertex(importNamespace);
+                AST.addEdge(parentStack.peek(),importNamespace);
+                return visitImportNamespace(ctx.importNamespace())+" "+visitImportFrom(ctx.importFrom())+" "+visitEos(ctx.eos());
+            }
+            ASNode moduleItem=new ASNode(ASNode.Type.MODULEITEM);
+            moduleItem.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(moduleItem);
+            AST.addEdge(parentStack.peek(),moduleItem);
+            return visitModuleItems(ctx.moduleItems())+" "+visitImportFrom(ctx.importFrom())+" "+visitEos(ctx.eos());
+        }
+
+        @Override public String visitDeclaration(JavaScriptParser.DeclarationContext ctx) {
+            if(ctx.variableStatement()!=null&&!ctx.variableStatement().isEmpty()){
+                return visitVariableStatement((ctx.variableStatement()));
+            }else if(ctx.classDeclaration()!=null&&!ctx.classDeclaration().isEmpty()){
+                return visitClassDeclaration(ctx.classDeclaration());
+            }
+            return visitFunctionDeclaration(ctx.functionDeclaration());
+        }
+
+        @Override public String visitVariableStatement(JavaScriptParser.VariableStatementContext ctx) {
+            ASNode expressionNode=new ASNode(ASNode.Type.STATEMENT);
+            expressionNode.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(expressionNode);
+            if(ctx.variableDeclarationList()!=null&&!ctx.variableDeclarationList().isEmpty()){
+                return visitVariableDeclarationList(ctx.variableDeclarationList());
+            }
+            return visitEos(ctx.eos());
+        }
+
+        @Override public String visitVariableDeclarationList(JavaScriptParser.VariableDeclarationListContext ctx) {
+            StringBuffer stringBuffer=new StringBuffer();
+            stringBuffer.append(visitVarModifier(ctx.varModifier())+" ");
+            stringBuffer.append(visitVariableDeclaration(ctx.variableDeclaration(0)));
+            for(int i=1;i<ctx.variableDeclaration().size();i++){
+                stringBuffer.append(","+visitVariableDeclaration(ctx.variableDeclaration(i)));
+            }
+            return stringBuffer.toString();
+        }
+
         @Override public String visitVariableDeclaration(JavaScriptParser.VariableDeclarationContext ctx) { return visitChildren(ctx); }
 
         @Override public String visitEmptyStatement_(JavaScriptParser.EmptyStatement_Context ctx) {
@@ -254,14 +342,17 @@ public class JavaScriptASTBuilder {
             AST.addEdge(parentStack.peek(),emptyNode);
             return "";
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
         @Override public String visitExpressionStatement(JavaScriptParser.ExpressionStatementContext ctx) {
-            return visitChildren(ctx);
+            //    : {this.notOpenBraceAndNotFunction()}? expressionSequence eos
+            ASNode expressionNode=new ASNode(ASNode.Type.STATEMENT);
+            expressionNode.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(expressionNode);
+            AST.addEdge(parentStack.peek(),expressionNode);
+            if(ctx.expressionSequence()!=null&&!ctx.expressionSequence().isEmpty()){
+                return visitExpressionSequence(ctx.expressionSequence());
+            }
+            return visitEos(ctx.eos());
         }
 
         @Override public String visitIfStatement(JavaScriptParser.IfStatementContext ctx) {
@@ -471,32 +562,37 @@ public class JavaScriptASTBuilder {
             parentStack.pop();
             return "";
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
         @Override public String visitForOfStatement(JavaScriptParser.ForOfStatementContext ctx) {
             //    | For Await? '(' (singleExpression | variableDeclarationList) identifier{this.p("of")}? expressionSequence ')' statement  # ForOfStatement
             //TODO
-            return visitChildren(ctx);
+            StringBuffer stringBuffer=new StringBuffer();
+            stringBuffer.append(ctx.For().getText()+" "+ctx.Await().getText());
+            stringBuffer.append("(");
+            if (ctx.singleExpression()!=null&&!ctx.singleExpression().isEmpty()){
+                stringBuffer.append(visit(ctx.singleExpression()));
+            }
+            if(ctx.variableDeclarationList()!=null&&!ctx.variableDeclarationList().isEmpty()){
+                stringBuffer.append(visit(ctx.variableDeclarationList()));
+            }
+            stringBuffer.append(visitIdentifier(ctx.identifier()));
+            stringBuffer.append(visitExpressionSequence(ctx.expressionSequence()));
+            stringBuffer.append(")");
+            stringBuffer.append(visitStatement(ctx.statement()));
+            return stringBuffer.toString();
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitVarModifier(JavaScriptParser.VarModifierContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
+        @Override public String visitVarModifier(JavaScriptParser.VarModifierContext ctx) {
+            if(ctx.Var()!=null){
+                return ctx.Var().getText();
+            }else if(ctx.let_()!=null&&!ctx.let_().isEmpty()){
+                return visitLet_(ctx.let_());
+            }
+            return ctx.Const().getText();
+        }
+
         @Override public String visitContinueStatement(JavaScriptParser.ContinueStatementContext ctx) {
-            //    : Continue ({this.notLineTerminator()}? identifier)? eos
+            // TODO   : Continue ({this.notLineTerminator()}? identifier)? eos
             if (ctx.Continue()==null){
                 visit(ctx.eos());
                 return "";
@@ -945,48 +1041,61 @@ public class JavaScriptASTBuilder {
             }
             return "";
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
         @Override public String visitClassElement(JavaScriptParser.ClassElementContext ctx) {
            //    : (Static | {this.n("static")}? identifier | Async)* (methodDefinition | assignable '=' objectLiteral ';')
             //    | emptyStatement_
             //    | '#'? propertyName '=' singleExpression
             //TODO
-            return visitChildren(ctx);
+            if(ctx.emptyStatement_()!=null&&!ctx.emptyStatement_().isEmpty()){
+                return visitEmptyStatement_(ctx.emptyStatement_());
+            }else if(ctx.propertyName()!=null&&!ctx.propertyName().isEmpty()){
+                return "#"+visitPropertyName(ctx.propertyName())+"="+visit(ctx.singleExpression());
+            }
+            StringBuffer stringBuffer=new StringBuffer();
+            for(int i=0;i<ctx.Static().size();i++){
+                stringBuffer.append(ctx.Static(i).getText()+" ");
+                stringBuffer.append(visitIdentifier(ctx.identifier(i))+" ");
+                stringBuffer.append(ctx.Async(i).getText()+" ");
+            }
+            if(ctx.methodDefinition()!=null&&!ctx.methodDefinition().isEmpty()){
+                stringBuffer.append(visitMethodDefinition(ctx.methodDefinition()));
+            }
+            if(ctx.assignable()!=null&&!ctx.assignable().isEmpty()){
+                stringBuffer.append(visitAssignable(ctx.assignable())+" ");
+            }
+            stringBuffer.append(visitObjectLiteral(ctx.objectLiteral())+";");
+            return stringBuffer.toString();
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
         @Override public String visitMethodDefinition(JavaScriptParser.MethodDefinitionContext ctx) {
            //TODO
-            return visitChildren(ctx);
+            if(ctx.propertyName()!=null&&!ctx.propertyName().isEmpty()){
+                return "*#"+visitPropertyName(ctx.propertyName())+" ("+visitFormalParameterList(ctx.formalParameterList())+")"+visitFunctionBody(ctx.functionBody());
+            }else if(ctx.getter()!=null&&!ctx.getter().isEmpty()){
+                return "*#"+visitGetter(ctx.getter())+"()"+visitFunctionBody(ctx.functionBody());
+            }
+            return "*#"+visitSetter(ctx.setter())+" ("+visitFormalParameterList(ctx.formalParameterList())+")"+visitFunctionBody(ctx.functionBody());
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
         @Override public String visitFormalParameterList(JavaScriptParser.FormalParameterListContext ctx) {
-           //TODO
-            return visitChildren(ctx);
+            if (ctx.formalParameterArg()!=null&&!ctx.formalParameterArg().isEmpty()){
+                StringBuffer stringBuffer=new StringBuffer();
+                stringBuffer.append(ctx.formalParameterArg(0));
+                for(int i=1;i<ctx.formalParameterArg().size();i++){
+                    stringBuffer.append(",");
+                    stringBuffer.append(visitFormalParameterArg(ctx.formalParameterArg(i)));
+                }
+                stringBuffer.append(",");
+                stringBuffer.append(visitLastFormalParameterArg(ctx.lastFormalParameterArg()));
+                return stringBuffer.toString();
+            }
+           return visitLastFormalParameterArg(ctx.lastFormalParameterArg());
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
         @Override public String visitFormalParameterArg(JavaScriptParser.FormalParameterArgContext ctx) {
-            //TODO
-            return visitChildren(ctx);
+            //    : assignable ('=' singleExpression)?      // ECMAScript 6: Initialization
+            return visitAssignable(ctx.assignable())+"="+visit(ctx.singleExpression());
         }
 
         @Override public String visitLastFormalParameterArg(JavaScriptParser.LastFormalParameterArgContext ctx) {
@@ -1011,15 +1120,19 @@ public class JavaScriptASTBuilder {
         @Override public String visitArrayLiteral(JavaScriptParser.ArrayLiteralContext ctx) {
             return "["+visitElementList(ctx.elementList())+"]";
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
         @Override public String visitElementList(JavaScriptParser.ElementListContext ctx) {
            //TODO
-            return visitChildren(ctx);
+            StringBuffer stringBuffer=new StringBuffer();
+            stringBuffer.append(",");
+            stringBuffer.append(visitArrayElement(ctx.arrayElement(0)));
+            stringBuffer.append(",");
+            for(int i=1;i<ctx.arrayElement().size();i++){
+                stringBuffer.append(",");
+                stringBuffer.append(visitArrayElement(ctx.arrayElement(i)));
+            }
+            stringBuffer.append(",");
+            return stringBuffer.toString();
         }
 
         @Override public String visitArrayElement(JavaScriptParser.ArrayElementContext ctx) {
@@ -1036,12 +1149,7 @@ public class JavaScriptASTBuilder {
         @Override public String visitComputedPropertyExpressionAssignment(JavaScriptParser.ComputedPropertyExpressionAssignmentContext ctx) {
             return "["+visit(ctx.singleExpression(0))+"]:"+visit(ctx.singleExpression(1));
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
         @Override public String visitFunctionProperty(JavaScriptParser.FunctionPropertyContext ctx) {
             //TODO
             StringBuffer stringBuffer=new StringBuffer();
@@ -1049,8 +1157,14 @@ public class JavaScriptASTBuilder {
                 stringBuffer.append(ctx.Async());
             }
             stringBuffer.append("*");
-
-            return visitChildren(ctx);
+            stringBuffer.append(visitPropertyName(ctx.propertyName()));
+            stringBuffer.append("(");
+            if (ctx.formalParameterList()!=null&&!ctx.formalParameterList().isEmpty()){
+                stringBuffer.append(visitFormalParameterList(ctx.formalParameterList()));
+            }
+            stringBuffer.append(")");
+            stringBuffer.append(visitFunctionBody(ctx.functionBody()));
+            return stringBuffer.toString();
         }
 
         @Override public String visitPropertyGetter(JavaScriptParser.PropertyGetterContext ctx) {
@@ -1104,15 +1218,16 @@ public class JavaScriptASTBuilder {
             }
             return stringBuffer.toString();
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
         @Override public String visitExpressionSequence(JavaScriptParser.ExpressionSequenceContext ctx) {
             //TODO
-            return visitChildren(ctx);
+            StringBuffer stringBuffer=new StringBuffer();
+            stringBuffer.append(visit(ctx.singleExpression(0)));
+            for(int i=1;i<ctx.singleExpression().size();i++) {
+                stringBuffer.append(",");
+                stringBuffer.append(visit(ctx.singleExpression(i)));
+            }
+            return stringBuffer.toString();
         }
 
         @Override public String visitTemplateStringExpression(JavaScriptParser.TemplateStringExpressionContext ctx) {
@@ -1346,13 +1461,11 @@ public class JavaScriptASTBuilder {
             parentStack.pop();
             return "";
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitCoalesceExpression(JavaScriptParser.CoalesceExpressionContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitCoalesceExpression(JavaScriptParser.CoalesceExpressionContext ctx) {
+            //    | singleExpression '??' singleExpression                                # CoalesceExpression
+            return visit(ctx.singleExpression(0))+"??"+visit(ctx.singleExpression(1));
+        }
 
         @Override public String visitAssignable(JavaScriptParser.AssignableContext ctx) {
             if(ctx.identifier()!=null){
@@ -1362,45 +1475,45 @@ public class JavaScriptASTBuilder {
             }
             return ctx.objectLiteral().getText();
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
         @Override public String visitObjectLiteral(JavaScriptParser.ObjectLiteralContext ctx) {
-            //TODO
-            return visitChildren(ctx);
+            StringBuffer stringBuffer=new StringBuffer();
+            stringBuffer.append("{");
+            stringBuffer.append(visit(ctx.propertyAssignment(0)));
+            for(int i=1;i<ctx.propertyAssignment().size();i++){
+                stringBuffer.append(",");
+                stringBuffer.append(visit(ctx.propertyAssignment(i)));
+            }
+            stringBuffer.append("}");
+            return stringBuffer.toString();
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
+
         @Override public String visitFunctionDecl(JavaScriptParser.FunctionDeclContext ctx) {
-            //TODO
-            return visitChildren(ctx);
+            return visitFunctionDeclaration(ctx.functionDeclaration());
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
         @Override public String visitAnonymousFunctionDecl(JavaScriptParser.AnonymousFunctionDeclContext ctx) {
-            //TODO
-            return visitChildren(ctx);
+            StringBuffer stringBuffer=new StringBuffer();
+            if (ctx.Async()!=null){
+                stringBuffer.append(ctx.Async().getText()+" ");
+            }
+            stringBuffer.append(ctx.Function_()+"*(");
+            stringBuffer.append(visitFormalParameterList(ctx.formalParameterList())+")");
+            stringBuffer.append(visitFunctionBody(ctx.functionBody()));
+            return stringBuffer.toString();
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
         @Override public String visitArrowFunction(JavaScriptParser.ArrowFunctionContext ctx) {
             //TODO
-            return visitChildren(ctx);
+            StringBuffer stringBuffer=new StringBuffer();
+            if (ctx.Async()!=null){
+                stringBuffer.append(ctx.Async().getText()+" ");
+            }
+            stringBuffer.append(visitArrowFunctionParameters(ctx.arrowFunctionParameters()));
+            stringBuffer.append("=>");
+            stringBuffer.append(visitArrowFunctionBody(ctx.arrowFunctionBody()));
+            return stringBuffer.toString();
         }
 
         @Override public String visitArrowFunctionParameters(JavaScriptParser.ArrowFunctionParametersContext ctx) {
@@ -1479,20 +1592,18 @@ public class JavaScriptASTBuilder {
             }
             return ctx.BigBinaryIntegerLiteral().getText();
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitGetter(JavaScriptParser.GetterContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitSetter(JavaScriptParser.SetterContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitGetter(JavaScriptParser.GetterContext ctx) {
+            //TODO
+            //    : {this.n("get")}? identifier propertyName
+            return visitIdentifier(ctx.identifier())+" "+visitPropertyName(ctx.propertyName());
+        }
+
+        @Override public String visitSetter(JavaScriptParser.SetterContext ctx) {
+            //TODO
+            //       : {this.n("set")}? identifier propertyName
+            return visitIdentifier(ctx.identifier())+" "+visitPropertyName(ctx.propertyName());
+        }
 
         @Override public String visitIdentifierName(JavaScriptParser.IdentifierNameContext ctx) {
             if (ctx.identifier()!=null){
