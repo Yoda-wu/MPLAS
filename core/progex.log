@@ -1,29 +1,62 @@
-======= LOG CREATED on 周二 2023/4月/11 18:12:16:454 =======
+======= LOG CREATED on 周四 2023/4月/13 13:07:00:660 =======
 
 PROGEX (Program Graph Extractor)  [ v3.4.5 ]
 Visit project website @ https://github.com/ghaffarian/progex
 
 PROGEX execution config:
-  Language = Java
-  Output format = GML
-  Output directory = ../generate/java/basic/AST/\
+  Language = Cpp
+  Output format = JSON
+  Output directory = ../generate/cpp/basic/AST/\
   Analysis types = [AST]
   File name = 
   Input paths = 
-        src/test/resources/java/basic/
+        src/test/resources/cpp/basic/
 
 
-# Java source files = 9
+# Cpp source files = 6
 
 
 Abstract Syntax Analysis
 ========================
-AST exported to: ../generate/java/basic/AST/\Test1-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test2-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test3-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test4-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test5-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test6-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test7-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test8-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test9-AST.gml
+AST exported to: ../generate/cpp/basic/AST/\and_keyword-AST.json
+{
+  "directed": true,  "label": "AST of and_keyword.cpp",  "type": "Abstract Syntax Tree (AST)",  "file": "and_keyword.cpp",
+  "nodes": [    {      "id": 0,      "line": 0,      "type": "ROOT",      "label": "and_keyword.cpp",      "normalized": "and_keyword.cpp"    },    {      "id": 1,      "line": 3,      "type": "USING",      "label": "using namespace std;",      "normalized": "using namespace std;"    },    {      "id": 2,      "line": 5,      "type": "FUNCTION",      "label": "FUNCTION",      "normalized": "FUNCTION"    },    {      "id": 3,      "line": 5,      "type": "RETURN",      "label": "int",      "normalized": "int"    },    {      "id": 4,      "line": 5,      "type": "NAME",      "label": "main",      "normalized": "main"    },    {      "id": 5,      "line": 5,      "type": "BLOCK",      "label": "BLOCK",      "normalized": "BLOCK"    },    {      "id": 6,      "line": 7,      "type": "IF",      "label": "IF",      "normalized": "IF"    },    {      "id": 7,      "line": 7,      "type": "COND",      "label": "true && true",      "normalized": "true"    },    {      "id": 8,      "line": 7,      "type": "THEN",      "label": "THEN",      "normalized": "THEN"    }  ],
+
+  "edges": [    {      "id": 0,      "source": 0,      "target": 1,      "label": ""    },    {      "id": 1,      "source": 0,      "target": 2,      "label": ""    },    {      "id": 2,      "source": 2,      "target": 3,      "label": ""    },    {      "id": 3,      "source": 2,      "target": 4,      "label": ""    },    {      "id": 4,      "source": 2,      "target": 5,      "label": ""    },    {      "id": 5,      "source": 5,      "target": 6,      "label": ""    },    {      "id": 6,      "source": 6,      "target": 7,      "label": ""    },    {      "id": 7,      "source": 6,      "target": 8,      "label": ""    }  ]
+}
+AST exported to: ../generate/cpp/basic/AST/\function_definitions_and_integers-AST.json
+{
+  "directed": true,  "label": "AST of function_definitions_and_integers.cpp",  "type": "Abstract Syntax Tree (AST)",  "file": "function_definitions_and_integers.cpp",
+  "nodes": [    {      "id": 0,      "line": 0,      "type": "ROOT",      "label": "function_definitions_and_integers.cpp",      "normalized": "function_definitions_and_integers.cpp"    }  ],
+
+  "edges": [  ]
+}
+AST exported to: ../generate/cpp/basic/AST/\macro-AST.json
+{
+  "directed": true,  "label": "AST of macro.cpp",  "type": "Abstract Syntax Tree (AST)",  "file": "macro.cpp",
+  "nodes": [    {      "id": 0,      "line": 0,      "type": "ROOT",      "label": "macro.cpp",      "normalized": "macro.cpp"    },    {      "id": 1,      "line": 10,      "type": "FUNCTION",      "label": "FUNCTION",      "normalized": "FUNCTION"    },    {      "id": 2,      "line": 10,      "type": "RETURN",      "label": "void",      "normalized": "void"    },    {      "id": 3,      "line": 10,      "type": "NAME",      "label": "f",      "normalized": "f"    },    {      "id": 4,      "line": 10,      "type": "BLOCK",      "label": "BLOCK",      "normalized": "BLOCK"    }  ],
+
+  "edges": [    {      "id": 0,      "source": 0,      "target": 1,      "label": ""    },    {      "id": 1,      "source": 1,      "target": 2,      "label": ""    },    {      "id": 2,      "source": 1,      "target": 3,      "label": ""    },    {      "id": 3,      "source": 1,      "target": 4,      "label": ""    }  ]
+}
+AST exported to: ../generate/cpp/basic/AST/\or_keyword-AST.json
+{
+  "directed": true,  "label": "AST of or_keyword.cpp",  "type": "Abstract Syntax Tree (AST)",  "file": "or_keyword.cpp",
+  "nodes": [    {      "id": 0,      "line": 0,      "type": "ROOT",      "label": "or_keyword.cpp",      "normalized": "or_keyword.cpp"    },    {      "id": 1,      "line": 3,      "type": "USING",      "label": "using namespace std;",      "normalized": "using namespace std;"    },    {      "id": 2,      "line": 5,      "type": "FUNCTION",      "label": "FUNCTION",      "normalized": "FUNCTION"    },    {      "id": 3,      "line": 5,      "type": "RETURN",      "label": "int",      "normalized": "int"    },    {      "id": 4,      "line": 5,      "type": "NAME",      "label": "main",      "normalized": "main"    },    {      "id": 5,      "line": 5,      "type": "BLOCK",      "label": "BLOCK",      "normalized": "BLOCK"    },    {      "id": 6,      "line": 7,      "type": "IF",      "label": "IF",      "normalized": "IF"    },    {      "id": 7,      "line": 7,      "type": "COND",      "label": "false || true",      "normalized": "true"    },    {      "id": 8,      "line": 7,      "type": "THEN",      "label": "THEN",      "normalized": "THEN"    }  ],
+
+  "edges": [    {      "id": 0,      "source": 0,      "target": 1,      "label": ""    },    {      "id": 1,      "source": 0,      "target": 2,      "label": ""    },    {      "id": 2,      "source": 2,      "target": 3,      "label": ""    },    {      "id": 3,      "source": 2,      "target": 4,      "label": ""    },    {      "id": 4,      "source": 2,      "target": 5,      "label": ""    },    {      "id": 5,      "source": 5,      "target": 6,      "label": ""    },    {      "id": 6,      "source": 6,      "target": 7,      "label": ""    },    {      "id": 7,      "source": 6,      "target": 8,      "label": ""    }  ]
+}
+AST exported to: ../generate/cpp/basic/AST/\template_args_test-AST.json
+{
+  "directed": true,  "label": "AST of template_args_test.cpp",  "type": "Abstract Syntax Tree (AST)",  "file": "template_args_test.cpp",
+  "nodes": [    {      "id": 0,      "line": 0,      "type": "ROOT",      "label": "template_args_test.cpp",      "normalized": "template_args_test.cpp"    },    {      "id": 1,      "line": 1,      "type": "FUNCTION",      "label": "FUNCTION",      "normalized": "FUNCTION"    },    {      "id": 2,      "line": 1,      "type": "RETURN",      "label": "void",      "normalized": "void"    },    {      "id": 3,      "line": 1,      "type": "NAME",      "label": "TemplateArgsTest",      "normalized": "TemplateArgsTest"    },    {      "id": 4,      "line": 1,      "type": "PARAMS",      "label": "vector<ClassA> args, vector <ClassB> args2",      "normalized": "vector<ClassA> args, vector <ClassB> args2"    },    {      "id": 5,      "line": 1,      "type": "BLOCK",      "label": "BLOCK",      "normalized": "BLOCK"    }  ],
+
+  "edges": [    {      "id": 0,      "source": 0,      "target": 1,      "label": ""    },    {      "id": 1,      "source": 1,      "target": 2,      "label": ""    },    {      "id": 2,      "source": 1,      "target": 3,      "label": ""    },    {      "id": 3,      "source": 1,      "target": 4,      "label": ""    },    {      "id": 4,      "source": 1,      "target": 5,      "label": ""    }  ]
+}
+AST exported to: ../generate/cpp/basic/AST/\test1-AST.json
+{
+  "directed": true,  "label": "AST of test1.cpp",  "type": "Abstract Syntax Tree (AST)",  "file": "test1.cpp",
+  "nodes": [    {      "id": 0,      "line": 0,      "type": "ROOT",      "label": "test1.cpp",      "normalized": "test1.cpp"    },    {      "id": 1,      "line": 6,      "type": "USING",      "label": "using namespace std;",      "normalized": "using namespace std;"    },    {      "id": 2,      "line": 7,      "type": "FUNCTION",      "label": "FUNCTION",      "normalized": "FUNCTION"    },    {      "id": 3,      "line": 7,      "type": "RETURN",      "label": "int",      "normalized": "int"    },    {      "id": 4,      "line": 7,      "type": "NAME",      "label": "main",      "normalized": "main"    },    {      "id": 5,      "line": 7,      "type": "BLOCK",      "label": "BLOCK",      "normalized": "BLOCK"    }  ],
+
+  "edges": [    {      "id": 0,      "source": 0,      "target": 1,      "label": ""    },    {      "id": 1,      "source": 0,      "target": 2,      "label": ""    },    {      "id": 2,      "source": 2,      "target": 3,      "label": ""    },    {      "id": 3,      "source": 2,      "target": 4,      "label": ""    },    {      "id": 4,      "source": 2,      "target": 5,      "label": ""    }  ]
+}

@@ -40,7 +40,7 @@ public class CppASTBuilder {
      */
 
     public static AbstractSyntaxTree build(File cppFile) throws IOException {
-        if (!cppFile.getName().endsWith(".java"))
+        if (!cppFile.getName().endsWith(".cpp"))
             throw new IOException("Not a Cpp File!");
         InputStream inFile = new FileInputStream(cppFile);
         ANTLRInputStream input = new ANTLRInputStream(inFile);
