@@ -1370,13 +1370,31 @@ public class CppCFGBuilder {
              * <p>The default implementation returns the result of calling
              * {@link #visitChildren} on {@code ctx}.</p>
              */
-            @Override public Void visitTryBlock(CppParser.TryBlockContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
+            @Override public Void visitTryBlock(CppParser.TryBlockContext ctx) {
+                //tryBlock: Try compoundStatement handlerSeq;
+                //compoundStatement: LeftBrace statementSeq? RightBrace;
+                //handlerSeq: handler+;
+                //handler:Catch LeftParen exceptionDeclaration RightParen compoundStatement;
+                CFNode tryNode = new CFNode();
+                tryNode.setLineOfCode(ctx.getStart().getLine());
+                tryNode.setCode(ctx.Try().getText()+getOriginalCodeText(ctx.compoundStatement()));
+                addContextualProperty(tryNode, ctx);
+                addNodeAndPreEdge(tryNode);
+                //
+                preEdges.push(CFEdge.Type.EPSILON);
+                preNodes.push(tryNode);
+                visit(ctx.handlerSeq());
+                //
+                CFNode endTry = new CFNode();
+                endTry.setLineOfCode(0);
+                endTry.setCode("end-try");
+                addNodeAndPreEdge(endTry);
+
+                //
+                preEdges.push(CFEdge.Type.EPSILON);
+                preNodes.push(endTry);
+                return null;
+            }
             @Override public Void visitFunctionTryBlock(CppParser.FunctionTryBlockContext ctx) { return visitChildren(ctx); }
             /**
              * {@inheritDoc}
