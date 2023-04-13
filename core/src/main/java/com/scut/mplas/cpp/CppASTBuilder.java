@@ -455,20 +455,53 @@ public class CppASTBuilder {
         @Override public String visitConstantExpression(CppParser.ConstantExpressionContext ctx) { return visitChildren(ctx); }
 
         @Override public String visitStatement(CppParser.StatementContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitLabeledStatement(CppParser.LabeledStatementContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitExpressionStatement(CppParser.ExpressionStatementContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitLabeledStatement(CppParser.LabeledStatementContext ctx) {
+            //labeledStatement:
+            //	attributeSpecifierSeq? (
+            //		Identifier
+            //		| Case constantExpression
+            //		| Default
+            //	) Colon statement;
+            if(ctx.Identifier()!=null)
+            {
+                ASNode labelNode=new ASNode(ASNode.Type.LABELED);
+                labelNode.setLineOfCode(ctx.getStart().getLine());
+                labelNode.setCode(ctx.Identifier().getText());
+                AST.addVertex(labelNode);
+                AST.addEdge(parentStack.peek(),labelNode);
+            }
+            else if(ctx.Default()!=null)
+            {
+                ASNode defaultNode=new ASNode(ASNode.Type.DEFAULT);
+                defaultNode.setLineOfCode(ctx.getStart().getLine());
+                AST.addVertex(defaultNode);
+                AST.addEdge(parentStack.peek(),defaultNode);
+            }
+            else
+            {
+                ASNode caseNode=new ASNode(ASNode.Type.CASE);
+                caseNode.setLineOfCode(ctx.getStart().getLine());
+                caseNode.setCode(getOriginalCodeText(ctx.constantExpression()));
+                AST.addVertex(caseNode);
+                AST.addEdge(parentStack.peek(),caseNode);
+            }
+            visit(ctx.statement());
+            return "";
+        }
+
+        @Override public String visitExpressionStatement(CppParser.ExpressionStatementContext ctx) {
+            //expressionStatement: expression? Semi;
+            if(ctx.expression()!=null)
+            {
+                ASNode statNode=new ASNode(ASNode.Type.STATEMENT);
+                statNode.setLineOfCode(ctx.getStart().getLine());
+                statNode.setCode(getOriginalCodeText(ctx));
+                AST.addVertex(statNode);
+                AST.addEdge(parentStack.peek(),statNode);
+            }
+            return "";
+        }
 
         // TODO: 2023/4/11   完善statement
         @Override public String visitCompoundStatement(CppParser.CompoundStatementContext ctx) {
@@ -735,7 +768,21 @@ public class CppASTBuilder {
             } else
                 return ctx.bracedInitList().getText();
         }
-        @Override public String visitJumpStatement(CppParser.JumpStatementContext ctx) { return visitChildren(ctx); }
+        @Override public String visitJumpStatement(CppParser.JumpStatementContext ctx) {
+            //jumpStatement:
+            //	(
+            //		Break
+            //		| Continue
+            //		| Return (expression | bracedInitList)?
+            //		| Goto Identifier
+            //	) Semi;
+            ASNode statNode=new ASNode(ASNode.Type.STATEMENT);
+            statNode.setLineOfCode(ctx.getStart().getLine());
+            statNode.setCode(getOriginalCodeText(ctx));
+            AST.addVertex(statNode);
+            AST.addEdge(parentStack.peek(),statNode);
+            return "";
+        }
         /**
          * {@inheritDoc}
          *
