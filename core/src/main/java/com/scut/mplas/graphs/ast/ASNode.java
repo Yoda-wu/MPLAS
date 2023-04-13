@@ -119,8 +119,11 @@ public class ASNode {
         BASE("BASE"),
         PROTECTED("PROTECTED"),
         BIT_FIELD("BIT_FIELD"),
+        EXPRESSION("EXPRESSION"),
 
         BALANCEDTOKENSEQ("BALANCEDTOKENSEQ"),
+        FOR_RANGE_INIT("FOR_RANGE_INIT"),
+        FOR_RANGE_INITER("FOR_RANGE_INITER"),
 
         ASM  ("ASM"),
         // ---------------------- RUBY ----------------------

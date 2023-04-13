@@ -1,4 +1,4 @@
-======= LOG CREATED on 周四 2023/4月/13 13:07:00:660 =======
+======= LOG CREATED on 周四 2023/4月/13 13:28:14:381 =======
 
 PROGEX (Program Graph Extractor)  [ v3.4.5 ]
 Visit project website @ https://github.com/ghaffarian/progex
@@ -13,7 +13,7 @@ PROGEX execution config:
         src/test/resources/cpp/basic/
 
 
-# Cpp source files = 6
+# Cpp source files = 7
 
 
 Abstract Syntax Analysis
@@ -31,6 +31,13 @@ AST exported to: ../generate/cpp/basic/AST/\function_definitions_and_integers-AS
   "nodes": [    {      "id": 0,      "line": 0,      "type": "ROOT",      "label": "function_definitions_and_integers.cpp",      "normalized": "function_definitions_and_integers.cpp"    }  ],
 
   "edges": [  ]
+}
+AST exported to: ../generate/cpp/basic/AST/\iteration_test-AST.json
+{
+  "directed": true,  "label": "AST of iteration_test.cpp",  "type": "Abstract Syntax Tree (AST)",  "file": "iteration_test.cpp",
+  "nodes": [    {      "id": 0,      "line": 0,      "type": "ROOT",      "label": "iteration_test.cpp",      "normalized": "iteration_test.cpp"    },    {      "id": 1,      "line": 1,      "type": "FUNCTION",      "label": "FUNCTION",      "normalized": "FUNCTION"    },    {      "id": 2,      "line": 1,      "type": "RETURN",      "label": "int",      "normalized": "int"    },    {      "id": 3,      "line": 1,      "type": "NAME",      "label": "main",      "normalized": "main"    },    {      "id": 4,      "line": 1,      "type": "BLOCK",      "label": "BLOCK",      "normalized": "BLOCK"    },    {      "id": 5,      "line": 3,      "type": "WHILE",      "label": "WHILE",      "normalized": "WHILE"    },    {      "id": 6,      "line": 3,      "type": "COND",      "label": "(true && false) || true",      "normalized": "(true && false) || true"    }  ],
+
+  "edges": [    {      "id": 0,      "source": 0,      "target": 1,      "label": ""    },    {      "id": 1,      "source": 1,      "target": 2,      "label": ""    },    {      "id": 2,      "source": 1,      "target": 3,      "label": ""    },    {      "id": 3,      "source": 1,      "target": 4,      "label": ""    },    {      "id": 4,      "source": 4,      "target": 5,      "label": ""    },    {      "id": 5,      "source": 5,      "target": 6,      "label": ""    }  ]
 }
 AST exported to: ../generate/cpp/basic/AST/\macro-AST.json
 {
