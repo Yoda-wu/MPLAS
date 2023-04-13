@@ -189,13 +189,14 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitCaptureDefault(CppParser.CaptureDefaultContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+        @Override public String visitCaptureDefault(CppParser.CaptureDefaultContext ctx)
+        //captureDefault: And | Assign;
+        {
+            if (ctx.And()!=null){
+                return ctx.And().getText();
+            }
+                return ctx.Assign().getText();
+        }
         @Override public String visitCaptureList(CppParser.CaptureListContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
@@ -211,19 +212,10 @@ public class CppASTBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitSimpleCapture(CppParser.SimpleCaptureContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+        //simpleCapture: And? Identifier | This;
+
         @Override public String visitInitcapture(CppParser.InitcaptureContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+       //initcapture: And? Identifier initializer;
         @Override public String visitLambdaDeclarator(CppParser.LambdaDeclaratorContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
@@ -533,12 +525,14 @@ public class CppASTBuilder {
          */
         @Override public String visitForInitStatement(CppParser.ForInitStatementContext ctx)
         //forInitStatement: expressionStatement | simpleDeclaration;
+        //forInit   :  localVariableDeclaration  |  expressionList
         {
                 if (ctx.expressionStatement() != null) {
                     return ctx.expressionStatement().getText();
                 } else
                     return ctx.simpleDeclaration().getText();
         }
+
 
 
         @Override public String visitForRangeDeclaration(CppParser.ForRangeDeclarationContext ctx) { return visitChildren(ctx); }
@@ -1761,12 +1755,7 @@ public class CppASTBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitDynamicExceptionSpecification(CppParser.DynamicExceptionSpecificationContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+        //Throw LeftParen typeIdList? RightParen;
         @Override public String visitTypeIdList(CppParser.TypeIdListContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
