@@ -57,18 +57,26 @@ public class ASNode {
         DEFAULT     ("DEFAULT"),
         LABELED     ("LABELED"),
         SYNC        ("SYNCHRONIZED"),
+
         //JavaScript的相关关键字
+        SOURCEELEMENTS("SOURCEELEMENTS"),
+        SOURCEELEMENT("SOURCEELEMENT"),
+        YIELD       ("YIELD"),
         VOID        ("VOID"),
         EMPTY       ("EMPTY"),
         FUNCTION    ("FUNCTION"),
         WITH        ("WITH"),
         CASEBLOCK   ("CASEBLOCK"),
         CASECLAUSES  ("CASECLAUSES"),
+        IMPORTFROMBLOCK("IMPORTFROMBLOCK"),
         IMPORTNAMESPACE("IMPORTNAMESPACE"),
+        IMPORTFROM   ("IMPORTFROM"),
+        EXPORTFROMBLOCK("EXPORTFROMBLOCK"),
         MODULEITEMS  ("MODULEITEMS"),
         MODULEITEM  ("MODULEITEM"),
         ALIASNAME   ("ALIASNAME"),
         STATEMENTLIST("STATEMENTLIST"),
+        THROW       ("THROW"),
 
 
         //C++的相关关键字
