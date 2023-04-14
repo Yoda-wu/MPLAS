@@ -7,6 +7,8 @@ import com.scut.mplas.graphs.cfg.CFEdge;
 import com.scut.mplas.graphs.cfg.CFNode;
 import com.scut.mplas.graphs.cfg.ControlFlowGraph;
 import com.scut.mplas.cpp.parser.CppBaseVisitor;
+import com.scut.mplas.java.JavaCFGBuilder;
+import com.scut.mplas.java.parser.JavaParser;
 import ghaffarian.graphs.*;
 import ghaffarian.nanologger.Logger;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -481,13 +483,70 @@ public class CppCFGBuilder {
              * <p>The default implementation returns the result of calling
              * {@link #visitChildren} on {@code ctx}.</p>
              */
-            @Override public Void visitSelectionStatement(CppParser.SelectionStatementContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
+            @Override public Void visitSelectionStatement(CppParser.SelectionStatementContext ctx)
+            //	If LeftParen condition RightParen statement (Else statement)?
+            //	| Switch LeftParen condition RightParen statement;
+            {
+                {
+                    //If LeftParen condition RightParen statement (Else statement)?
+                    if (ctx.If() != null){
+                    CFNode IfNode = new CFNode();
+                        IfNode.setLineOfCode(ctx.getStart().getLine());
+                        IfNode.setCode(ctx.If().getText()+ctx.LeftParen().getText()+getOriginalCodeText(ctx.condition())+ctx.RightParen().getText());
+                    addContextualProperty(IfNode, ctx);
+                    addNodeAndPreEdge(IfNode);
+                    //
+                    preEdges.push(CFEdge.Type.TRUE);
+                    preNodes.push(IfNode);
+                    //
+                    visit(ctx.statement(0));
+                    //
+                    CFNode endIf= new CFNode();
+                        endIf.setLineOfCode(0);
+                        endIf.setCode("endif");
+                    addNodeAndPreEdge(endIf);
+                    //
+                    if (ctx.statement().size() == 1) { // if without else
+                        cfg.addEdge(new Edge<>(IfNode, new CFEdge(CFEdge.Type.FALSE), endIf));
+                    } else {  //  if with else
+                        preEdges.push(CFEdge.Type.FALSE);
+                        preNodes.push(IfNode);
+                        visit(ctx.statement(1));
+                        popAddPreEdgeTo(endIf);
+                    }
+                    preEdges.push(CFEdge.Type.EPSILON);
+                    preNodes.push(endIf);
+                    return null;
+                }
+            }
+                if (ctx.Switch() != null) {
+                    //
+                    //Switch LeftParen condition RightParen statement;
+                    CFNode switchNode = new CFNode();
+                    switchNode.setLineOfCode(ctx.getStart().getLine());
+                    switchNode.setCode(ctx.Switch().getText() + ctx.LeftParen().getText() + getOriginalCodeText(ctx.condition()) + ctx.RightParen().getText());
+                    addContextualProperty(switchNode, ctx);
+                    addNodeAndPreEdge(switchNode);
+                    //
+                    CFNode endSwitch = new CFNode();
+                    endSwitch.setLineOfCode(0);
+                    endSwitch.setCode("end-switch");
+                    cfg.addVertex(endSwitch);
+                    //
+                    preEdges.push(CFEdge.Type.EPSILON);
+                    preNodes.push(switchNode);
+                    loopBlocks.push(new ControlFlowVisitor.Block(switchNode, endSwitch));
+                    //
+                        visit(ctx.statement(0));
+                    loopBlocks.pop();
+                    popAddPreEdgeTo(endSwitch);
+
+                    preEdges.push(CFEdge.Type.EPSILON);
+                    preNodes.push(endSwitch);
+                    return null;
+                }
+                return null;
+            }
             @Override public Void visitCondition(CppParser.ConditionContext ctx) { return visitChildren(ctx); }
             /**
              * {@inheritDoc}
@@ -495,13 +554,16 @@ public class CppCFGBuilder {
              * <p>The default implementation returns the result of calling
              * {@link #visitChildren} on {@code ctx}.</p>
              */
+            //todo
             @Override public Void visitIterationStatement(CppParser.IterationStatementContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
+            //iterationStatement:
+            //	While LeftParen condition RightParen statement
+            //	| Do statement While LeftParen expression RightParen Semi
+            //	| For LeftParen (
+            //		forInitStatement condition? Semi expression?
+            //		| forRangeDeclaration Colon forRangeInitializer
+            //	) RightParen statement;
+
             @Override public Void visitForInitStatement(CppParser.ForInitStatementContext ctx) { return visitChildren(ctx); }
             /**
              * {@inheritDoc}
@@ -523,13 +585,78 @@ public class CppCFGBuilder {
              * <p>The default implementation returns the result of calling
              * {@link #visitChildren} on {@code ctx}.</p>
              */
-            @Override public Void visitJumpStatement(CppParser.JumpStatementContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
+            @Override public Void visitJumpStatement(CppParser.JumpStatementContext ctx)
+            //jumpStatement:
+            //	(
+            //		Break
+            //		| Continue
+            //		| Return (expression | bracedInitList)?
+            //		| Goto Identifier
+            //	) Semi;
+            //
+            {if (ctx.Break() != null) {
+                // if a label is specified, search for the corresponding block in the labels-list,
+                // and create an epsilon edge to the end of the labeled-block; else
+                // create an epsilon edge to the end of the loop-block on top of the loopBlocks stack.
+                CFNode breakNode = new CFNode();
+                breakNode.setLineOfCode(ctx.getStart().getLine());
+                breakNode.setCode(getOriginalCodeText(ctx));
+                addContextualProperty(breakNode, ctx);
+                addNodeAndPreEdge(breakNode);
+                    // no label
+                    ControlFlowVisitor.Block block = loopBlocks.peek();
+                    cfg.addEdge(new Edge<>(breakNode, new CFEdge(CFEdge.Type.EPSILON), block.end));
+
+                dontPop = true;
+                return null;
+            }
+            //Continue
+                else if (ctx.Continue() != null) {
+                // if a label is specified, search for the corresponding block in the labels-list,
+                // and create an epsilon edge to the start of the labeled-block; else
+                // create an epsilon edge to the start of the loop-block on top of the loopBlocks stack.
+                CFNode continueNode = new CFNode();
+                continueNode.setLineOfCode(ctx.getStart().getLine());
+                continueNode.setCode(getOriginalCodeText(ctx));
+                addContextualProperty(continueNode, ctx);
+                addNodeAndPreEdge(continueNode);
+                    // no label
+                    ControlFlowVisitor.Block block = loopBlocks.peek();
+                    cfg.addEdge(new Edge<>(continueNode, new CFEdge(CFEdge.Type.EPSILON), block.start));
+
+                dontPop = true;
+                return null;
+            }
+                //Return (expression | bracedInitList)?
+            else if (ctx.Return() != null){
+                CFNode ret = new CFNode();
+                ret.setLineOfCode(ctx.getStart().getLine());
+                ret.setCode(getOriginalCodeText(ctx));
+                addContextualProperty(ret, ctx);
+                addNodeAndPreEdge(ret);
+                dontPop = true;
+                return null;
+            }
+
+                // Goto Identifier
+            else if (ctx.Goto() != null){
+                CFNode gotoNode = new CFNode();
+                gotoNode.setLineOfCode(ctx.getStart().getLine());
+                gotoNode.setCode(getOriginalCodeText(ctx));
+                addContextualProperty(gotoNode, ctx);
+                addNodeAndPreEdge(gotoNode);
+                    // a label is specified
+                    for (ControlFlowVisitor.Block block: labeledBlocks) {
+                        if (block.label.equals(ctx.Identifier().getText())) {
+                            cfg.addEdge(new Edge<>(gotoNode, new CFEdge(CFEdge.Type.EPSILON), block.end));
+                            break;
+                        }
+                    }
+                dontPop = true;
+                return null;
+            }
+                return null;
+    }
             @Override public Void visitDeclarationStatement(CppParser.DeclarationStatementContext ctx) { return visitChildren(ctx); }
             /**
              * {@inheritDoc}
@@ -1423,13 +1550,27 @@ public class CppCFGBuilder {
              * <p>The default implementation returns the result of calling
              * {@link #visitChildren} on {@code ctx}.</p>
              */
-            @Override public Void visitThrowExpression(CppParser.ThrowExpressionContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
+            @Override public Void visitThrowExpression(CppParser.ThrowExpressionContext ctx)
+            //throwExpression: Throw assignmentExpression?;
+            {
+                CFNode throwNode = new CFNode();
+                throwNode.setLineOfCode(ctx.getStart().getLine());
+                throwNode.setCode(ctx.Throw() + getOriginalCodeText(ctx.assignmentExpression()));
+                addContextualProperty(throwNode, ctx);
+                addNodeAndPreEdge(throwNode);
+                //
+                if (!tryBlocks.isEmpty()) {
+                    ControlFlowVisitor.Block tryBlock = tryBlocks.peek();
+                    cfg.addEdge(new Edge<>(throwNode, new CFEdge(CFEdge.Type.THROWS), tryBlock.end));
+                } else {
+                    // do something when it's a throw not in a try-catch block ...
+                    // in such a situation, the method declaration has a throws clause;
+                    // so we should create a special node for the method-throws,
+                    // and create an edge from this throw-statement to that throws-node.
+                }
+                dontPop = true;
+                return null;}
+
             @Override public Void visitExceptionSpecification(CppParser.ExceptionSpecificationContext ctx) { return visitChildren(ctx); }
             /**
              * {@inheritDoc}
