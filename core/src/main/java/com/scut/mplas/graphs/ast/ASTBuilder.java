@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import com.scut.mplas.java.JavaASTBuilder;
+import com.scut.mplas.ruby.RubyASTBuilder;
 
 /**
  * Abstract Syntax Tree (AST) Builder.
@@ -26,7 +27,9 @@ public class ASTBuilder {
 				return JavaASTBuilder.build(srcFilePath);
 			//
 			case "Python":
-				return null;
+				return  null;
+			case "Ruby":
+				return RubyASTBuilder.build(srcFilePath);
 			//
 			default:
 				return null;
@@ -46,6 +49,8 @@ public class ASTBuilder {
 			//
 			case "Python":
 				return null;
+			case "Ruby":
+				return RubyASTBuilder.build(fileName,inputStream);
 			//
 			default:
 				return null;

@@ -107,17 +107,28 @@ public class ASNode {
         RUBY_VAR("VAR"),
         RUBY_END("END"),
         RUBY_REQUIRE_BLOCK("REQUIRE_BLOCK"),
-        RUBY_PIR_INLINE("pir_inline"),
+        RUBY_PIR_INLINE("PIR_INLINE"),
         RUBY_RVALUE("RVALUE"),
+        RUBY_LVALUE("LVALUE"),
+        RUBY_ARRAY_INIT("ARRAY_INIT"),
+        RUBY_ARRAY_ASSIGN("ARRAY_ASSIGN"),
+        RUBY_ASSIGNMENT("ASSIGNMENT"),
 
-        RUBY_GLOBAL_GET("global_get"),
-        RUBY_GLOBAL_SET("global_set"),
+        RUBY_LITERAL_T("LITERAL"),
+        RUBY_BOOL_T("BOOL"),
+        RUBY_FLOAT_T("FLOAT"),
+        RUBY_INT_T("INT"),
+        RUBY_NIL_T("NIL"),
+
+        RUBY_GLOBAL_GET("GLOBAL_GET"),
+        RUBY_GLOBAL_SET("GLOBAL_SET"),
         RUBY_GLOBAL_RESULT("GLOBAL_RESULT"),
         RUBY_RESULT("RESULT"),
         RUBY_RETRY("RETRY"),
         RUBY_ELSEIF("ELSIF"),
         RUBY_UNLESS("UNLESS"),
-        RUBY_GLOBAL_ID("global_id")
+        RUBY_LOOP_EXPR("LOOP_EXPR"),
+        RUBY_GLOBAL_ID("GLOBAL_ID")
 
 
         ;

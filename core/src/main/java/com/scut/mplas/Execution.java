@@ -79,6 +79,7 @@ public class Execution {
 	public enum Languages {
 		C		("C", ".c"),
 		JAVA	    ("Java", ".java"),
+		RUBY	    ("Ruby", ".rb"),
 		PYTHON	("Python", ".py");
 		
 		private Languages(String str, String suffix) {
@@ -266,9 +267,10 @@ public class Execution {
 		if (paths.length > 0)
 			filePaths = FileUtils.listFilesWithSuffix(paths, lang.suffix);
 		Logger.info("\n# " + lang.name + " source files = " + filePaths.length + "\n");
-		
+
+		Logger.info(lang.name);
 		// Check language
-		if (!lang.equals(Languages.JAVA)) {
+		if (!lang.equals(Languages.JAVA) && !lang.equals(Languages.RUBY)) {
 			Logger.info("Analysis of " + lang.name + " programs is not yet supported!");
 			Logger.info("Abort.");
 			System.exit(0);
@@ -291,6 +293,7 @@ public class Execution {
 						for (String srcFile : filePaths) {
 							try {
 								AbstractSyntaxTree ast = ASTBuilder.build(lang.name, srcFile);
+								Logger.info(ast.root.getCode());
 								ast.export(format.toString(), outputDir);
 							} catch (IOException ex) {
 								Logger.error(ex);

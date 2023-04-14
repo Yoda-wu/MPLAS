@@ -99,6 +99,9 @@ public class CLI {
 									case "java":
 										exec.setLanguage(Execution.Languages.JAVA);
 										break;
+									case "ruby":
+										exec.setLanguage(Execution.Languages.RUBY);
+										break;
 									default:
 										printHelp("Unsupported language: " + args[i]);
 										System.exit(1);

@@ -117,14 +117,5 @@ public class CppASTBuilder {
             return AST;
         }
 
-        //TODO 待解决
-        @Override public String visitProgram(CppParser.PrimaryExpressionContext ctx) {
-//            // packageDeclaration :  annotation* 'package' qualifiedName ';'
-//            ASNode node = new ASNode(ASNode.Type.PACKAGE);
-//            node.setCode(ctx.qualifiedName().getText());
-//            node.setLineOfCode(ctx.getStart().getLine());
-//            Logger.debug("Adding package");
-//            AST.addVertex(node);
-//            AST.addEdge(parentStack.peek(), node);
-            return "";
-        }
+
+    }}

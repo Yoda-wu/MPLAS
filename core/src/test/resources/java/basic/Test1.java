@@ -11,6 +11,7 @@ public class Test1 {
 			System.out.println("Non-positive");
 			i *= -2;
 		}
+
 		System.out.println("End");
 	}
 }
