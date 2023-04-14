@@ -18,7 +18,9 @@ import org.junit.*;
 public class BasicAnalysisTests {
     
     private final String JAVA_SRC_DIR = "src/test/resources/java/basic/";
+    private final String CPP_SRC_DIR="src/test/resources/cpp/basic/";
     private static final String OUTPUT_DIR = "../generate/java/basic/";
+    private static final String CPP_OUTPUT_DIR="../generate/cpp/basic/";
     
     @BeforeClass
     public static void cleanUp() {
@@ -150,4 +152,18 @@ public class BasicAnalysisTests {
         assertEquals(testFiles.length, outDataFiles.length);
         assertEquals(testFiles.length, outCtrlFiles.length);
     }
+
+    @Test
+    public void cppASTreeJsonTest() {
+        String outDir = CPP_OUTPUT_DIR + "AST/";
+        String[] args = {"-ast", "-outdir", outDir, "-format", "json","-lang","cpp", CPP_SRC_DIR};
+        Main.main(args);
+        //
+
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {CPP_SRC_DIR}, Execution.Languages.CPP.suffix);
+        String[] outFiles = FileUtils.listFilesWithSuffix(new String[] {outDir}, "-AST.json");
+        assertEquals(testFiles.length, outFiles.length);
+    }
+
+
 }

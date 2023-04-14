@@ -40,7 +40,7 @@ public class CppASTBuilder {
      */
 
     public static AbstractSyntaxTree build(File cppFile) throws IOException {
-        if (!cppFile.getName().endsWith(".java"))
+        if (!cppFile.getName().endsWith(".cpp"))
             throw new IOException("Not a Cpp File!");
         InputStream inFile = new FileInputStream(cppFile);
         ANTLRInputStream input = new ANTLRInputStream(inFile);
@@ -86,6 +86,10 @@ public class CppASTBuilder {
         private String specifier;
         private String type;
         private String attribute;
+        private String pointerOp;
+        private String varName;
+        private String parameters;
+        private boolean isHasAccess=false;
         private Deque<ASNode> parentStack;
         private final AbstractSyntaxTree AST;
         private Map<String, String> vars, fields, methods;
@@ -189,14 +193,13 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitCaptureDefault(CppParser.CaptureDefaultContext ctx)
-        //captureDefault: And | Assign;
-        {
-            if (ctx.And()!=null){
-                return ctx.And().getText();
-            }
-                return ctx.Assign().getText();
-        }
+        @Override public String visitCaptureDefault(CppParser.CaptureDefaultContext ctx) { return visitChildren(ctx); }
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
         @Override public String visitCaptureList(CppParser.CaptureListContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
@@ -212,10 +215,19 @@ public class CppASTBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitSimpleCapture(CppParser.SimpleCaptureContext ctx) { return visitChildren(ctx); }
-        //simpleCapture: And? Identifier | This;
-
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
         @Override public String visitInitcapture(CppParser.InitcaptureContext ctx) { return visitChildren(ctx); }
-       //initcapture: And? Identifier initializer;
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
         @Override public String visitLambdaDeclarator(CppParser.LambdaDeclaratorContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
@@ -441,27 +453,55 @@ public class CppASTBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitConstantExpression(CppParser.ConstantExpressionContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
         @Override public String visitStatement(CppParser.StatementContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitLabeledStatement(CppParser.LabeledStatementContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitExpressionStatement(CppParser.ExpressionStatementContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitLabeledStatement(CppParser.LabeledStatementContext ctx) {
+            //labeledStatement:
+            //	attributeSpecifierSeq? (
+            //		Identifier
+            //		| Case constantExpression
+            //		| Default
+            //	) Colon statement;
+            if(ctx.Identifier()!=null)
+            {
+                ASNode labelNode=new ASNode(ASNode.Type.LABELED);
+                labelNode.setLineOfCode(ctx.getStart().getLine());
+                labelNode.setCode(ctx.Identifier().getText());
+                AST.addVertex(labelNode);
+                AST.addEdge(parentStack.peek(),labelNode);
+            }
+            else if(ctx.Default()!=null)
+            {
+                ASNode defaultNode=new ASNode(ASNode.Type.DEFAULT);
+                defaultNode.setLineOfCode(ctx.getStart().getLine());
+                AST.addVertex(defaultNode);
+                AST.addEdge(parentStack.peek(),defaultNode);
+            }
+            else
+            {
+                ASNode caseNode=new ASNode(ASNode.Type.CASE);
+                caseNode.setLineOfCode(ctx.getStart().getLine());
+                caseNode.setCode(getOriginalCodeText(ctx.constantExpression()));
+                AST.addVertex(caseNode);
+                AST.addEdge(parentStack.peek(),caseNode);
+            }
+            visit(ctx.statement());
+            return "";
+        }
+
+        @Override public String visitExpressionStatement(CppParser.ExpressionStatementContext ctx) {
+            //expressionStatement: expression? Semi;
+            if(ctx.expression()!=null)
+            {
+                ASNode statNode=new ASNode(ASNode.Type.STATEMENT);
+                statNode.setLineOfCode(ctx.getStart().getLine());
+                statNode.setCode(getOriginalCodeText(ctx));
+                AST.addVertex(statNode);
+                AST.addEdge(parentStack.peek(),statNode);
+            }
+            return "";
+        }
 
         // TODO: 2023/4/11   完善statement
         @Override public String visitCompoundStatement(CppParser.CompoundStatementContext ctx) {
@@ -496,13 +536,72 @@ public class CppASTBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitStatementSeq(CppParser.StatementSeqContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitSelectionStatement(CppParser.SelectionStatementContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitSelectionStatement(CppParser.SelectionStatementContext ctx) {
+            //selectionStatement:
+            //	If LeftParen condition RightParen statement (Else statement)?
+            //	| Switch LeftParen condition RightParen statement;
+            if(ctx.If()!=null)
+            {
+                ASNode ifNode=new ASNode(ASNode.Type.IF);
+                ifNode.setLineOfCode(ctx.getStart().getLine());
+                AST.addVertex(ifNode);
+                AST.addEdge(parentStack.peek(),ifNode);
+
+                ASNode condNode=new ASNode(ASNode.Type.CONDITION);
+                condNode.setLineOfCode(ctx.condition().getStart().getLine());
+                condNode.setCode(getOriginalCodeText(ctx.condition()));
+                condNode.setNormalizedCode(visit(ctx.condition()));
+                AST.addVertex(condNode);
+                AST.addEdge(ifNode,condNode);
+
+                ASNode thenNode=new ASNode(ASNode.Type.THEN);
+                thenNode.setLineOfCode(ctx.statement(0).getStart().getLine());
+                AST.addVertex(thenNode);
+                AST.addEdge(ifNode,thenNode);
+                parentStack.push(thenNode);
+                visit(ctx.statement(0));
+                parentStack.pop();
+
+                if(ctx.statement(1)!=null)
+                {
+                    ASNode elseNode=new ASNode(ASNode.Type.ELSE);
+                    elseNode.setLineOfCode(ctx.statement(1).getStart().getLine());
+                    AST.addVertex(elseNode);
+                    AST.addEdge(ifNode, elseNode);
+                    parentStack.push(elseNode);
+                    visit(ctx.statement(1));
+                    parentStack.pop();
+                }
+            }
+            else
+            {
+                //	| Switch LeftParen condition RightParen statement;
+                ASNode switchNode=new ASNode(ASNode.Type.SWITCH);
+                switchNode.setLineOfCode(ctx.getStart().getLine());
+                AST.addVertex(switchNode);
+                AST.addEdge(parentStack.peek(),switchNode);
+
+                ASNode condNode=new ASNode(ASNode.Type.CONDITION);
+                condNode.setLineOfCode(ctx.condition().getStart().getLine());
+                condNode.setCode(getOriginalCodeText(ctx.condition()));
+                condNode.setNormalizedCode(visit(ctx.condition()));
+                AST.addVertex(condNode);
+                AST.addEdge(switchNode,condNode);
+
+                if(ctx.statement(0)!=null)
+                {
+                    ASNode statNode=new ASNode(ASNode.Type.BLOCK);
+                    statNode.setLineOfCode(ctx.statement(0).getStart().getLine());
+                    AST.addVertex(statNode);
+                    AST.addEdge(switchNode,statNode);
+                    parentStack.push(statNode);
+                    visit(ctx.statement(0));
+                    parentStack.pop();
+                }
+            }
+            return "";
+        }
         /**
          * {@inheritDoc}
          *
@@ -510,29 +609,148 @@ public class CppASTBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitCondition(CppParser.ConditionContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitIterationStatement(CppParser.IterationStatementContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitForInitStatement(CppParser.ForInitStatementContext ctx)
-        //forInitStatement: expressionStatement | simpleDeclaration;
-        //forInit   :  localVariableDeclaration  |  expressionList
-        {
-                if (ctx.expressionStatement() != null) {
-                    return ctx.expressionStatement().getText();
-                } else
-                    return ctx.simpleDeclaration().getText();
+
+        @Override public String visitIterationStatement(CppParser.IterationStatementContext ctx) {
+            //iterationStatement:
+            //	While LeftParen condition RightParen statement
+            //	| Do statement While LeftParen expression RightParen Semi
+            //	| For LeftParen (
+            //		forInitStatement condition? Semi expression?
+            //		| forRangeDeclaration Colon forRangeInitializer
+            //	) RightParen statement;
+            if(ctx.While()!=null)
+            {
+                //While LeftParen condition RightParen statement
+                ASNode whileNode=new ASNode(ASNode.Type.WHILE);
+                whileNode.setLineOfCode(ctx.getStart().getLine());
+                AST.addVertex(whileNode);
+                AST.addEdge(parentStack.peek(),whileNode);
+                parentStack.push(whileNode);
+
+                ASNode condNode=new ASNode(ASNode.Type.CONDITION);
+                condNode.setLineOfCode(ctx.condition().getStart().getLine());
+                condNode.setCode(getOriginalCodeText(ctx.condition()));
+                AST.addVertex(condNode);
+                AST.addEdge(parentStack.peek(),condNode);
+
+                visit(ctx.statement());
+
+                parentStack.pop();
+            }
+            else if(ctx.Do()!=null)
+            {
+                //Do statement While LeftParen expression RightParen Semi
+                ASNode doNode=new ASNode(ASNode.Type.DO);
+                doNode.setLineOfCode(ctx.getStart().getLine());
+                AST.addVertex(doNode);
+                AST.addEdge(parentStack.peek(),doNode);
+                parentStack.push(doNode);
+
+                visit(ctx.statement());
+
+                ASNode condNode=new ASNode(ASNode.Type.CONDITION);
+                condNode.setLineOfCode(ctx.condition().getStart().getLine());
+                condNode.setCode(getOriginalCodeText(ctx.condition()));
+                AST.addVertex(condNode);
+                AST.addEdge(parentStack.peek(),condNode);
+
+                parentStack.pop();
+            }
+            else
+            {
+                //For LeftParen (
+                //            //		forInitStatement condition? Semi expression?
+                //            //		| forRangeDeclaration Colon forRangeInitializer
+                //            //	) RightParen statement;
+                ASNode forNode=new ASNode(ASNode.Type.FOR);
+                forNode.setLineOfCode(ctx.getStart().getLine());
+                AST.addVertex(forNode);
+                AST.addEdge(parentStack.peek(),forNode);
+                parentStack.push(forNode);
+
+                if(ctx.forInitStatement()!=null)
+                {
+                    visit(ctx.forInitStatement());
+
+                    if(ctx.condition()!=null)
+                    {
+                        ASNode condNode=new ASNode(ASNode.Type.CONDITION);
+                        condNode.setLineOfCode(ctx.condition().getStart().getLine());
+                        condNode.setCode(getOriginalCodeText(ctx.condition()));
+                        AST.addVertex(condNode);
+                        AST.addEdge(parentStack.peek(),condNode);
+                    }
+
+                    if(ctx.expression()!=null)
+                    {
+                        ASNode experNode=new ASNode(ASNode.Type.EXPRESSION);
+                        experNode.setLineOfCode(ctx.expression().getStart().getLine());
+                        experNode.setCode(getOriginalCodeText(ctx.expression()));
+                        AST.addVertex(experNode);
+                        AST.addEdge(parentStack.peek(),experNode);
+                    }
+                }
+                else
+                {
+                    //forRangeDeclaration Colon forRangeInitializer
+                    //
+                    //forRangeDeclaration:
+                    //	attributeSpecifierSeq? declSpecifierSeq declarator;
+                    //
+                    //forRangeInitializer: expression | bracedInitList;
+                    visit(ctx.forRangeDeclaration().declSpecifierSeq());
+                    ASNode varNode=new ASNode(ASNode.Type.FOR_RANGE_INIT);
+                    varNode.setLineOfCode(ctx.forRangeDeclaration().getStart().getLine());
+                    AST.addVertex(varNode);
+                    AST.addEdge(parentStack.peek(),varNode);
+
+                    if(specifier!=null)
+                    {
+                        ASNode specNode=new ASNode(ASNode.Type.SPECIFIER);
+                        specNode.setLineOfCode(ctx.forRangeDeclaration().getStart().getLine());
+                        specNode.setCode(specifier);
+                        AST.addVertex(specNode);
+                        AST.addEdge(varNode,specNode);
+                    }
+                    visit(ctx.forRangeDeclaration().declarator());
+                    ASNode typeNode=new ASNode(ASNode.Type.TYPE);
+                    typeNode.setLineOfCode(ctx.forRangeDeclaration().declarator().getStart().getLine());
+                    typeNode.setCode(type+pointerOp);
+                    AST.addVertex(typeNode);
+                    AST.addEdge(varNode,typeNode);
+
+                    ASNode nameNode=new ASNode(ASNode.Type.NAME);
+                    nameNode.setLineOfCode(ctx.forRangeDeclaration().declarator().getStart().getLine());
+                    nameNode.setCode(varName);
+                    AST.addVertex(nameNode);
+                    AST.addEdge(varNode,nameNode);
+
+                    ASNode initerNode=new ASNode(ASNode.Type.FOR_RANGE_INITER);
+                    initerNode.setLineOfCode(ctx.forRangeInitializer().getStart().getLine());
+                    initerNode.setCode(getOriginalCodeText(ctx.forRangeInitializer()));
+                    AST.addVertex(initerNode);
+                    AST.addEdge(varNode,initerNode);
+                }
+                visit(ctx.statement());
+                parentStack.pop();
+            }
+            return "";
         }
 
+        @Override public String visitForInitStatement(CppParser.ForInitStatementContext ctx) {
+            //forInitStatement: expressionStatement | simpleDeclaration;
+            if(ctx.expressionStatement()!=null)
+            {
+                ASNode initNode=new ASNode(ASNode.Type.FOR_INIT);
+                initNode.setLineOfCode(ctx.getStart().getLine());
+                initNode.setCode(getOriginalCodeText(ctx.expressionStatement()));
+                AST.addVertex(initNode);
+                AST.addEdge(parentStack.peek(),initNode);
+            }
+            else
+                visit(ctx.simpleDeclaration());
+            return "";
+        }
 
 
         @Override public String visitForRangeDeclaration(CppParser.ForRangeDeclarationContext ctx) { return visitChildren(ctx); }
@@ -550,7 +768,21 @@ public class CppASTBuilder {
             } else
                 return ctx.bracedInitList().getText();
         }
-        @Override public String visitJumpStatement(CppParser.JumpStatementContext ctx) { return visitChildren(ctx); }
+        @Override public String visitJumpStatement(CppParser.JumpStatementContext ctx) {
+            //jumpStatement:
+            //	(
+            //		Break
+            //		| Continue
+            //		| Return (expression | bracedInitList)?
+            //		| Goto Identifier
+            //	) Semi;
+            ASNode statNode=new ASNode(ASNode.Type.STATEMENT);
+            statNode.setLineOfCode(ctx.getStart().getLine());
+            statNode.setCode(getOriginalCodeText(ctx));
+            AST.addVertex(statNode);
+            AST.addEdge(parentStack.peek(),statNode);
+            return "";
+        }
         /**
          * {@inheritDoc}
          *
@@ -580,36 +812,129 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitBlockDeclaration(CppParser.BlockDeclarationContext ctx) {
+        @Override public String visitBlockDeclaration(CppParser.BlockDeclarationContext ctx) {return visitChildren(ctx);}
 
-            return visitChildren(ctx);
+
+        @Override public String visitAliasDeclaration(CppParser.AliasDeclarationContext ctx) {
+            //aliasDeclaration:
+            //	Using Identifier attributeSpecifierSeq? Assign theTypeId Semi;
+            ASNode aliasNode=new ASNode(ASNode.Type.ALIAS);
+            aliasNode.setLineOfCode(ctx.getStart().getLine());
+            aliasNode.setCode(getOriginalCodeText(ctx));
+            AST.addVertex(aliasNode);
+            AST.addEdge(parentStack.peek(),aliasNode);
+            return "";
         }
 
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitAliasDeclaration(CppParser.AliasDeclarationContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitSimpleDeclaration(CppParser.SimpleDeclarationContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitStaticAssertDeclaration(CppParser.StaticAssertDeclarationContext ctx)
-        //staticAssertDeclaration:
-        //Static_assert LeftParen constantExpression Comma StringLiteral RightParen Semi;
-        { return ctx.Static_assert().getText()+" "+ctx.LeftParen().getText()+" "+visit(ctx.constantExpression())+" "+ctx.Comma().getText()+" "+ctx.StringLiteral().getText()+" "+ctx. RightParen().getText()+" "+ctx. Semi().getText(); }
+        // TODO: 2023/4/13 待区分存在参数列表时是属于函数声明还是变量定义，目前同一为函数声明
+        @Override public String visitSimpleDeclaration(CppParser.SimpleDeclarationContext ctx) {
+            //simpleDeclaration:
+            //	declSpecifierSeq? initDeclaratorList? Semi
+            //	| attributeSpecifierSeq declSpecifierSeq? initDeclaratorList Semi;v
+            if(ctx.declSpecifierSeq()!=null)
+            {
+                // 变量或函数声明
+                //initDeclaratorList: initDeclarator (Comma initDeclarator)*;
+                //
+                //initDeclarator: declarator initializer?;
+                visit(ctx.declSpecifierSeq());
+                for(CppParser.InitDeclaratorContext initCtx:ctx.initDeclaratorList().initDeclarator())
+                {
+                    visit(initCtx);
+                    boolean isFunc=false;
+                    if(parameters!="")
+                    {
+                        ASNode funcNode=new ASNode(ASNode.Type.FUNCTION);
+                        funcNode.setLineOfCode(initCtx.getStart().getLine());
+                        AST.addVertex(funcNode);
+                        AST.addEdge(parentStack.peek(),funcNode);
+                        parentStack.push(funcNode);
+                        isFunc=true;
+                    }
+                    else
+                    {
+                        ASNode varNode=new ASNode(ASNode.Type.VARIABLE);
+                        varNode.setLineOfCode(initCtx.getStart().getLine());
+                        AST.addVertex(varNode);
+                        AST.addEdge(parentStack.peek(),varNode);
+                        parentStack.push(varNode);
+                    }
+                    if(specifier!="")
+                    {
+                        ASNode specNode=new ASNode(ASNode.Type.SPECIFIER);
+                        specNode.setLineOfCode(ctx.getStart().getLine());
+                        specNode.setCode(specifier);
+                        AST.addVertex(specNode);
+                        AST.addEdge(parentStack.peek(),specNode);
+                    }
+                    ASNode typeNode=new ASNode((!isFunc? ASNode.Type.TYPE:ASNode.Type.RETURN));
+                    typeNode.setLineOfCode(initCtx.getStart().getLine());
+                    typeNode.setCode(type+pointerOp);
+                    AST.addVertex(typeNode);
+                    AST.addEdge(parentStack.peek(),typeNode);
 
+                    ASNode nameNode=new ASNode(ASNode.Type.NAME);
+                    nameNode.setLineOfCode(initCtx.getStart().getLine());
+                    nameNode.setCode(varName);
+                    AST.addVertex(nameNode);
+                    AST.addEdge(parentStack.peek(),nameNode);
+
+                    if(isFunc)
+                    {
+                        ASNode parmsNode=new ASNode(ASNode.Type.PARAMS);
+                        parmsNode.setLineOfCode(initCtx.getStart().getLine());
+                        parmsNode.setCode(parameters);
+                        AST.addVertex(parmsNode);
+                        AST.addEdge(parentStack.peek(),parmsNode);
+                    }
+
+                    if(initCtx.initializer()!=null)
+                    {
+                        //initializer:
+                        //	braceOrEqualInitializer
+                        //	| LeftParen expressionList RightParen;
+                        ASNode initNode=new ASNode(ASNode.Type.INIT_VALUE);
+                        initNode.setLineOfCode(initCtx.initializer().getStart().getLine());
+                        initNode.setCode(getOriginalCodeText(initCtx.initializer()));
+                        AST.addVertex(initNode);
+                        AST.addEdge(parentStack.peek(),initNode);
+                    }
+                    parentStack.pop();
+                }
+            }
+            else if(ctx.initDeclaratorList()!=null)
+            {
+                //函数调用或变量赋值
+                ASNode experNode=new ASNode(ASNode.Type.EXPRESSION);
+                experNode.setLineOfCode(ctx.getStart().getLine());
+                experNode.setCode(getOriginalCodeText(ctx.initDeclaratorList()));
+                AST.addVertex(experNode);
+                AST.addEdge(parentStack.peek(),experNode);
+            }
+            return "";
+        }
+
+        @Override public String visitStaticAssertDeclaration(CppParser.StaticAssertDeclarationContext ctx) {
+            //staticAssertDeclaration:
+            //	Static_assert LeftParen constantExpression Comma StringLiteral RightParen Semi;
+            ASNode stAssNode=new ASNode(ASNode.Type.STATIC_ASSERT);
+            stAssNode.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(stAssNode);
+            AST.addEdge(parentStack.peek(),stAssNode);
+
+            ASNode condNode=new ASNode(ASNode.Type.CONDITION);
+            condNode.setLineOfCode(ctx.constantExpression().getStart().getLine());
+            condNode.setCode(getOriginalCodeText(ctx.constantExpression()));
+            AST.addVertex(condNode);
+            AST.addEdge(stAssNode,condNode);
+
+            ASNode messageNode=new ASNode(ASNode.Type.MESSAGE);
+            messageNode.setLineOfCode(ctx.constantExpression().getStart().getLine());
+            messageNode.setCode(ctx.StringLiteral().getText());
+            AST.addVertex(messageNode);
+            AST.addEdge(stAssNode,messageNode);
+            return "";
+        }
         @Override public String visitEmptyDeclaration(CppParser.EmptyDeclarationContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
@@ -749,20 +1074,50 @@ public class CppASTBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitEnumName(CppParser.EnumNameContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitEnumSpecifier(CppParser.EnumSpecifierContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitEnumHead(CppParser.EnumHeadContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitEnumSpecifier(CppParser.EnumSpecifierContext ctx) {
+            //enumSpecifier:
+            //	enumHead LeftBrace (enumeratorList Comma?)? RightBrace;
+            ASNode enumNode=new ASNode(ASNode.Type.ENUM);
+            enumNode.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(enumNode);
+            AST.addEdge(parentStack.peek(),enumNode);
+            parentStack.push(enumNode);
+
+            visit(ctx.enumHead());
+
+            ASNode specNode=new ASNode(ASNode.Type.SPECIFIER);
+            specNode.setLineOfCode(ctx.getStart().getLine());
+            specNode.setCode(specifier);
+            AST.addVertex(specNode);
+            AST.addEdge(parentStack.peek(),specNode);
+
+            ASNode nameNode=new ASNode(ASNode.Type.NAME);
+            nameNode.setLineOfCode(ctx.getStart().getLine());
+            nameNode.setCode(varName);
+            AST.addVertex(nameNode);
+            AST.addEdge(parentStack.peek(),nameNode);
+
+            if(ctx.enumeratorList()!=null)
+                visit(ctx.enumeratorList());
+
+            parentStack.pop();
+            return "";
+        }
+
+        @Override public String visitEnumHead(CppParser.EnumHeadContext ctx) {
+            //enumHead:
+            //	enumkey attributeSpecifierSeq? (
+            //		nestedNameSpecifier? Identifier
+            //	)? enumbase?;
+
+            specifier=getOriginalCodeText(ctx.enumkey());
+            varName="";
+            if(ctx.nestedNameSpecifier()!=null)
+                varName=visit(ctx.nestedNameSpecifier());
+            varName+=ctx.Identifier().getText();
+            return "";
+        }
         /**
          * {@inheritDoc}
          *
@@ -784,13 +1139,24 @@ public class CppASTBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitEnumbase(CppParser.EnumbaseContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitEnumeratorList(CppParser.EnumeratorListContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitEnumeratorList(CppParser.EnumeratorListContext ctx) {
+            //enumeratorList:
+            //	enumeratorDefinition (Comma enumeratorDefinition)*;
+            //
+            //enumeratorDefinition: enumerator (Assign constantExpression)?;
+            //
+            //enumerator: Identifier;
+            for(CppParser.EnumeratorDefinitionContext enumCtx:ctx.enumeratorDefinition())
+            {
+                ASNode varNode=new ASNode(ASNode.Type.VARIABLE);
+                varNode.setLineOfCode(enumCtx.getStart().getLine());
+                varNode.setCode(getOriginalCodeText(enumCtx));
+                AST.addVertex(varNode);
+                AST.addEdge(parentStack.peek(),varNode);
+            }
+            return "";
+        }
         /**
          * {@inheritDoc}
          *
@@ -829,6 +1195,15 @@ public class CppASTBuilder {
             AST.addVertex(namespaceNode);
             AST.addEdge(parentStack.peek(),namespaceNode);
 
+            if(ctx.Inline()!=null)
+            {
+                ASNode specNode=new ASNode(ASNode.Type.SPECIFIER);
+                specNode.setLineOfCode(ctx.getStart().getLine());
+                specNode.setCode(ctx.Inline().getText());
+                AST.addVertex(specNode);
+                AST.addEdge(namespaceNode,specNode);
+            }
+
             ASNode nameNode=new ASNode(ASNode.Type.NAME);
             nameNode.setLineOfCode(ctx.getStart().getLine());
             String spaceName=ctx.Identifier().getText();
@@ -850,45 +1225,75 @@ public class CppASTBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitNamespaceAlias(CppParser.NamespaceAliasContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitNamespaceAliasDefinition(CppParser.NamespaceAliasDefinitionContext ctx)
-        //namespaceAliasDefinition:Namespace Identifier Assign qualifiednamespacespecifier Semi;
-        { return ctx.Namespace().getText()+" "+ctx.Identifier().getText()+" "+ctx.Assign().getText()+" "+visit(ctx.qualifiednamespacespecifier())+" "+ctx.Semi().getText(); }
+
+        @Override public String visitNamespaceAliasDefinition(CppParser.NamespaceAliasDefinitionContext ctx) {
+            ASNode aliasNode=new ASNode(ASNode.Type.ALIAS);
+            aliasNode.setLineOfCode(ctx.getStart().getLine());
+            aliasNode.setCode(getOriginalCodeText(ctx));
+            AST.addVertex(aliasNode);
+            AST.addEdge(parentStack.peek(),aliasNode);
+            return "";
+        }
 
         @Override public String visitQualifiednamespacespecifier(CppParser.QualifiednamespacespecifierContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitUsingDeclaration(CppParser.UsingDeclarationContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitUsingDirective(CppParser.UsingDirectiveContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitAsmDefinition(CppParser.AsmDefinitionContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitLinkageSpecification(CppParser.LinkageSpecificationContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitUsingDeclaration(CppParser.UsingDeclarationContext ctx) {
+            ASNode usingNode=new ASNode(ASNode.Type.USING);
+            usingNode.setLineOfCode(ctx.getStart().getLine());
+            usingNode.setCode(getOriginalCodeText(ctx));
+            AST.addVertex(usingNode);
+            AST.addEdge(parentStack.peek(),usingNode);
+            return "";
+        }
+
+        @Override public String visitUsingDirective(CppParser.UsingDirectiveContext ctx) {
+            ASNode usingNode=new ASNode(ASNode.Type.USING);
+            usingNode.setLineOfCode(ctx.getStart().getLine());
+            usingNode.setCode(getOriginalCodeText(ctx));
+            AST.addVertex(usingNode);
+            AST.addEdge(parentStack.peek(),usingNode);
+            return "";
+        }
+
+        @Override public String visitAsmDefinition(CppParser.AsmDefinitionContext ctx) {
+            ASNode asmNode=new ASNode(ASNode.Type.ASM);
+            asmNode.setLineOfCode(ctx.getStart().getLine());
+            asmNode.setCode(getOriginalCodeText(ctx));
+            AST.addVertex(asmNode);
+            AST.addEdge(parentStack.peek(),asmNode);
+            return "";
+        }
+
+        @Override public String visitLinkageSpecification(CppParser.LinkageSpecificationContext ctx) {
+            //linkageSpecification:
+            //	Extern StringLiteral (
+            //		LeftBrace declarationseq? RightBrace
+            //		| declaration
+            //	);
+            ASNode externNode=new ASNode(ASNode.Type.EXTERN);
+            externNode.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(externNode);
+            AST.addEdge(parentStack.peek(),externNode);
+            parentStack.push(externNode);
+
+            String str=ctx.StringLiteral().getText();
+            if(!str.isEmpty())
+            {
+                ASNode nameNode=new ASNode(ASNode.Type.NAME);
+                nameNode.setLineOfCode(ctx.getStart().getLine());
+                nameNode.setCode(str);
+                AST.addVertex(nameNode);
+                AST.addEdge(parentStack.peek(),nameNode);
+            }
+
+            if(ctx.declarationseq()!=null)
+                visit(ctx.declarationseq());
+            else
+                visit(ctx.declaration());
+
+            parentStack.pop();
+            return "";
+        }
         /**
          * {@inheritDoc}
          *
@@ -1031,13 +1436,44 @@ public class CppASTBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitInitDeclarator(CppParser.InitDeclaratorContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitDeclarator(CppParser.DeclaratorContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitDeclarator(CppParser.DeclaratorContext ctx) {
+            //declarator:
+            //	pointerDeclarator
+            //	| noPointerDeclarator parametersAndQualifiers trailingReturnType;
+            //
+            // pointerDeclarator: (pointerOperator Const?)* noPointerDeclarator;
+            pointerOp="";
+            varName="";
+            CppParser.PointerDeclaratorContext pdCtx=ctx.pointerDeclarator();
+            if(pdCtx.pointerOperator()!=null)
+            {
+                for(int i=0;i<pdCtx.pointerOperator().size();++i)
+                {
+                    pointerOp+=getOriginalCodeText(pdCtx.pointerOperator(i));
+                    if(pdCtx.Const(i)!=null)
+                        pointerOp+=pdCtx.Const(i).getText();
+                }
+            }
+
+            // noPointerDeclarator:
+            //	declaratorid attributeSpecifierSeq?
+            //	| noPointerDeclarator (
+            //		parametersAndQualifiers
+            //		| LeftBracket constantExpression? RightBracket attributeSpecifierSeq?
+            //	)
+            //	| LeftParen pointerDeclarator RightParen;
+            CppParser.NoPointerDeclaratorContext npdCtx=pdCtx.noPointerDeclarator();
+            varName=getOriginalCodeText(npdCtx.noPointerDeclarator());
+
+            //parametersAndQualifiers:
+            //	LeftParen parameterDeclarationClause? RightParen cvqualifierseq? refqualifier?
+            //		exceptionSpecification? attributeSpecifierSeq?;
+            parameters="";
+            if(npdCtx.parametersAndQualifiers()!=null && npdCtx.parametersAndQualifiers().parameterDeclarationClause()!=null)
+                parameters=getOriginalCodeText(npdCtx.parametersAndQualifiers().parameterDeclarationClause());
+            return "";
+        }
         /**
          * {@inheritDoc}
          *
@@ -1396,20 +1832,81 @@ public class CppASTBuilder {
                 return visit(ctx.simpleTemplateId());
             return getOriginalCodeText(ctx);
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitClassSpecifier(CppParser.ClassSpecifierContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitClassHead(CppParser.ClassHeadContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitClassSpecifier(CppParser.ClassSpecifierContext ctx) {
+            //classSpecifier:
+            //	classHead LeftBrace memberSpecification? RightBrace;
+            //
+            //classHeadName: nestedNameSpecifier? className;
+            //
+            //classVirtSpecifier: Final;
+            //
+            //classKey: Class | Struct;
+            ASNode classNode=new ASNode(ASNode.Type.CLASS);
+            classNode.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(classNode);
+            AST.addEdge(parentStack.peek(),classNode);
+            parentStack.push(classNode);
+
+            visit(ctx.classHead());
+
+            if(ctx.memberSpecification()!=null)
+                visit(ctx.memberSpecification());
+
+            parentStack.pop();
+            return "";
+        }
+
+        @Override public String visitClassHead(CppParser.ClassHeadContext ctx) {
+            //classHead:
+            //	classKey attributeSpecifierSeq? (
+            //		classHeadName classVirtSpecifier?
+            //	)? baseClause?
+            //	| Union attributeSpecifierSeq? (
+            //		classHeadName classVirtSpecifier?
+            //	)?;
+
+            ASNode typeNode=new ASNode(ASNode.Type.TYPE);
+            typeNode.setLineOfCode(ctx.getStart().getLine());
+            if(ctx.Union()!=null)
+                typeNode.setCode(ctx.Union().getText());
+            else
+                typeNode.setCode(getOriginalCodeText(ctx.classKey()));
+            AST.addVertex(typeNode);
+            AST.addEdge(parentStack.peek(),typeNode);
+
+            if(ctx.classHeadName()!=null)
+            {
+                ASNode nameNode=new ASNode(ASNode.Type.NAME);
+                nameNode.setLineOfCode(ctx.getStart().getLine());
+                nameNode.setCode(getOriginalCodeText(ctx.classHeadName()));
+                AST.addVertex(nameNode);
+                AST.addEdge(parentStack.peek(),nameNode);
+
+                if( ctx.classVirtSpecifier()!=null)
+                {
+                    ASNode specNode=new ASNode(ASNode.Type.SPECIFIER);
+                    specNode.setLineOfCode(ctx.classVirtSpecifier().getStart().getLine());
+                    specNode.setCode(getOriginalCodeText(ctx.classVirtSpecifier()));
+                    AST.addVertex(specNode);
+                    AST.addEdge(parentStack.peek(),specNode);
+                }
+            }
+
+            if(ctx.baseClause()!=null)
+            {
+                isHasAccess=false;
+                ASNode baseNode=new ASNode(ASNode.Type.BASE);
+                baseNode.setLineOfCode(ctx.baseClause().getStart().getLine());
+                baseNode.setCode(getOriginalCodeText(ctx.baseClause()));
+                AST.addVertex(baseNode);
+                AST.addEdge(parentStack.peek(),baseNode);
+                if(isHasAccess)
+                    parentStack.pop();
+                isHasAccess=false;
+            }
+            return "";
+        }
         /**
          * {@inheritDoc}
          *
@@ -1431,20 +1928,176 @@ public class CppASTBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitClassKey(CppParser.ClassKeyContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitMemberSpecification(CppParser.MemberSpecificationContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitMemberdeclaration(CppParser.MemberdeclarationContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitMemberSpecification(CppParser.MemberSpecificationContext ctx) {
+            //memberSpecification:
+            //	(memberdeclaration | accessSpecifier Colon)+;
+            for(int i=0;i<ctx.children.size();++i)
+            {
+                CppParser.AccessSpecifierContext accCtx=ctx.accessSpecifier(i);
+                if(accCtx!=null)
+                {
+                    //accessSpecifier: Private | Protected | Public;
+                    if(isHasAccess)
+                        parentStack.pop();
+                    ASNode accessNode;
+                    if(accCtx.Private()!=null)
+                        accessNode=new ASNode(ASNode.Type.PRIVATE);
+                    else if(accCtx.Protected()!=null)
+                        accessNode=new ASNode(ASNode.Type.PROTECTED);
+                    else
+                        accessNode=new ASNode(ASNode.Type.PUBILC);
+
+                    accessNode.setLineOfCode(accCtx.getStart().getLine());
+                    AST.addVertex(accessNode);
+                    AST.addEdge(parentStack.peek(),accessNode);
+                    parentStack.push(accessNode);
+                    isHasAccess=true;
+                }
+                else
+                    visit(ctx.memberdeclaration(i));
+            }
+            return visitChildren(ctx);
+        }
+
+        @Override public String visitMemberdeclaration(CppParser.MemberdeclarationContext ctx) {
+            //memberdeclaration:
+            //	attributeSpecifierSeq? declSpecifierSeq? memberDeclaratorList? Semi
+            //	| functionDefinition
+            //	| usingDeclaration
+            //	| staticAssertDeclaration
+            //	| templateDeclaration
+            //	| aliasDeclaration
+            //	| emptyDeclaration;
+            if(ctx.memberDeclaratorList()!=null)
+            {
+                visit(ctx.declSpecifierSeq());
+                for(CppParser.MemberDeclaratorContext memCtx:ctx.memberDeclaratorList().memberDeclarator())
+                {
+                    //memberDeclarator:
+                    //	declarator (
+                    //		virtualSpecifierSeq? pureSpecifier?
+                    //		| braceOrEqualInitializer?
+                    //	)
+                    //	| Identifier? attributeSpecifierSeq? Colon constantExpression;
+                    if(memCtx.declarator()!=null)
+                    {
+                        visit(memCtx.declarator());
+                        boolean isFunc=false;
+                        if(parameters!="" || memCtx.declarator().pointerDeclarator().noPointerDeclarator().parametersAndQualifiers()!=null)
+                        {
+                            ASNode funcNode=new ASNode(ASNode.Type.FUNCTION);
+                            funcNode.setLineOfCode(memCtx.getStart().getLine());
+                            AST.addVertex(funcNode);
+                            AST.addEdge(parentStack.peek(),funcNode);
+                            parentStack.push(funcNode);
+                            isFunc=true;
+                        }
+                        else
+                        {
+                            ASNode varNode=new ASNode(ASNode.Type.VARIABLE);
+                            varNode.setLineOfCode(ctx.getStart().getLine());
+                            AST.addVertex(varNode);
+                            AST.addEdge(parentStack.peek(),varNode);
+                            parentStack.push(varNode);
+                        }
+
+                        if(specifier!="")
+                        {
+                            ASNode specNode=new ASNode(ASNode.Type.SPECIFIER);
+                            specNode.setLineOfCode(ctx.declSpecifierSeq().getStart().getLine());
+                            specNode.setCode(specifier);
+                            AST.addVertex(specNode);
+                            AST.addEdge(parentStack.peek(),specNode);
+                        }
+
+                        ASNode typeNode=new ASNode((!isFunc?ASNode.Type.TYPE:ASNode.Type.RETURN));
+                        typeNode.setLineOfCode(ctx.declSpecifierSeq().getStart().getLine());
+                        typeNode.setCode(type+pointerOp);
+                        AST.addVertex(typeNode);
+                        AST.addEdge(parentStack.peek(),typeNode);
+
+                        ASNode nameNode=new ASNode(ASNode.Type.NAME);
+                        nameNode.setLineOfCode(memCtx.declarator().getStart().getLine());
+                        nameNode.setCode(varName);
+                        if(!isFunc)
+                        {
+                            ++varsCounter;
+                            String normalized="$VARL_"+varsCounter;
+                            nameNode.setNormalizedCode(normalized);
+                            vars.put(varName,normalized);
+                        }
+                        else
+                        {
+                            ++methodsCounter;
+                            String normalized="$FUNCTION_"+methodsCounter;
+                            nameNode.setNormalizedCode(normalized);
+                            methods.put(varName,normalized);
+                        }
+                        AST.addVertex(nameNode);
+                        AST.addEdge(parentStack.peek(),nameNode);
+
+                        if(parameters!="")
+                        {
+                            ASNode parmsNode=new ASNode(ASNode.Type.PARAMS);
+                            parmsNode.setLineOfCode(memCtx.getStart().getLine());
+                            parmsNode.setCode(parameters);
+                            AST.addVertex(parmsNode);
+                            AST.addEdge(parentStack.peek(),parmsNode);
+                        }
+
+                        if(memCtx.virtualSpecifierSeq()!=null)
+                        {
+                            ASNode specNode=new ASNode(ASNode.Type.SPECIFIER);
+                            specNode.setLineOfCode(ctx.declSpecifierSeq().getStart().getLine());
+                            specNode.setCode(getOriginalCodeText(memCtx.virtualSpecifierSeq()));
+                            AST.addVertex(specNode);
+                            AST.addEdge(parentStack.peek(),specNode);
+                        }
+                        else if(memCtx.braceOrEqualInitializer()!=null)
+                        {
+                            ASNode initNode=new ASNode(ASNode.Type.INIT_VALUE);
+                            initNode.setLineOfCode(memCtx.braceOrEqualInitializer().getStart().getLine());
+                            initNode.setCode(getOriginalCodeText(memCtx.braceOrEqualInitializer()));
+                            AST.addVertex(initNode);
+                            AST.addEdge(parentStack.peek(),initNode);
+                        }
+                        parentStack.pop();
+                    }
+                    else
+                    {
+                        ASNode varNode=new ASNode(ASNode.Type.VARIABLE);
+                        varNode.setLineOfCode(ctx.getStart().getLine());
+                        AST.addVertex(varNode);
+                        AST.addEdge(parentStack.peek(),varNode);
+
+                        ASNode typeNode=new ASNode(ASNode.Type.TYPE);
+                        typeNode.setLineOfCode(ctx.declSpecifierSeq().getStart().getLine());
+                        typeNode.setCode(type);
+                        AST.addVertex(typeNode);
+                        AST.addEdge(varNode,typeNode);
+
+                        ASNode nameNode=new ASNode(ASNode.Type.NAME);
+                        nameNode.setLineOfCode(memCtx.getStart().getLine());
+                        nameNode.setCode(memCtx.Identifier().getText());
+                        ++varsCounter;
+                        String normalized="$VARL_"+varsCounter;
+                        nameNode.setNormalizedCode(normalized);
+                        vars.put(memCtx.Identifier().getText(),normalized);
+                        AST.addVertex(nameNode);
+                        AST.addEdge(varNode,nameNode);
+
+                        ASNode bitNode=new ASNode(ASNode.Type.BIT_FIELD);
+                        bitNode.setLineOfCode(memCtx.constantExpression().getStart().getLine());
+                        bitNode.setCode(getOriginalCodeText(memCtx.constantExpression()));
+                        AST.addVertex(bitNode);
+                        AST.addEdge(varNode,bitNode);
+                    }
+                }
+                return "";
+            }
+            return visitChildren(ctx);
+        }
         /**
          * {@inheritDoc}
          *
@@ -1515,13 +2168,9 @@ public class CppASTBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitBaseTypeSpecifier(CppParser.BaseTypeSpecifierContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
         @Override public String visitAccessSpecifier(CppParser.AccessSpecifierContext ctx) { return visitChildren(ctx); }
+
         /**
          * {@inheritDoc}
          *
@@ -1587,19 +2236,30 @@ public class CppASTBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitLiteralOperatorId(CppParser.LiteralOperatorIdContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitTemplateDeclaration(CppParser.TemplateDeclarationContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
+        @Override public String visitTemplateDeclaration(CppParser.TemplateDeclarationContext ctx) {
+            //templateDeclaration:
+            //	Template Less templateparameterList Greater declaration;templateDeclaration:
+            //	Template Less templateparameterList Greater declaration;
+            ASNode tepNode=new ASNode(ASNode.Type.TEMPLATE);
+            tepNode.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(tepNode);
+            AST.addEdge(parentStack.peek(),tepNode);
+            parentStack.push(tepNode);
+
+            ASNode parmNode=new ASNode(ASNode.Type.PARAMS);
+            parmNode.setLineOfCode(ctx.templateparameterList().getStart().getLine());
+            parmNode.setCode(getOriginalCodeText(ctx.templateparameterList()));
+            AST.addVertex(parmNode);
+            AST.addEdge(parentStack.peek(),parmNode);
+
+            //visit(ctx.templateparameterList());
+
+            visit(ctx.declaration());
+            parentStack.pop();
+            return "";
+        }
+
         @Override public String visitTemplateparameterList(CppParser.TemplateparameterListContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
@@ -1670,14 +2330,38 @@ public class CppASTBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitExplicitSpecialization(CppParser.ExplicitSpecializationContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitTryBlock(CppParser.TryBlockContext ctx) { return visitChildren(ctx); }
+        @Override public String visitExplicitSpecialization(CppParser.ExplicitSpecializationContext ctx) {
+            //explicitSpecialization: Template Less Greater declaration;
+            ASNode specNode=new ASNode(ASNode.Type.TEMPLATE_SPECIALIZATION);
+            specNode.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(specNode);
+            AST.addEdge(parentStack.peek(),specNode);
+            parentStack.push(specNode);
+            visit(ctx.declaration());
+            parentStack.pop();
+            return "";
+        }
+
+        @Override public String visitTryBlock(CppParser.TryBlockContext ctx) {
+            //tryBlock: Try compoundStatement handlerSeq;
+            ASNode tryNode=new ASNode(ASNode.Type.TRY);
+            tryNode.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(tryNode);
+            AST.addEdge(parentStack.peek(),tryNode);
+            parentStack.push(tryNode);
+
+            ASNode blockNode=new ASNode(ASNode.Type.BLOCK);
+            blockNode.setLineOfCode(ctx.compoundStatement().getStart().getLine());
+            AST.addVertex(blockNode);
+            AST.addEdge(tryNode,blockNode);
+            parentStack.push(blockNode);
+            visit(ctx.compoundStatement());
+            parentStack.pop();
+
+            visit(ctx.handlerSeq());
+            parentStack.pop();
+            return "";
+        }
 
 
         @Override public String visitHandlerSeq(CppParser.HandlerSeqContext ctx) {
@@ -1723,7 +2407,7 @@ public class CppASTBuilder {
             AST.addEdge(parentStack.peek(),expeNode);
 
             visit(ctx.compoundStatement());
-
+            parentStack.pop();
 
             return "";
         }
@@ -1755,7 +2439,12 @@ public class CppASTBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitDynamicExceptionSpecification(CppParser.DynamicExceptionSpecificationContext ctx) { return visitChildren(ctx); }
-        //Throw LeftParen typeIdList? RightParen;
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
         @Override public String visitTypeIdList(CppParser.TypeIdListContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}

@@ -1,4 +1,4 @@
-// Generated from Java.g4 by ANTLR 4.6
+// Generated from D:/Application/IDEA/Project/mplas/core/src/main/java/com/scut/mplas/java/parser\Java.g4 by ANTLR 4.12.0
 package com.scut.mplas.java.parser;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 

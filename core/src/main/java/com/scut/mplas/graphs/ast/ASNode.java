@@ -115,9 +115,21 @@ public class ASNode {
         INITIALIZER("INITIALIZER"),
         HANDLERSEQ("HANDLERSEQ"),
         HANDLER("HANDLER"),
+        TEMPLATE("TEMPLATE"),
+        TEMPLATE_SPECIALIZATION("template_specialization"),
+        ALIAS("ALIAS"),
+        USING("USING"),
+        STATIC_ASSERT("STATIC_ASSERT"),
+        MESSAGE("MESSAGE"),
+        BASE("BASE"),
+        PROTECTED("PROTECTED"),
+        BIT_FIELD("BIT_FIELD"),
+        EXPRESSION("EXPRESSION"),
 
         BALANCEDTOKENSEQ("BALANCEDTOKENSEQ"),
         FORINITSTATEMENT("FORINITSTATEMENT"),
+        FOR_RANGE_INIT("FOR_RANGE_INIT"),
+        FOR_RANGE_INITER("FOR_RANGE_INITER"),
 
         ASM  ("ASM"),
         // ---------------------- RUBY ----------------------

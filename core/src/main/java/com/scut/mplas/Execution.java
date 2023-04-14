@@ -77,6 +77,7 @@ public class Execution {
 	 * Enumeration of different supported languages.
 	 */
 	public enum Languages {
+		CPP("Cpp",".cpp"),
 		C		("C", ".c"),
 		JAVA	    ("Java", ".java"),
 		PYTHON	("Python", ".py");
@@ -268,7 +269,7 @@ public class Execution {
 		Logger.info("\n# " + lang.name + " source files = " + filePaths.length + "\n");
 		
 		// Check language
-		if (!lang.equals(Languages.JAVA)) {
+		if (!(lang.equals(Languages.JAVA) || lang.equals(Languages.CPP))) {
 			Logger.info("Analysis of " + lang.name + " programs is not yet supported!");
 			Logger.info("Abort.");
 			System.exit(0);
