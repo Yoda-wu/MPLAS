@@ -57,13 +57,28 @@ public class ASNode {
         DEFAULT     ("DEFAULT"),
         LABELED     ("LABELED"),
         SYNC        ("SYNCHRONIZED"),
+
         //JavaScript的相关关键字
+        SOURCEELEMENTS("SOURCEELEMENTS"),
+        SOURCEELEMENT("SOURCEELEMENT"),
+        YIELD       ("YIELD"),
         VOID        ("VOID"),
         EMPTY       ("EMPTY"),
         FUNCTION    ("FUNCTION"),
         WITH        ("WITH"),
         CASEBLOCK   ("CASEBLOCK"),
         CASECLAUSES  ("CASECLAUSES"),
+        IMPORTFROMBLOCK("IMPORTFROMBLOCK"),
+        IMPORTNAMESPACE("IMPORTNAMESPACE"),
+        IMPORTFROM   ("IMPORTFROM"),
+        EXPORTFROMBLOCK("EXPORTFROMBLOCK"),
+        MODULEITEMS  ("MODULEITEMS"),
+        MODULEITEM  ("MODULEITEM"),
+        ALIASNAME   ("ALIASNAME"),
+        STATEMENTLIST("STATEMENTLIST"),
+        THROW       ("THROW"),
+
+
         //C++的相关关键字
         AUTO  ("AUTO"),
         BOOL  ("BOOL"),
@@ -80,13 +95,13 @@ public class ASNode {
         EXPLICIT  ("EXPLICIT"),
         INT  ("INT"),
         LONG  ("LONG"),
-        MUTABLE  ("MUTABLE"),
+
         NAMESPACE  ("NAMESPACE"),
         NEW  ("NEW"),
         OPERATOR  ("OPERATOR"),
         PRIVATE  ("PRIVATE"),
         EXPORT  ("EXPORT"),
-        EXTERN  ("EXTERN"),
+
         FALSE  ("FALSE"),
         FLOAT  ("FLOAT"),
         FRIEND  ("FRIEND"),
@@ -94,8 +109,35 @@ public class ASNode {
         INLINE  ("INLINE"),
         PRITECTED  ("PRITECTED"),
         PUBILC  ("PUBLIC"),
+
         REGISTER  ("REGISTER"),
+        STATIC("STATIC"),
+        THREAD_LOCAL("THREAD_LOCAL"),
+        EXTERN  ("EXTERN"),
+        MUTABLE  ("MUTABLE"),
+
         REINTERPRET_CAST  ("REINTERPRET_CAST"),
+        EXCEPT("EXCEPT"),
+        SPECIFIER("SPECIFIER"),
+        VIRTUAL_SPECIFIER("VIRTUAL_SPECIFIER"),
+        INITIALIZER("INITIALIZER"),
+        HANDLERSEQ("HANDLERSEQ"),
+        HANDLER("HANDLER"),
+        TEMPLATE("TEMPLATE"),
+        TEMPLATE_SPECIALIZATION("template_specialization"),
+        ALIAS("ALIAS"),
+        USING("USING"),
+        STATIC_ASSERT("STATIC_ASSERT"),
+        MESSAGE("MESSAGE"),
+        BASE("BASE"),
+        PROTECTED("PROTECTED"),
+        BIT_FIELD("BIT_FIELD"),
+        EXPRESSION("EXPRESSION"),
+
+        BALANCEDTOKENSEQ("BALANCEDTOKENSEQ"),
+        FORINITSTATEMENT("FORINITSTATEMENT"),
+        FOR_RANGE_INIT("FOR_RANGE_INIT"),
+        FOR_RANGE_INITER("FOR_RANGE_INITER"),
 
         ASM  ("ASM"),
         // ---------------------- RUBY ----------------------
@@ -129,7 +171,6 @@ public class ASNode {
         RUBY_UNLESS("UNLESS"),
         RUBY_LOOP_EXPR("LOOP_EXPR"),
         RUBY_GLOBAL_ID("GLOBAL_ID")
-
 
         ;
         public final String label;

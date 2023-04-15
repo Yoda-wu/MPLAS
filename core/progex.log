@@ -1,33 +1,29 @@
-======= LOG CREATED on 周五 2023/4月/14 19:46:56:858 =======
+======= LOG CREATED on 周五 2023/4月/14 15:37:23:172 =======
 
 PROGEX (Program Graph Extractor)  [ v3.4.5 ]
 Visit project website @ https://github.com/ghaffarian/progex
 
 PROGEX execution config:
-  Language = Ruby
-  Output format = JSON
-  Output directory = ../generate/ruby/basic/AST/\
+  Language = Java
+  Output format = GML
+  Output directory = ../generate/java/basic/AST/\
   Analysis types = [AST]
   File name = 
   Input paths = 
-        src/test/resources/ruby/basic/
+        src/test/resources/java/basic/
 
 
-# Ruby source files = 1
+# Java source files = 9
 
-Ruby
 
 Abstract Syntax Analysis
 ========================
-Construct a AST
-expList -- func4(a=4+3,b="Hello "+"world!")
-exp--func4(a=4+3,b="Hello "+"world!")
-visit function_inline_call
-test.rb
-AST exported to: ../generate/ruby/basic/AST/\test-AST.json
-{
-  "directed": true,  "label": "AST of test.rb",  "type": "Abstract Syntax Tree (AST)",  "file": "test.rb",
-  "nodes": [    {      "id": 0,      "line": 0,      "type": "ROOT",      "label": "test.rb",      "normalized": "test.rb"    },    {      "id": 1,      "line": 1,      "type": "EXPRESSION",      "label": "EXPRESSION",      "normalized": "EXPRESSION"    },    {      "id": 2,      "line": 1,      "type": "FUNCTION_CALL",      "label": "func4('Hello '+'world!')",      "normalized": "func4('Hello '+'world!')"    }  ],
-
-  "edges": [    {      "id": 0,      "source": 0,      "target": 1,      "label": ""    },    {      "id": 1,      "source": 1,      "target": 2,      "label": ""    }  ]
-}
+AST exported to: ../generate/java/basic/AST/\Test1-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test2-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test3-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test4-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test5-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test6-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test7-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test8-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test9-AST.gml

@@ -4,6 +4,7 @@ package com.scut.mplas.graphs.ast;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.scut.mplas.cpp.CppASTBuilder;
 import com.scut.mplas.java.JavaASTBuilder;
 import com.scut.mplas.ruby.RubyASTBuilder;
 
@@ -20,6 +21,9 @@ public class ASTBuilder {
 	 */
 	public static AbstractSyntaxTree build(String lang, String srcFilePath) throws IOException {
 		switch (lang) {
+			case "Cpp":
+				return CppASTBuilder.build(srcFilePath);
+			//
 			case "C":
 				return null;
 			//
@@ -41,6 +45,9 @@ public class ASTBuilder {
 	 */
 	public static AbstractSyntaxTree build(String lang, String fileName, InputStream inputStream) throws IOException {
 		switch (lang) {
+			case "C++":
+				return CppASTBuilder.build(fileName,inputStream);
+			//
 			case "C":
 				return null;
 			//
