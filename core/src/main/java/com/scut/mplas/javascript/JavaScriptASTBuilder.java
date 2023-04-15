@@ -112,52 +112,85 @@ public class JavaScriptASTBuilder {
 //            Logger.debug("Adding package");
 //            AST.addVertex(node);
 //            AST.addEdge(parentStack.peek(), node);
-            return "";
+            ASNode node=new ASNode(ASNode.Type.SOURCEELEMENTS);
+            node.setCode(ctx.sourceElements().getText());
+            node.setLineOfCode(ctx.getStart().getLine());
+            Logger.debug("Adding sourceElements");
+            AST.addVertex(node);
+            AST.addEdge(parentStack.peek(),node);
+            parentStack.add(node);
+            StringBuffer stringBuffer=new StringBuffer();
+            if(ctx.HashBangLine()!=null){
+                stringBuffer.append(ctx.HashBangLine().getText()+" ");
+            }
+            if(ctx.sourceElements()!=null&&!ctx.sourceElements().isEmpty()){
+                stringBuffer.append(visitSourceElements(ctx.sourceElements())+" ");
+            }
+            stringBuffer.append(ctx.EOF().getText());
+            parentStack.pop();
+            return stringBuffer.toString();
         }
 
         @Override public String visitSourceElement(JavaScriptParser.SourceElementContext ctx) {
-            return visitStatement(ctx.statement());
+            ASNode node=new ASNode(ASNode.Type.SOURCEELEMENT);
+            node.setLineOfCode(ctx.getStart().getLine());
+            node.setCode(ctx.statement().getText());
+            AST.addVertex(node);
+            AST.addEdge(parentStack.peek(),node);
+            parentStack.add(node);
+            String res= visitStatement(ctx.statement());
+            parentStack.peek();
+            return res;
         }
 
         @Override public String visitStatement(JavaScriptParser.StatementContext ctx) {
+            ASNode node=new ASNode(ASNode.Type.STATEMENT);
+            node.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(node);
+            AST.addEdge(parentStack.peek(),node);
+            parentStack.add(node);
+            String res=null;
             if (ctx.block()!=null&&!ctx.block().isEmpty()){
-                return visitBlock(ctx.block());
+                res= visitBlock(ctx.block());
             }else if (ctx.variableStatement()!=null&&!ctx.variableStatement().isEmpty()){
-                return visitVariableStatement(ctx.variableStatement());
+                res= visitVariableStatement(ctx.variableStatement());
             }else if (ctx.expressionStatement()!=null&&!ctx.exportStatement().isEmpty()){
-                return visitExpressionStatement(ctx.expressionStatement());
+                res= visitExpressionStatement(ctx.expressionStatement());
             } else if (ctx.emptyStatement_()!=null&&!ctx.emptyStatement_().isEmpty()){
-                return visitEmptyStatement_(ctx.emptyStatement_());
+                res= visitEmptyStatement_(ctx.emptyStatement_());
             }else if (ctx.classDeclaration()!=null&&!ctx.classDeclaration().isEmpty()){
-                return visitClassDeclaration(ctx.classDeclaration());
+                res= visitClassDeclaration(ctx.classDeclaration());
             }else if (ctx.expressionStatement()!=null&&!ctx.expressionStatement().isEmpty()){
-                return visitExpressionStatement(ctx.expressionStatement());
+                res= visitExpressionStatement(ctx.expressionStatement());
             }else if (ctx.ifStatement()!=null&&!ctx.ifStatement().isEmpty()){
-                return visitIfStatement(ctx.ifStatement());
+                res= visitIfStatement(ctx.ifStatement());
             }else if (ctx.iterationStatement()!=null&&!ctx.iterationStatement().isEmpty()){
-                return visitIterationStatement(ctx.iterationStatement());
+                res= visitIterationStatement(ctx.iterationStatement());
             }else if (ctx.continueStatement()!=null&&!ctx.continueStatement().isEmpty()){
-                return visitContinueStatement(ctx.continueStatement());
+                res= visitContinueStatement(ctx.continueStatement());
             }else if (ctx.breakStatement()!=null&&!ctx.breakStatement().isEmpty()){
-                return visitBreakStatement(ctx.breakStatement());
+                res= visitBreakStatement(ctx.breakStatement());
             }else if (ctx.returnStatement()!=null&&!ctx.returnStatement().isEmpty()){
-                return visitReturnStatement(ctx.returnStatement());
+                res= visitReturnStatement(ctx.returnStatement());
             }else if (ctx.yieldStatement()!=null&&!ctx.yieldStatement().isEmpty()){
-                return visitYieldStatement(ctx.yieldStatement());
+                res= visitYieldStatement(ctx.yieldStatement());
             }else if (ctx.withStatement()!=null&&!ctx.withStatement().isEmpty()){
-                return visitWithStatement(ctx.withStatement());
+                res= visitWithStatement(ctx.withStatement());
             }else if (ctx.labelledStatement()!=null&&!ctx.labelledStatement().isEmpty()){
-                return visitLabelledStatement(ctx.labelledStatement());
+                res= visitLabelledStatement(ctx.labelledStatement());
             }else if (ctx.switchStatement()!=null&&!ctx.switchStatement().isEmpty()){
-                return visitSwitchStatement(ctx.switchStatement());
+                res= visitSwitchStatement(ctx.switchStatement());
             }else if (ctx.throwStatement()!=null&&!ctx.throwStatement().isEmpty()){
-                return visitThrowStatement(ctx.throwStatement());
+                res= visitThrowStatement(ctx.throwStatement());
             }else if (ctx.tryStatement()!=null&&!ctx.tryStatement().isEmpty()){
-                return visitTryStatement(ctx.tryStatement());
+                res= visitTryStatement(ctx.tryStatement());
             }else if (ctx.debuggerStatement()!=null&&!ctx.debuggerStatement().isEmpty()){
-                return visitDebuggerStatement(ctx.debuggerStatement());
+                res= visitDebuggerStatement(ctx.debuggerStatement());
+            }else{
+                res=visitFunctionDeclaration(ctx.functionDeclaration());
             }
-            return visitFunctionDeclaration(ctx.functionDeclaration());
+            parentStack.pop();
+            return res;
         }
 
         private String visitIterationStatement(JavaScriptParser.IterationStatementContext iterationStatement) {
@@ -177,6 +210,7 @@ public class JavaScriptASTBuilder {
             ASNode node=new ASNode(ASNode.Type.BLOCK);
             node.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(node);
+            AST.addEdge(parentStack.peek(),node);
             parentStack.add(node);
             String res="{"+visitStatementList(ctx.statementList())+"}";
             parentStack.pop();
@@ -199,15 +233,35 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitImportStatement(JavaScriptParser.ImportStatementContext ctx) {
             //Import importFromBlock
-            return visit(ctx.Import())+" "+visit(ctx.importFromBlock());
+            ASNode node=new ASNode(ASNode.Type.IMPORT);
+            node.setLineOfCode(ctx.getStart().getLine());
+            node.setCode(ctx.Import().getText());
+            AST.addVertex(node);
+            AST.addEdge(parentStack.peek(),node);
+            parentStack.push(node);
+            String res=visit(ctx.Import())+" "+visit(ctx.importFromBlock());
+            parentStack.pop();
+            return res;
         }
 
         @Override public String visitImportFromBlock(JavaScriptParser.ImportFromBlockContext ctx) {
             //importDefault? (importNamespace | moduleItems) importFrom eos
             //    | StringLiteral eos
-            return visit(ctx.importDefault())+"? ("+visit(ctx.importNamespace())+" | "
-                    +visit(ctx.moduleItems())+" "+visit(ctx.importFrom())+" "+visit(ctx.eos())
-                    +" | "+visit(ctx.StringLiteral())+ " "+visit(ctx.eos());
+            ASNode node=new ASNode(ASNode.Type.IMPORTFROMBLOCK);
+            node.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(node);
+            AST.addEdge(parentStack.peek(),node);
+            parentStack.push(node);
+            String res=null;
+            if(ctx.importFrom()!=null&&!ctx.importFrom().isEmpty()){
+                res=visit(ctx.importDefault())+"? ("+visit(ctx.importNamespace())+" | "
+                        +visit(ctx.moduleItems())+" "+visit(ctx.importFrom())+" "+visit(ctx.eos())
+                        +" | "+visit(ctx.StringLiteral())+ " "+visit(ctx.eos());
+            }else{
+                res=ctx.StringLiteral().getText()+" "+visitEos(ctx.eos());
+            }
+            parentStack.pop();
+            return res;
         }
 
         @Override public String visitModuleItems(JavaScriptParser.ModuleItemsContext ctx) {
@@ -231,6 +285,11 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitImportNamespace(JavaScriptParser.ImportNamespaceContext ctx) {
             //importNamespaceDeclration:     : ('*' | identifierName) (As identifierName)?
+            ASNode node=new ASNode(ASNode.Type.IMPORTNAMESPACE);
+            node.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(node);
+            AST.addEdge(parentStack.peek(),node);
+            parentStack.push(node);
             StringBuffer stringBuffer=new StringBuffer();
             if (ctx.identifierName()!=null){
                 stringBuffer.append(visit(ctx.identifierName(0)));
@@ -242,11 +301,16 @@ public class JavaScriptASTBuilder {
                 stringBuffer.append(" ");
                 stringBuffer.append(visit(ctx.identifierName(1)));
             }
+            parentStack.peek();
             return stringBuffer.toString();
         }
 
         @Override public String visitImportFrom(JavaScriptParser.ImportFromContext ctx) {
-            return visit(ctx.From())+" "+visit(ctx.StringLiteral()) ;
+            ASNode node=new ASNode(ASNode.Type.IMPORTFROM);
+            node.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(node);
+            AST.addEdge(parentStack.peek(),node);
+            return ctx.From().getText()+" "+ctx.StringLiteral().getText();
         }
 
         @Override public String visitAliasName(JavaScriptParser.AliasNameContext ctx) {
@@ -254,19 +318,18 @@ public class JavaScriptASTBuilder {
             node.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(node);
             AST.addEdge(parentStack.peek(),node);
-            return visitIdentifierName(ctx.identifierName(0))+" "+ctx.As().getText()+" "+visitIdentifierName(ctx.identifierName(1));
+            parentStack.add(node);
+            String res=visitIdentifierName(ctx.identifierName(0))+" "+ctx.As().getText()+" "+visitIdentifierName(ctx.identifierName(1));
+            parentStack.pop();
+            return res;
         }
 
         @Override public String visitExportDeclaration(JavaScriptParser.ExportDeclarationContext ctx) {
             ASNode exportNode=new ASNode(ASNode.Type.EXPORT);
             exportNode.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(exportNode);
-            ASNode statementNode=new ASNode(ASNode.Type.STATEMENT);
-            statementNode.setLineOfCode(ctx.getStart().getLine());
-            AST.addEdge(exportNode,statementNode);
-            AST.addVertex(statementNode);
-            AST.addEdge(parentStack.peek(),statementNode);
-            parentStack.add(statementNode);
+            AST.addEdge(parentStack.peek(),exportNode);
+            parentStack.add(exportNode);
             String res="";
             if (ctx.exportFromBlock()!=null&&!ctx.exportFromBlock().isEmpty()){
                 res=ctx.Export().getText()+" "+visitExportFromBlock(ctx.exportFromBlock())+" "+visitEos(ctx.eos());
@@ -281,27 +344,24 @@ public class JavaScriptASTBuilder {
             ASNode exportNode=new ASNode(ASNode.Type.EXPORT);
             exportNode.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(exportNode);
-            ASNode statementNode=new ASNode(ASNode.Type.STATEMENT);
-                statementNode.setLineOfCode(ctx.getStart().getLine());
-                AST.addEdge(exportNode,statementNode);
-                AST.addVertex(statementNode);
-                AST.addEdge(parentStack.peek(),statementNode);
+                AST.addEdge(parentStack.peek(),exportNode);
                 return ctx.Export().getText()+" "+ctx.Default().getText()+" "+visit(ctx.singleExpression())+" "+visitEos(ctx.eos());
         }
 
         @Override public String visitExportFromBlock(JavaScriptParser.ExportFromBlockContext ctx) {
-            if(ctx.importNamespace()!=null&&ctx.importNamespace().isEmpty()){
-                ASNode importNamespace=new ASNode(ASNode.Type.IMPORTNAMESPACE);
-                importNamespace.setLineOfCode(ctx.getStart().getLine());
-                AST.addVertex(importNamespace);
-                AST.addEdge(parentStack.peek(),importNamespace);
-                return visitImportNamespace(ctx.importNamespace())+" "+visitImportFrom(ctx.importFrom())+" "+visitEos(ctx.eos());
+            ASNode node=new ASNode(ASNode.Type.EXPORTFROMBLOCK);
+            node.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(node);
+            AST.addEdge(parentStack.peek(),node);
+            parentStack.push(node);
+            String res=null;
+            if(ctx.importNamespace()!=null&&!ctx.importNamespace().isEmpty()){
+                res=visitImportNamespace(ctx.importNamespace())+" "+visitImportFrom(ctx.importFrom())+" "+visitEos(ctx.eos());
+            }else{
+                res=visitModuleItems(ctx.moduleItems())+" "+visitImportFrom(ctx.importFrom())+" "+visitEos(ctx.eos());
             }
-            ASNode moduleItem=new ASNode(ASNode.Type.MODULEITEM);
-            moduleItem.setLineOfCode(ctx.getStart().getLine());
-            AST.addVertex(moduleItem);
-            AST.addEdge(parentStack.peek(),moduleItem);
-            return visitModuleItems(ctx.moduleItems())+" "+visitImportFrom(ctx.importFrom())+" "+visitEos(ctx.eos());
+            parentStack.pop();
+            return res;
         }
 
         @Override public String visitDeclaration(JavaScriptParser.DeclarationContext ctx) {
@@ -317,6 +377,7 @@ public class JavaScriptASTBuilder {
             ASNode expressionNode=new ASNode(ASNode.Type.STATEMENT);
             expressionNode.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(expressionNode);
+            AST.addEdge(parentStack.peek(),expressionNode);
             if(ctx.variableDeclarationList()!=null&&!ctx.variableDeclarationList().isEmpty()){
                 return visitVariableDeclarationList(ctx.variableDeclarationList());
             }
@@ -333,14 +394,16 @@ public class JavaScriptASTBuilder {
             return stringBuffer.toString();
         }
 
-        @Override public String visitVariableDeclaration(JavaScriptParser.VariableDeclarationContext ctx) { return visitChildren(ctx); }
+        @Override public String visitVariableDeclaration(JavaScriptParser.VariableDeclarationContext ctx) {
+            return visitAssignable(ctx.assignable())+"="+visit(ctx.singleExpression());
+        }
 
         @Override public String visitEmptyStatement_(JavaScriptParser.EmptyStatement_Context ctx) {
             ASNode emptyNode=new ASNode(ASNode.Type.EMPTY);
             emptyNode.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(emptyNode);
             AST.addEdge(parentStack.peek(),emptyNode);
-            return "";
+            return ctx.SemiColon().getText();
         }
 
         @Override public String visitExpressionStatement(JavaScriptParser.ExpressionStatementContext ctx) {
@@ -593,6 +656,10 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitContinueStatement(JavaScriptParser.ContinueStatementContext ctx) {
             // TODO   : Continue ({this.notLineTerminator()}? identifier)? eos
+            ASNode node=new ASNode(ASNode.Type.CONTINUE);
+            node.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(node);
+            AST.addEdge(parentStack.peek(),node);
             if (ctx.Continue()==null){
                 visit(ctx.eos());
                 return "";
@@ -603,6 +670,10 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitBreakStatement(JavaScriptParser.BreakStatementContext ctx) {
             //:    : Break ({this.notLineTerminator()}? identifier)? eos
+            ASNode node=new ASNode(ASNode.Type.BREAK);
+            node.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(node);
+            AST.addEdge(parentStack.peek(),node);
             if (ctx.Break()==null){
                 visit(ctx.eos());
                 return "";
@@ -613,6 +684,10 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitReturnStatement(JavaScriptParser.ReturnStatementContext ctx) {
             //:        : Return ({this.notLineTerminator()}? expressionSequence)? eos
+            ASNode node=new ASNode(ASNode.Type.RETURN);
+            node.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(node);
+            AST.addEdge(parentStack.peek(),node);
             if (ctx.Return()==null){
                 visit(ctx.eos());
                 return "";
@@ -624,6 +699,10 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitYieldStatement(JavaScriptParser.YieldStatementContext ctx) {
             //:         : Yield ({this.notLineTerminator()}? expressionSequence)? eos
+            ASNode node=new ASNode(ASNode.Type.YIELD);
+            node.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(node);
+            AST.addEdge(parentStack.peek(),node);
             if (ctx.Yield()==null){
                 visit(ctx.eos());
                 return "";
@@ -772,6 +851,10 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitThrowStatement(JavaScriptParser.ThrowStatementContext ctx) {
             //:      : Throw {this.notLineTerminator()}? expressionSequence eos
+            ASNode node=new ASNode(ASNode.Type.THROW);
+            node.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(node);
+            AST.addEdge(parentStack.peek(),node);
             if (ctx.Throw()==null){
                 visit(ctx.eos());
                 return "";
