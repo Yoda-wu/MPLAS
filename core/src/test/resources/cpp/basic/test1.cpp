@@ -4,6 +4,7 @@
 #include<stack>
 #include<conio.h>
 using namespace std;
+
 int main()
 {
 	int i = 0;
@@ -21,4 +22,4 @@ int main()
 
 	_getch();
 	return 0;
-};
+}
