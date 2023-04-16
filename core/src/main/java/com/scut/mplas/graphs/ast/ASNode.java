@@ -142,11 +142,37 @@ public class ASNode {
         ASM  ("ASM"),
         // ---------------------- RUBY ----------------------
         RUBY_EXPRESSION ("EXPRESSION"),
-        RUBY_TERMINATOR("terminator"),
-        RUBY_FUNCTION_DEF("function_definition"),
-        RUBY_FUNCTION_INLINE("function_inline_call"),
-        RUBY_REQUIRE_BLOCK("require_block"),
-        RUBY_PIR_INLINE("pir_inline");
+        RUBY_TERMINATOR("TERMINATOR"),
+        RUBY_FUNCTION("FUNCTION"),
+        RUBY_FUNCTION_DEF("FUNCTION_DEF"),
+        RUBY_FUNCTION_CALL("FUNCTION_CALL"),
+        RUBY_VAR("VAR"),
+        RUBY_END("END"),
+        RUBY_REQUIRE_BLOCK("REQUIRE_BLOCK"),
+        RUBY_PIR_INLINE("PIR_INLINE"),
+        RUBY_RVALUE("RVALUE"),
+        RUBY_LVALUE("LVALUE"),
+        RUBY_ARRAY_INIT("ARRAY_INIT"),
+        RUBY_ARRAY_ASSIGN("ARRAY_ASSIGN"),
+        RUBY_ASSIGNMENT("ASSIGNMENT"),
+
+        RUBY_LITERAL_T("LITERAL"),
+        RUBY_BOOL_T("BOOL"),
+        RUBY_FLOAT_T("FLOAT"),
+        RUBY_INT_T("INT"),
+        RUBY_NIL_T("NIL"),
+
+        RUBY_GLOBAL_GET("GLOBAL_GET"),
+        RUBY_GLOBAL_SET("GLOBAL_SET"),
+        RUBY_GLOBAL_RESULT("GLOBAL_RESULT"),
+        RUBY_RESULT("RESULT"),
+        RUBY_RETRY("RETRY"),
+        RUBY_ELSEIF("ELSIF"),
+        RUBY_UNLESS("UNLESS"),
+        RUBY_LOOP_EXPR("LOOP_EXPR"),
+        RUBY_GLOBAL_ID("GLOBAL_ID")
+
+        ;
         public final String label;
 
         private Type(String lbl) {
