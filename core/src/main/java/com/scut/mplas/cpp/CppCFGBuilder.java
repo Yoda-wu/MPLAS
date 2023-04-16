@@ -45,7 +45,7 @@ public class CppCFGBuilder {
     }
 
     public static ControlFlowGraph build(File cppFile) throws IOException {
-        if (!cppFile.getName().endsWith(".java"))
+        if (!cppFile.getName().endsWith(".cpp"))
             throw new IOException("Not a Cpp File!");
         InputStream inFile = new FileInputStream(cppFile);
         ANTLRInputStream input = new ANTLRInputStream(inFile);
@@ -110,6 +110,18 @@ public class CppCFGBuilder {
             //
             this.propKey = propKey;
             contexutalProperties = ctxProps;
+        }
+
+        /**
+         * Reset all data-structures and flags for visiting a new method declaration.
+         */
+        private void init() {
+            preNodes.clear();
+            preEdges.clear();
+            loopBlocks.clear();
+            labeledBlocks.clear();
+            tryBlocks.clear();
+            dontPop = false;
         }
 
         /**
@@ -455,20 +467,64 @@ public class CppCFGBuilder {
              * <p>The default implementation returns the result of calling
              * {@link #visitChildren} on {@code ctx}.</p>
              */
-            @Override public Void visitLabeledStatement(CppParser.LabeledStatementContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitExpressionStatement(CppParser.ExpressionStatementContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
+            @Override public Void visitLabeledStatement(CppParser.LabeledStatementContext ctx)
+            //labeledStatement:
+            //	attributeSpecifierSeq? (
+            //		Identifier
+            //		| Case constantExpression
+            //		| Default
+            //	) Colon statement;
+            {
+                // For each visited label-block, a Block object is created with
+                // the the current node as the start, and a dummy node as the end.
+                // The newly created label-block is stored in an ArrayList of Blocks.
+                    CFNode labelNode = new CFNode();
+                    labelNode.setLineOfCode(ctx.getStart().getLine());
+                if (ctx.Identifier()!=null) {
+                    labelNode.setCode(getOriginalCodeText(ctx.attributeSpecifierSeq())+ctx.Identifier().getText()+ ": ");}
+                else if(ctx.Case()!=null)
+                {
+                    labelNode.setCode(getOriginalCodeText(ctx.attributeSpecifierSeq())+ctx.Case()+ getOriginalCodeText(ctx.constantExpression())+ ": ");
+                }
+                else if(ctx.Default()!=null)
+                {
+                    labelNode.setCode(ctx.Default() + ": ");}
+
+                    addContextualProperty(labelNode, ctx);
+                    addNodeAndPreEdge(labelNode);
+                    //
+                    CFNode endLabelNode = new CFNode();
+                    endLabelNode.setLineOfCode(0);
+                    endLabelNode.setCode("end-label");
+                    cfg.addVertex(endLabelNode);
+                    //
+                    preEdges.push(CFEdge.Type.EPSILON);
+                    preNodes.push(labelNode);
+                    labeledBlocks.add(new ControlFlowVisitor.Block(labelNode, endLabelNode, ctx.Identifier().getText()));
+                    visit(ctx.statement());
+                    popAddPreEdgeTo(endLabelNode);
+                    //
+                    preEdges.push(CFEdge.Type.EPSILON);
+                    preNodes.push(endLabelNode);
+                    return null;
+                }
+
+            @Override public Void visitExpressionStatement(CppParser.ExpressionStatementContext ctx)
+            //expressionStatement: expression? Semi;
+            {
+                CFNode expr = new CFNode();
+                expr.setLineOfCode(ctx.getStart().getLine());
+                expr.setCode(getOriginalCodeText(ctx));
+                //
+                Logger.debug(expr.getLineOfCode() + ": " + expr.getCode());
+                //
+                addContextualProperty(expr, ctx);
+                addNodeAndPreEdge(expr);
+                //
+                preEdges.push(CFEdge.Type.EPSILON);
+                preNodes.push(expr);
+                return null;
+            }
             @Override public Void visitCompoundStatement(CppParser.CompoundStatementContext ctx) { return visitChildren(ctx); }
             /**
              * {@inheritDoc}
@@ -555,7 +611,7 @@ public class CppCFGBuilder {
              * {@link #visitChildren} on {@code ctx}.</p>
              */
             //todo
-            @Override public Void visitIterationStatement(CppParser.IterationStatementContext ctx) { return visitChildren(ctx); }
+            @Override public Void visitIterationStatement(CppParser.IterationStatementContext ctx)
             //iterationStatement:
             //	While LeftParen condition RightParen statement
             //	| Do statement While LeftParen expression RightParen Semi
@@ -563,6 +619,71 @@ public class CppCFGBuilder {
             //		forInitStatement condition? Semi expression?
             //		| forRangeDeclaration Colon forRangeInitializer
             //	) RightParen statement;
+            {
+                if (ctx.While() != null) {
+                    //While LeftParen condition RightParen statement
+                    CFNode whileNode = new CFNode();
+                    whileNode.setLineOfCode(ctx.getStart().getLine());
+                    whileNode.setCode("while (" + getOriginalCodeText(ctx.condition())+")");
+                    addContextualProperty(whileNode, ctx);
+                    addNodeAndPreEdge(whileNode);
+                    //
+                    CFNode endwhile = new CFNode();
+                    endwhile.setLineOfCode(0);
+                    endwhile.setCode("endwhile");
+                    cfg.addVertex(endwhile);
+                    cfg.addEdge(new Edge<>(whileNode, new CFEdge(CFEdge.Type.FALSE), endwhile));
+                    //
+                    preEdges.push(CFEdge.Type.TRUE);
+                    preNodes.push(whileNode);
+                    loopBlocks.push(new ControlFlowVisitor.Block(whileNode, endwhile));
+                    visit(ctx.statement());
+                    loopBlocks.pop();
+                    popAddPreEdgeTo(whileNode);
+                    //
+                    preEdges.push(CFEdge.Type.EPSILON);
+                    preNodes.push(endwhile);
+                    return null;
+                }
+                if (ctx.Do() != null) {
+                    // 'do' statement 'while' parExpression ';'
+                    //Do statement While LeftParen expression RightParen Semi
+                    CFNode doNode = new CFNode();
+                    doNode.setLineOfCode(ctx.getStart().getLine());
+                    doNode.setCode("Do");
+                    addNodeAndPreEdge(doNode);
+                    //
+                    CFNode whileNode = new CFNode();
+                    whileNode.setLineOfCode(ctx.expression().getStart().getLine());
+                    whileNode.setCode("while (" + getOriginalCodeText(ctx.expression())+")"+ctx.Semi());
+                    addContextualProperty(whileNode, ctx);
+                    cfg.addVertex(whileNode);
+                    //
+                    CFNode doWhileEnd = new CFNode();
+                    doWhileEnd.setLineOfCode(0);
+                    doWhileEnd.setCode("end-do-while");
+                    cfg.addVertex(doWhileEnd);
+                    //
+                    preEdges.push(CFEdge.Type.EPSILON);
+                    preNodes.push(doNode);
+                    loopBlocks.push(new ControlFlowVisitor.Block(whileNode, doWhileEnd));
+                    visit(ctx.statement());
+                    loopBlocks.pop();
+                    popAddPreEdgeTo(whileNode);
+                    cfg.addEdge(new Edge<>(whileNode, new CFEdge(CFEdge.Type.TRUE), doNode));
+                    cfg.addEdge(new Edge<>(whileNode, new CFEdge(CFEdge.Type.FALSE), doWhileEnd));
+                    //
+                    preEdges.push(CFEdge.Type.EPSILON);
+                    preNodes.push(doWhileEnd);
+                    return null;}
+                //todo
+                else if(ctx.For()!=null){
+                //For LeftParen (
+                //		forInitStatement condition? Semi expression?
+                //		| forRangeDeclaration Colon forRangeInitializer
+                }
+                return null;
+            }
 
             @Override public Void visitForInitStatement(CppParser.ForInitStatementContext ctx) { return visitChildren(ctx); }
             /**
@@ -1168,20 +1289,16 @@ public class CppCFGBuilder {
              * <p>The default implementation returns the result of calling
              * {@link #visitChildren} on {@code ctx}.</p>
              */
-            @Override public Void visitFunctionDefinition(CppParser.FunctionDefinitionContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
+            @Override public Void visitFunctionDefinition(CppParser.FunctionDefinitionContext ctx){return visitChildren(ctx);}
+            //functionDefinition:
+            //attributeSpecifierSeq? declSpecifierSeq? declarator virtualSpecifierSeq? functionBody;
+
             @Override public Void visitFunctionBody(CppParser.FunctionBodyContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
+            //functionBody:
+            //	constructorInitializer? compoundStatement
+            //	| functionTryBlock
+            //	| Assign (Default | Delete) Semi;
+
             @Override public Void visitInitializer(CppParser.InitializerContext ctx) { return visitChildren(ctx); }
             /**
              * {@inheritDoc}
