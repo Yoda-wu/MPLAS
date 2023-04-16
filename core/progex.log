@@ -8,8 +8,8 @@ PROGEX execution config:
   Output format = GML
   Output directory = ../generate/java/basic/AST/\
   Analysis types = [AST]
-  File name = 
-  Input paths = 
+  File name =
+  Input paths =
         src/test/resources/java/basic/
 
 
