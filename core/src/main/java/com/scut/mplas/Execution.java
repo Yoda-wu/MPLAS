@@ -78,6 +78,7 @@ public class Execution {
 	 */
 	public enum Languages {
 		CPP("Cpp",".cpp"),
+		JAVASCRIPT("JavaScript",".js"),
 		C		("C", ".c"),
 		JAVA	    ("Java", ".java"),
 		PYTHON	("Python", ".py");
