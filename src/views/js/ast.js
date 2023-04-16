@@ -448,6 +448,24 @@ let ast1={
   }
 
 
+  //获取到每一个节点的第一个子节点
+  function getFirstNode(ast){
+    let first_node=[];
+    for (let index = 0; index < ast.nodes.length; index++) {
+      for (let m = 0; m < ast.edges.length; m++) {
+        if(ast.edges[m].source==index){
+          first_node[index]=ast.edges[m].target;
+          break;
+        }
+      }
+      if(first_node[index]==null)
+      first_node[index]=0;
+    }
+    console.log(first_node);
+    return first_node;
+  }
+
+
 
   //获取到一个二维数组，存储了每一行中的所有元素
   //line[0]=[0]
@@ -538,6 +556,12 @@ let ast1={
     let line=getLine(ast);
     let node_count=getCount(ast);
     let nodes_line=getNodesLine(ast);
+    let first_node=getFirstNode(ast);
+    let father=[];
+    for (let index = first_node.length-1; index >= 0; index--) {
+      father[first_node[index]]=index;
+    }
+    console.log(father);
     let startX=[];
     let endX=[];
     let startY=[];
@@ -547,9 +571,10 @@ let ast1={
     for (let index = 1; index < line.length; index++) {
       let temp_line=line[index];
       for(let m=0;m<temp_line.length;m++){
-        if(m==0){
-          let last=ast.edges[temp_line[m]-1].source;
-          startX[temp_line[m]]=startX[last];
+        let up_node=father[temp_line[m]];
+
+        if(up_node!=null){
+          startX[temp_line[m]]=startX[up_node];
           endX[temp_line[m]]=startX[temp_line[m]]+node_count[temp_line[m]]*90;
           startY[temp_line[m]]=nodes_line[temp_line[m]]*90+10;
         }
@@ -570,12 +595,13 @@ let ast1={
 
 
 function drawAST(ast){
+  console.log(ast);
   let start=getStart(ast);
   let node_count=getCount(ast);
   let realStartX=[];
   let realStartY=[];
   for (let index = 0; index < ast.nodes.length; index++) {
-    realStartX[index]=start.startX[index]+node_count[index]*35-5;
+    realStartX[index]=start.startX[index]+node_count[index]*45-5;
     realStartY[index]=start.startY[index];
     let line="line:"+ast.nodes[index].line;
     let type="type:"+ast.nodes[index].type;
@@ -590,11 +616,13 @@ function drawAST(ast){
     drawLine(realStartX[source],realStartY[source],realStartX[target],realStartY[target]);
   }
 }
+
 export{
     getCtx,
     drawTextItem,
     drawLine,
     getNodesLine,
+    getFirstNode,
     getLine,
     //getNextNodes,
     //getNodes,

@@ -1,7 +1,7 @@
 <template>
     <div>
         <el-container  style="height: 700px; border: 1px solid #eee">
-        <el-header  style="font-size:40px;background-color: rgb(238, 241, 246)">多语言代码分析系统</el-header>
+        <el-header  style="font-size:40px;background-color: rgb(238, 241, 246)">Document</el-header>
         <el-container>
 
         <el-aside width="200px" style="border: 1px solid #eee; background-color: rgb(238, 241, 246)">
@@ -45,7 +45,7 @@ import {drawAST} from "../js/ast.js";
 export default{
     data(){
         return{
-            ast:{
+           // ast:{
     "directed": true,
     "label": "AST of Test1.java",
     "type": "Abstract Syntax Tree (AST)",
@@ -401,14 +401,14 @@ export default{
         "label": ""
       }
     ]
-  }
+  //}
         }
     },
     methods: {
         receive(){
 
-        const aaa=this.$route.query.ast;
-        console.log(aaa);
+        var aaa=this.$route.params;
+        console.log(aaa.ast);
 
         const data=this.$route.query.data;
                     
@@ -418,8 +418,9 @@ export default{
 
         cxt.fillText(data, 10, 10);
 
-        drawAST(aaa);
+        drawAST(aaa.ast);
         }
+
 
     
 },
