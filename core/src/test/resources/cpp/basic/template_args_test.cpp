@@ -1,3 +1,4 @@
-void TemplateArgsTest(vector<ClassA> args, vector <ClassB> args2)
+void TemplateArgsTest(const vector<ClassA>** args, vector <ClassB> args2)
 {
+
 }

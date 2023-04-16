@@ -138,6 +138,7 @@ public class ASNode {
         FORINITSTATEMENT("FORINITSTATEMENT"),
         FOR_RANGE_INIT("FOR_RANGE_INIT"),
         FOR_RANGE_INITER("FOR_RANGE_INITER"),
+        CLASS_TYPE("CLASS_TYPE"),
 
         ASM  ("ASM"),
         // ---------------------- RUBY ----------------------
