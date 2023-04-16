@@ -19,8 +19,10 @@ public class BasicAnalysisTests {
     
     private final String JAVA_SRC_DIR = "src/test/resources/java/basic/";
     private final String CPP_SRC_DIR="src/test/resources/cpp/basic/";
+    private final String JS_SRC_DIR="src/test/resources/js/basic/";
     private static final String OUTPUT_DIR = "../generate/java/basic/";
     private static final String CPP_OUTPUT_DIR="../generate/cpp/basic/";
+    private static final String JS_OUTPUT_DIR="../generate/js/basic/";
     
     @BeforeClass
     public static void cleanUp() {
@@ -161,6 +163,18 @@ public class BasicAnalysisTests {
         //
 
         String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {CPP_SRC_DIR}, Execution.Languages.CPP.suffix);
+        String[] outFiles = FileUtils.listFilesWithSuffix(new String[] {outDir}, "-AST.json");
+        assertEquals(testFiles.length, outFiles.length);
+    }
+
+    @Test
+    public void jsASTreeJsonTest() {
+        String outDir = JS_OUTPUT_DIR + "AST/";
+        String[] args = {"-ast", "-outdir", outDir, "-format", "json","-lang","js", JS_SRC_DIR};
+        Main.main(args);
+        //
+
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {JS_SRC_DIR}, Execution.Languages.JAVASCRIPT.suffix);
         String[] outFiles = FileUtils.listFilesWithSuffix(new String[] {outDir}, "-AST.json");
         assertEquals(testFiles.length, outFiles.length);
     }
