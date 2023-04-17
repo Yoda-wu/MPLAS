@@ -461,7 +461,6 @@ let ast1={
       if(first_node[index]==null)
       first_node[index]=0;
     }
-    console.log(first_node);
     return first_node;
   }
 
@@ -561,7 +560,6 @@ let ast1={
     for (let index = first_node.length-1; index >= 0; index--) {
       father[first_node[index]]=index;
     }
-    console.log(father);
     let startX=[];
     let endX=[];
     let startY=[];
@@ -595,7 +593,6 @@ let ast1={
 
 
 function drawAST(ast){
-  console.log(ast);
   let start=getStart(ast);
   let node_count=getCount(ast);
   let realStartX=[];
