@@ -24,6 +24,8 @@ public class ASTBuilder {
 		switch (lang) {
 			case "Cpp":
 				return CppASTBuilder.build(srcFilePath);
+			case "JavaScript":
+				return JavaScriptASTBuilder.build(srcFilePath);
 			//
 			case "C":
 				return null;

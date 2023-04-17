@@ -23,8 +23,8 @@ import java.io.InputStream;
 import java.util.*;
 
 public class JavaScriptASTBuilder {
-    public static AbstractSyntaxTree build(String javaFile) throws IOException {
-        return build(new File(javaFile));
+    public static AbstractSyntaxTree build(String jsFile) throws IOException {
+        return build(new File(jsFile));
     }
 
     /**
@@ -39,6 +39,7 @@ public class JavaScriptASTBuilder {
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         JavaScriptParser parser = new JavaScriptParser(tokens);
         ParseTree tree = parser.program();
+//        ParseTree tree=parser.sourceElements();
         return build(jsFile.getPath(), tree, null, null);
     }
 
@@ -93,6 +94,8 @@ public class JavaScriptASTBuilder {
             JavaScriptParser.ProgramContext rootCntx = (JavaScriptParser.ProgramContext) tree;
             AST.root.setCode(new File(AST.filePath).getName());
             parentStack.push(AST.root);
+            System.out.println(rootCntx.HashBangLine());
+            System.out.println(rootCntx.EOF());
             if (rootCntx.sourceElements() != null) {
                 visit(rootCntx.sourceElements());
             }
@@ -152,9 +155,11 @@ public class JavaScriptASTBuilder {
             String res=null;
             if (ctx.block()!=null&&!ctx.block().isEmpty()){
                 res= visitBlock(ctx.block());
+            }else if(ctx.importStatement()!=null&&!ctx.importStatement().isEmpty()) {
+                res=visitImportStatement(ctx.importStatement());
             }else if (ctx.variableStatement()!=null&&!ctx.variableStatement().isEmpty()){
                 res= visitVariableStatement(ctx.variableStatement());
-            }else if (ctx.expressionStatement()!=null&&!ctx.exportStatement().isEmpty()){
+            }else if (ctx.exportStatement()!=null&&!ctx.exportStatement().isEmpty()){
                 res= visitExpressionStatement(ctx.expressionStatement());
             } else if (ctx.emptyStatement_()!=null&&!ctx.emptyStatement_().isEmpty()){
                 res= visitEmptyStatement_(ctx.emptyStatement_());
@@ -1718,107 +1723,18 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitKeyword(JavaScriptParser.KeywordContext ctx) {
-            if (ctx.Break()!=null){
-                return ctx.Break().getText();
-            }else if(ctx.Do()!=null){
-                return ctx.Do().getText();
-            }else if(ctx.Instanceof()!=null){
-                return ctx.Instanceof().getText();
-            }else if(ctx.Typeof()!=null){
-                return ctx.Typeof().getText();
-            }else if(ctx.Case()!=null){
-                return ctx.Case().getText();
-            }else if(ctx.Else()!=null){
-                return ctx.Else().getText();
-            }else if(ctx.New()!=null){
-                return ctx.New().getText();
-            }else if(ctx.Var()!=null){
-                return ctx.Var().getText();
-            }else if(ctx.Catch()!=null){
-                return ctx.Catch().getText();
-            }else if(ctx.Finally()!=null){
-                return ctx.Finally().getText();
-            }else if(ctx.Return()!=null){
-                return ctx.Return().getText();
-            }else if(ctx.Void()!=null){
-                return ctx.Void().getText();
-            }else if(ctx.Continue()!=null){
-                return ctx.Continue().getText();
-            }else if(ctx.For()!=null){
-                return ctx.For().getText();
-            }else if(ctx.Switch()!=null){
-                return ctx.Switch().getText();
-            }else if(ctx.While()!=null){
-                return ctx.While().getText();
-            }else if(ctx.Debugger()!=null){
-                return ctx.Debugger().getText();
-            }else if(ctx.Function_()!=null){
-                return ctx.Function_().getText();
-            }else if(ctx.This()!=null){
-                return ctx.This().getText();
-            }else if(ctx.With()!=null){
-                return ctx.With().getText();
-            }else if(ctx.Default()!=null){
-                return ctx.Default().getText();
-            }else if(ctx.If()!=null){
-                return ctx.If().getText();
-            }else if(ctx.Throw()!=null){
-                return ctx.Throw().getText();
-            }else if(ctx.Delete()!=null){
-                return ctx.Delete().getText();
-            }else if(ctx.In()!=null){
-                return ctx.In().getText();
-            }else if(ctx.Try()!=null){
-                return ctx.Try().getText();
-            }else if(ctx.Class()!=null){
-                return ctx.Class().getText();
-            }else if(ctx.Enum()!=null){
-                return ctx.Enum().getText();
-            }else if(ctx.Extends()!=null){
-                return ctx.Extends().getText();
-            }else if(ctx.Super()!=null){
-                return ctx.Super().getText();
-            }else if(ctx.Const()!=null){
-                return ctx.Const().getText();
-            }else if(ctx.Export()!=null){
-                return ctx.Export().getText();
-            }else if(ctx.Implements()!=null){
-                return ctx.Implements().getText();
-            }else if(ctx.Import()!=null){
-                return ctx.Import().getText();
-            }else if(ctx.let_()!=null){
-                return ctx.let_().getText();
-            }else if(ctx.Private()!=null){
-                return ctx.Private().getText();
-            }else if(ctx.Public()!=null){
-                return ctx.Public().getText();
-            }else if(ctx.Interface()!=null){
-                return ctx.Interface().getText();
-            }else if(ctx.Package()!=null){
-                return ctx.Package().getText();
-            }else if(ctx.Protected()!=null){
-                return ctx.Protected().getText();
-            }else if(ctx.Static()!=null){
-                return ctx.Static().getText();
-            }else if(ctx.Yield()!=null){
-                return ctx.Yield().getText();
-            }else if(ctx.Async()!=null){
-                return ctx.Async().getText();
-            }else if(ctx.Await()!=null){
-                return ctx.Await().getText();
-            }else if(ctx.From()!=null){
-                return ctx.From().getText();
-            }else if(ctx.As()!=null){
-                return ctx.As().getText();
+            if(ctx.let_()!=null&&!ctx.let_().isEmpty()){
+                return visitLet_(ctx.let_());
             }
-            return "";
+            return getOriginalCodeText(ctx);
         }
 
         @Override public String visitLet_(JavaScriptParser.Let_Context ctx) {
-            if (ctx.NonStrictLet()!=null){
-                return ctx.NonStrictLet().getText();
-            }
-            return ctx.StrictLet().getText();
+//            if (ctx.NonStrictLet()!=null){
+//                return ctx.NonStrictLet().getText();
+//            }
+//            return ctx.StrictLet().getText();
+            return getOriginalCodeText(ctx);
         }
 
         @Override public String visitEos(JavaScriptParser.EosContext ctx) {
@@ -1826,13 +1742,14 @@ public class JavaScriptASTBuilder {
             //    | EOF
             //    | {this.lineTerminatorAhead()}?
             //    | {this.closeBrace()}?
-            if(ctx.SemiColon()!=null){
-                return ctx.SemiColon().getText();
-            }else if(ctx.EOF()!=null){
-                return ctx.EOF().getText();
-            }
-            //TODO
-            return "";
+//            if(ctx.SemiColon()!=null){
+//                return ctx.SemiColon().getText();
+//            }else if(ctx.EOF()!=null){
+//                return ctx.EOF().getText();
+//            }
+//            //TODO
+//            return "";
+            return getOriginalCodeText(ctx);
         }
 
         private String getOriginalCodeText(ParserRuleContext ctx) {

@@ -102,7 +102,7 @@ public class CLI {
 									case "cpp":
 										exec.setLanguage(Execution.Languages.CPP);
 										break;
-									case "javascript":
+									case "js":
 										exec.setLanguage(Execution.Languages.JAVASCRIPT);
 										break;
 									default:
