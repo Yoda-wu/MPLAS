@@ -155,9 +155,11 @@ public class JavaScriptASTBuilder {
             String res=null;
             if (ctx.block()!=null&&!ctx.block().isEmpty()){
                 res= visitBlock(ctx.block());
+            }else if(ctx.importStatement()!=null&&!ctx.importStatement().isEmpty()) {
+                res=visitImportStatement(ctx.importStatement());
             }else if (ctx.variableStatement()!=null&&!ctx.variableStatement().isEmpty()){
                 res= visitVariableStatement(ctx.variableStatement());
-            }else if (ctx.expressionStatement()!=null&&!ctx.exportStatement().isEmpty()){
+            }else if (ctx.exportStatement()!=null&&!ctx.exportStatement().isEmpty()){
                 res= visitExpressionStatement(ctx.expressionStatement());
             } else if (ctx.emptyStatement_()!=null&&!ctx.emptyStatement_().isEmpty()){
                 res= visitEmptyStatement_(ctx.emptyStatement_());
