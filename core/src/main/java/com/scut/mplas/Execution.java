@@ -270,7 +270,7 @@ public class Execution {
 		Logger.info("\n# " + lang.name + " source files = " + filePaths.length + "\n");
 		
 		// Check language
-		if (!(lang.equals(Languages.JAVA) || lang.equals(Languages.CPP)||lang.equals(Languages.JAVASCRIPT))) {
+		if (!(lang.equals(Languages.JAVA) || lang.equals(Languages.CPP) || lang.equals(Languages.JAVASCRIPT))) {
 			Logger.info("Analysis of " + lang.name + " programs is not yet supported!");
 			Logger.info("Abort.");
 			System.exit(0);
