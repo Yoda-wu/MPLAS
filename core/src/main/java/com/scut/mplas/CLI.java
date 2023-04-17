@@ -102,6 +102,9 @@ public class CLI {
 									case "cpp":
 										exec.setLanguage(Execution.Languages.CPP);
 										break;
+									case "js":
+										exec.setLanguage(Execution.Languages.JAVASCRIPT);
+										break;
 									default:
 										printHelp("Unsupported language: " + args[i]);
 										System.exit(1);

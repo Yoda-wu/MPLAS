@@ -6,6 +6,7 @@ import java.io.InputStream;
 
 import com.scut.mplas.cpp.CppASTBuilder;
 import com.scut.mplas.java.JavaASTBuilder;
+import com.scut.mplas.javascript.JavaScriptASTBuilder;
 import com.scut.mplas.ruby.RubyASTBuilder;
 
 /**
@@ -23,6 +24,8 @@ public class ASTBuilder {
 		switch (lang) {
 			case "Cpp":
 				return CppASTBuilder.build(srcFilePath);
+			case "JavaScript":
+				return JavaScriptASTBuilder.build(srcFilePath);
 			//
 			case "C":
 				return null;
