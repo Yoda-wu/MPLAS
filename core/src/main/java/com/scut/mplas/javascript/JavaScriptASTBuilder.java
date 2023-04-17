@@ -31,7 +31,7 @@ public class JavaScriptASTBuilder {
      * ‌Build and return the Abstract Syntax Tree (AST) for the given JavaScript source file.
      */
     public static AbstractSyntaxTree build(File jsFile) throws IOException {
-        if (!jsFile.getName().endsWith(".java"))
+        if (!jsFile.getName().endsWith(".js"))
             throw new IOException("Not a JavaScript File!");
         InputStream inFile = new FileInputStream(jsFile);
         ANTLRInputStream input = new ANTLRInputStream(inFile);

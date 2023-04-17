@@ -6,6 +6,7 @@ import java.io.InputStream;
 
 import com.scut.mplas.cpp.CppASTBuilder;
 import com.scut.mplas.java.JavaASTBuilder;
+import com.scut.mplas.javascript.JavaScriptASTBuilder;
 import com.scut.mplas.ruby.RubyASTBuilder;
 
 /**
@@ -35,6 +36,9 @@ public class ASTBuilder {
 			case "Ruby":
 				return RubyASTBuilder.build(srcFilePath);
 			//
+			case "JavaScript":
+				return JavaScriptASTBuilder.build(srcFilePath);
+			//
 			default:
 				return null;
 		}
@@ -45,7 +49,7 @@ public class ASTBuilder {
 	 */
 	public static AbstractSyntaxTree build(String lang, String fileName, InputStream inputStream) throws IOException {
 		switch (lang) {
-			case "C++":
+			case "Cpp":
 				return CppASTBuilder.build(fileName,inputStream);
 			//
 			case "C":
@@ -58,6 +62,9 @@ public class ASTBuilder {
 				return null;
 			case "Ruby":
 				return RubyASTBuilder.build(fileName,inputStream);
+			//
+			case "JavaScript":
+				return JavaScriptASTBuilder.build(fileName,inputStream);
 			//
 			default:
 				return null;
