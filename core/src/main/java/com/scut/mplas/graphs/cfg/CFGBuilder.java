@@ -4,6 +4,7 @@ package com.scut.mplas.graphs.cfg;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.scut.mplas.cpp.CppCFGBuilder;
 import com.scut.mplas.java.JavaCFGBuilder;
 
 /**
@@ -19,6 +20,9 @@ public class CFGBuilder {
 	 */
 	public static ControlFlowGraph build(String lang, String srcFilePath) throws IOException {
 		switch (lang) {
+			case "Cpp":
+				return CppCFGBuilder.build(srcFilePath);
+			//
 			case "C":
 				return null;
 			//
@@ -34,6 +38,9 @@ public class CFGBuilder {
 	}
 	public static ControlFlowGraph build(String lang, String fileName, InputStream inputStream) throws IOException {
 		switch (lang) {
+			case "Cpp":
+				return CppCFGBuilder.build(fileName, inputStream);
+			//
 			case "C":
 				return null;
 			//
