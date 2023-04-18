@@ -96,6 +96,9 @@ public class CppCFGBuilder {
         private String propKey;
         private Map<ParserRuleContext, Object> contexutalProperties;
         private Deque<String> classNames;
+        private Deque<String> nameSpaces;
+        private String type;
+        private boolean isInClass;
 
         public ControlFlowVisitor(ControlFlowGraph cfg, String propKey, Map<ParserRuleContext, Object> ctxProps) {
             preNodes = new ArrayDeque<>();
@@ -105,7 +108,10 @@ public class CppCFGBuilder {
             tryBlocks = new ArrayDeque<>();
             casesQueue = new ArrayDeque<>();
             classNames = new ArrayDeque<>();
+            nameSpaces = new ArrayDeque<>();
+            nameSpaces.push("");
             dontPop = false;
+            isInClass=false;
             this.cfg = cfg;
             //
             this.propKey = propKey;
@@ -929,13 +935,13 @@ public class CppCFGBuilder {
              * {@link #visitChildren} on {@code ctx}.</p>
              */
             @Override public Void visitDeclSpecifier(CppParser.DeclSpecifierContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitDeclSpecifierSeq(CppParser.DeclSpecifierSeqContext ctx) { return visitChildren(ctx); }
+
+            @Override public Void visitDeclSpecifierSeq(CppParser.DeclSpecifierSeqContext ctx) {
+                // declSpecifierSeq: declSpecifier+? attributeSpecifierSeq?;
+                //
+                // declSpecifier:storageClassSpecifier | typeSpecifier| functionSpecifier| Friend| Typedef | Constexpr;
+                return visitChildren(ctx);
+            }
             /**
              * {@inheritDoc}
              *
@@ -1104,13 +1110,23 @@ public class CppCFGBuilder {
              * {@link #visitChildren} on {@code ctx}.</p>
              */
             @Override public Void visitOriginalNamespaceName(CppParser.OriginalNamespaceNameContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitNamespaceDefinition(CppParser.NamespaceDefinitionContext ctx) { return visitChildren(ctx); }
+
+            @Override public Void visitNamespaceDefinition(CppParser.NamespaceDefinitionContext ctx) {
+                //namespaceDefinition:
+                //	Inline? Namespace (Identifier | originalNamespaceName)? LeftBrace namespaceBody = declarationseq
+                //		? RightBrace;
+                if(ctx.Identifier()!=null || ctx.originalNamespaceName()!=null)
+                {
+                    nameSpaces.push(nameSpaces.peek()+"::"+ (ctx.Identifier()!=null?ctx.Identifier().getText()
+                            :ctx.originalNamespaceName().Identifier().getText()));
+                    visitChildren(ctx);
+                    nameSpaces.pop();
+                }
+                else
+                    visitChildren(ctx);
+
+                return null;
+            }
             /**
              * {@inheritDoc}
              *
@@ -1370,15 +1386,58 @@ public class CppCFGBuilder {
              * {@link #visitChildren} on {@code ctx}.</p>
              */
             @Override public Void visitParameterDeclaration(CppParser.ParameterDeclarationContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitFunctionDefinition(CppParser.FunctionDefinitionContext ctx){return visitChildren(ctx);}
-            //functionDefinition:
-            //attributeSpecifierSeq? declSpecifierSeq? declarator virtualSpecifierSeq? functionBody;
+
+            @Override public Void visitFunctionDefinition(CppParser.FunctionDefinitionContext ctx){
+                //functionDefinition:
+                //	attributeSpecifierSeq? declSpecifierSeq? declarator virtualSpecifierSeq? functionBody;
+                init();
+
+                CFNode funcNode=new CFNode();
+                funcNode.setLineOfCode(ctx.getStart().getLine());
+                funcNode.setCode(getOriginalCodeText(ctx));
+                addContextualProperty(funcNode,ctx);
+                cfg.addVertex(funcNode);
+
+                String retype="void";
+                String name="";
+                if(ctx.declSpecifierSeq()!=null)
+                {
+                    getTypeForDeclSpecifierSeq(ctx.declSpecifierSeq());
+                    if(type!="")
+                        retype=type;
+                }
+
+                //declarator:
+                //	pointerDeclarator
+                //	| noPointerDeclarator parametersAndQualifiers trailingReturnType;
+                CppParser.DeclaratorContext declCtx=ctx.declarator();
+                if(declCtx.trailingReturnType()!=null)
+                {
+                    //trailingReturnType:
+                    //	Arrow trailingTypeSpecifierSeq abstractDeclarator?;
+                    retype=getOriginalCodeText(declCtx.trailingReturnType().trailingTypeSpecifierSeq());
+                    name=getOriginalCodeText(declCtx.pointerDeclarator());
+                }
+                else
+                {
+                    //pointerDeclarator: (pointerOperator Const?)* noPointerDeclarator;
+                    for(int i=0;i<declCtx.children.size()-1;++i)
+                        retype+=declCtx.getChild(i).getText();
+                    name=getOriginalCodeText(declCtx.pointerDeclarator().noPointerDeclarator().noPointerDeclarator());
+                }
+                funcNode.setProperty("name",name);
+                funcNode.setProperty("namespace",nameSpaces.peek());
+                funcNode.setProperty("type",retype);
+                if(isInClass)
+                    funcNode.setProperty("class",classNames.peek());
+
+                cfg.addMethodEntry(funcNode);
+
+                preNodes.push(funcNode);
+                preEdges.push(CFEdge.Type.EPSILON);
+                return visit(ctx.functionBody());
+            }
+
 
             @Override public Void visitFunctionBody(CppParser.FunctionBodyContext ctx) { return visitChildren(ctx); }
             //functionBody:
@@ -1422,13 +1481,19 @@ public class CppCFGBuilder {
              * {@link #visitChildren} on {@code ctx}.</p>
              */
             @Override public Void visitClassName(CppParser.ClassNameContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitClassSpecifier(CppParser.ClassSpecifierContext ctx) { return visitChildren(ctx); }
+
+            @Override public Void visitClassSpecifier(CppParser.ClassSpecifierContext ctx) {
+                boolean old=isInClass;
+                if(ctx.classHead().classHeadName()!=null)
+                    classNames.push(getOriginalCodeText(ctx.classHead().classHeadName()));
+                else
+                    classNames.push("");
+                isInClass=true;
+                visitChildren(ctx);
+                classNames.pop();
+                isInClass=old;
+                return null;
+            }
             /**
              * {@inheritDoc}
              *
@@ -1862,6 +1927,21 @@ public class CppCFGBuilder {
             int stop = ctx.stop.getStopIndex();
             Interval interval = new Interval(start, stop);
             return ctx.start.getInputStream().getText(interval);
+        }
+
+        private void getTypeForDeclSpecifierSeq(CppParser.DeclSpecifierSeqContext ctx)
+        {
+            type="";
+            if(ctx.declSpecifier()!=null)
+            {
+                for(CppParser.DeclSpecifierContext decSpCtx:ctx.declSpecifier())
+                {
+                    if(decSpCtx.typeSpecifier()!=null)
+                    {
+                        type+=getOriginalCodeText(decSpCtx.typeSpecifier())+" ";
+                    }
+                }
+            }
         }
 
         /**
