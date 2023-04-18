@@ -170,7 +170,7 @@ public class BasicAnalysisTests {
     @Test
     public void jsASTreeJsonTest() {
         String outDir = JS_OUTPUT_DIR + "AST/";
-        String[] args = {"-ast", "-outdir", outDir, "-format", "json","-lang","javascript", JS_SRC_DIR};
+        String[] args = {"-ast", "-outdir", outDir, "-format", "json","-lang","js", JS_SRC_DIR};
         Main.main(args);
         //
 
