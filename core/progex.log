@@ -1,20 +1,29 @@
-======= LOG CREATED on 周二 2023/4月/18 21:09:30:257 =======
+======= LOG CREATED on 周二 2023/4月/18 16:27:51:532 =======
 
 PROGEX (Program Graph Extractor)  [ v3.4.5 ]
 Visit project website @ https://github.com/ghaffarian/progex
 
 PROGEX execution config:
-  Language = JavaScript
-  Output format = JSON
-  Output directory = ../generate/js/basic/AST/\
+  Language = Java
+  Output format = GML
+  Output directory = ../generate/java/basic/AST/\
   Analysis types = [AST]
   File name = 
   Input paths = 
-        src/test/resources/js/basic/
+        src/test/resources/java/basic/
 
 
-# JavaScript source files = 3
+# Java source files = 9
 
 
 Abstract Syntax Analysis
 ========================
+AST exported to: ../generate/java/basic/AST/\Test1-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test2-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test3-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test4-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test5-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test6-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test7-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test8-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test9-AST.gml
