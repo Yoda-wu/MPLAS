@@ -675,12 +675,99 @@ public class CppCFGBuilder {
                     //
                     preEdges.push(CFEdge.Type.EPSILON);
                     preNodes.push(doWhileEnd);
-                    return null;}
-                //todo
-                else if(ctx.For()!=null){
-                //For LeftParen (
-                //		forInitStatement condition? Semi expression?
-                //		| forRangeDeclaration Colon forRangeInitializer
+                    return null;
+                } else if (ctx.For() != null) {
+                    //For LeftParen (
+                    //		forInitStatement condition? Semi expression?
+                    //		| forRangeDeclaration Colon forRangeInitializer
+                    //	) RightParen statement;
+
+                    // 'for' '(' forControl ')' statement
+                    //    |   forInit? ';' expression? ';' forUpdate?
+                    //    ;
+
+                    //  First, we should check forRange ...
+                    //forRangeDeclaration Colon forRangeInitializer
+                    if (ctx.forRangeDeclaration() != null) {
+                        CFNode forRange = new CFNode();
+                        forRange.setLineOfCode(ctx.forRangeDeclaration().getStart().getLine());
+                        forRange.setCode("For (" + getOriginalCodeText(ctx.forRangeDeclaration())+":"+getOriginalCodeText(ctx.forRangeInitializer()) + ")");
+                        addContextualProperty(forRange, ctx.forRangeDeclaration());
+                        addNodeAndPreEdge(forRange);
+                        //
+                        CFNode forEnd = new CFNode();
+                        forEnd.setLineOfCode(0);
+                        forEnd.setCode("endfor");
+                        cfg.addVertex(forEnd);
+                        cfg.addEdge(new Edge<>(forRange, new CFEdge(CFEdge.Type.FALSE), forEnd));
+                        //
+                        preEdges.push(CFEdge.Type.TRUE);
+                        preNodes.push(forRange);
+                        //
+                        loopBlocks.push(new ControlFlowVisitor.Block(forRange, forEnd));
+                        visit(ctx.statement());
+                        loopBlocks.pop();
+                        popAddPreEdgeTo(forRange);
+                        //
+                        preEdges.push(CFEdge.Type.EPSILON);
+                        preNodes.push(forEnd);
+                    } else {
+                        // It's a traditional for-loop:
+                        // forInitStatement condition? Semi expression?
+
+                        CFNode forInit = null;
+                        if (ctx.forInitStatement() != null) { // non-empty init
+                            forInit = new CFNode();
+                            forInit.setLineOfCode(ctx.forInitStatement().getStart().getLine());
+                            forInit.setCode(getOriginalCodeText(ctx.forInitStatement()));
+                            addContextualProperty(forInit, ctx.forInitStatement());
+                            addNodeAndPreEdge(forInit);
+                        }
+                        // for-condition
+                        CFNode forcondition = new CFNode();
+                        if (ctx.condition() == null) {
+                            forcondition.setLineOfCode(ctx.forInitStatement().getStart().getLine());
+                            forcondition.setCode("for ( ; )");
+                        } else {
+                            forcondition.setLineOfCode(ctx.condition().getStart().getLine());
+                            forcondition.setCode("for (" + getOriginalCodeText(ctx.condition()) + ")");
+                        }
+                        addContextualProperty(forcondition, ctx.condition());
+                        cfg.addVertex(forcondition);
+                        if (forInit != null)
+                            cfg.addEdge(new Edge<>(forInit, new CFEdge(CFEdge.Type.EPSILON), forcondition));
+                        else
+                            popAddPreEdgeTo(forcondition);
+                        // expression
+                        CFNode forExpr = new CFNode();
+                        if (ctx.expression() == null) { // empty forExprpression
+                            forExpr.setCode(" ; ");
+                            forExpr.setLineOfCode(ctx.forInitStatement().getStart().getLine());
+                        } else {
+                            forExpr.setCode(getOriginalCodeText(ctx.expression()));
+                            forExpr.setLineOfCode(ctx.expression().getStart().getLine());
+                        }
+                        addContextualProperty(forExpr, ctx.expression());
+                        cfg.addVertex(forExpr);
+                        //
+                        CFNode forEnd = new CFNode();
+                        forEnd.setLineOfCode(0);
+                        forEnd.setCode("endfor");
+                        cfg.addVertex(forEnd);
+                        cfg.addEdge(new Edge<>(forExpr, new CFEdge(CFEdge.Type.FALSE), forEnd));
+                        //
+                        preEdges.push(CFEdge.Type.TRUE);
+                        preNodes.push(forExpr);
+                        loopBlocks.push(new ControlFlowVisitor.Block(forExpr, forEnd)); // NOTE: start is 'forexpr'
+                        visit(ctx.statement());
+                        loopBlocks.pop();
+                        popAddPreEdgeTo(forExpr);
+                        cfg.addEdge(new Edge<>(forExpr, new CFEdge(CFEdge.Type.EPSILON), forExpr));
+                        //
+                        preEdges.push(CFEdge.Type.EPSILON);
+                        preNodes.push(forEnd);
+                    }
+                    return null;
                 }
                 return null;
             }
@@ -1530,13 +1617,20 @@ public class CppCFGBuilder {
              * <p>The default implementation returns the result of calling
              * {@link #visitChildren} on {@code ctx}.</p>
              */
-            @Override public Void visitTemplateDeclaration(CppParser.TemplateDeclarationContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
+            @Override public Void visitTemplateDeclaration(CppParser.TemplateDeclarationContext ctx)
+            //templateDeclaration:
+            //	Template Less templateparameterList Greater declaration;
+            {
+                CFNode TemplateDeclaration = new CFNode();
+                TemplateDeclaration.setLineOfCode(ctx.getStart().getLine());
+                TemplateDeclaration.setCode(getOriginalCodeText(ctx));
+                addContextualProperty(TemplateDeclaration, ctx);
+                addNodeAndPreEdge(TemplateDeclaration);
+                //
+                preEdges.push(CFEdge.Type.EPSILON);
+                preNodes.push(TemplateDeclaration);
+                return null;
+            }
             @Override public Void visitTemplateparameterList(CppParser.TemplateparameterListContext ctx) { return visitChildren(ctx); }
             /**
              * {@inheritDoc}
