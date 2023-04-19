@@ -227,4 +227,5 @@ TemplateStringAtom=128
 'package'=116
 'protected'=117
 'static'=118
+'`'=121
 '${'=127
