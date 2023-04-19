@@ -1,3 +1,2 @@
-var x, length
-x = 5
-length = 6
+var x=1
+let len=10
