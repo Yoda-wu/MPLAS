@@ -3,6 +3,7 @@ package com.scut.mplas.cpp;
 import com.scut.mplas.cpp.parser.CppLexer;
 import com.scut.mplas.cpp.parser.CppParser;
 import com.scut.mplas.cpp.parser.CppVisitor;
+import com.scut.mplas.graphs.ast.ASNode;
 import com.scut.mplas.graphs.cfg.CFEdge;
 import com.scut.mplas.graphs.cfg.CFNode;
 import com.scut.mplas.graphs.cfg.ControlFlowGraph;
@@ -99,6 +100,7 @@ public class CppCFGBuilder {
         private Deque<String> nameSpaces;
         private String type;
         private boolean isInClass;
+        private boolean isInFunction;
 
         public ControlFlowVisitor(ControlFlowGraph cfg, String propKey, Map<ParserRuleContext, Object> ctxProps) {
             preNodes = new ArrayDeque<>();
@@ -112,6 +114,7 @@ public class CppCFGBuilder {
             nameSpaces.push("");
             dontPop = false;
             isInClass=false;
+            isInFunction=false;
             this.cfg = cfg;
             //
             this.propKey = propKey;
@@ -886,13 +889,21 @@ public class CppCFGBuilder {
              * {@link #visitChildren} on {@code ctx}.</p>
              */
             @Override public Void visitDeclaration(CppParser.DeclarationContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitBlockDeclaration(CppParser.BlockDeclarationContext ctx) { return visitChildren(ctx); }
+
+            @Override public Void visitBlockDeclaration(CppParser.BlockDeclarationContext ctx) {
+                if(ctx.simpleDeclaration()!=null)
+                    return visit(ctx.simpleDeclaration());
+                if(isInFunction)
+                {
+                    CFNode statNode=new CFNode();
+                    statNode.setLineOfCode(ctx.getStart().getLine());
+                    statNode.setCode(getOriginalCodeText(ctx));
+                    cfg.addVertex(statNode);
+                    preNodes.push(statNode);
+                    preEdges.push(CFEdge.Type.EPSILON);
+                }
+                return null;
+            }
             /**
              * {@inheritDoc}
              *
@@ -900,13 +911,33 @@ public class CppCFGBuilder {
              * {@link #visitChildren} on {@code ctx}.</p>
              */
             @Override public Void visitAliasDeclaration(CppParser.AliasDeclarationContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitSimpleDeclaration(CppParser.SimpleDeclarationContext ctx) { return visitChildren(ctx); }
+
+            @Override public Void visitSimpleDeclaration(CppParser.SimpleDeclarationContext ctx) {
+                //simpleDeclaration:
+                //	declSpecifierSeq? initDeclaratorList? Semi
+                //	| attributeSpecifierSeq declSpecifierSeq? initDeclaratorList Semi;
+                if(ctx.declSpecifierSeq()!=null && ctx.initDeclaratorList()==null)
+                {
+                    // 可能类定义
+                    visit(ctx.declSpecifierSeq());
+                    return null;
+                }
+                else if(isInFunction)
+                {
+                    // 变量或函数声明
+                    // 还有可能是函数调用(是有用命名空间指定的函数调用，如std::min())
+                    // or
+                    //变量赋值或者函数调用
+
+                    CFNode statNode=new CFNode();
+                    statNode.setLineOfCode(ctx.getStart().getLine());
+                    statNode.setCode(getOriginalCodeText(ctx));
+                    cfg.addVertex(statNode);
+                    preNodes.push(statNode);
+                    preEdges.push(CFEdge.Type.EPSILON);
+                }
+                return null;
+            }
             /**
              * {@inheritDoc}
              *
@@ -1391,6 +1422,7 @@ public class CppCFGBuilder {
                 //functionDefinition:
                 //	attributeSpecifierSeq? declSpecifierSeq? declarator virtualSpecifierSeq? functionBody;
                 init();
+                isInFunction=true;
 
                 CFNode funcNode=new CFNode();
                 funcNode.setLineOfCode(ctx.getStart().getLine());
@@ -1442,7 +1474,9 @@ public class CppCFGBuilder {
 
                 preNodes.push(funcNode);
                 preEdges.push(CFEdge.Type.EPSILON);
-                return visit(ctx.functionBody());
+                visit(ctx.functionBody());
+                isInFunction=false;
+                return null;
             }
 
 
@@ -1689,20 +1723,13 @@ public class CppCFGBuilder {
              * <p>The default implementation returns the result of calling
              * {@link #visitChildren} on {@code ctx}.</p>
              */
-            @Override public Void visitTemplateDeclaration(CppParser.TemplateDeclarationContext ctx)
-            //templateDeclaration:
-            //	Template Less templateparameterList Greater declaration;
-            {
-                CFNode TemplateDeclaration = new CFNode();
-                TemplateDeclaration.setLineOfCode(ctx.getStart().getLine());
-                TemplateDeclaration.setCode(getOriginalCodeText(ctx));
-                addContextualProperty(TemplateDeclaration, ctx);
-                addNodeAndPreEdge(TemplateDeclaration);
-                //
-                preEdges.push(CFEdge.Type.EPSILON);
-                preNodes.push(TemplateDeclaration);
-                return null;
-            }
+            @Override public Void visitTemplateDeclaration(CppParser.TemplateDeclarationContext ctx) { return visitChildren(ctx); }
+            /**
+             * {@inheritDoc}
+             *
+             * <p>The default implementation returns the result of calling
+             * {@link #visitChildren} on {@code ctx}.</p>
+             */
             @Override public Void visitTemplateparameterList(CppParser.TemplateparameterListContext ctx) { return visitChildren(ctx); }
             /**
              * {@inheritDoc}
