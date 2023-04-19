@@ -271,6 +271,9 @@ public class JavaScriptASTBuilder {
             if(ctx==null){
                 return "";
             }
+            System.out.println("default:"+ctx.importDefault());
+            System.out.println("namespace:"+ctx.importNamespace());
+            System.out.println("importFrom:"+ctx.importFrom());
             //importDefault? (importNamespace | moduleItems) importFrom eos
             //    | StringLiteral eos
             ASNode node=new ASNode(ASNode.Type.IMPORTFROMBLOCK);
@@ -278,16 +281,24 @@ public class JavaScriptASTBuilder {
             AST.addVertex(node);
             AST.addEdge(parentStack.peek(),node);
             parentStack.push(node);
-            String res=null;
+            StringBuffer res=new StringBuffer();
             if(ctx.importFrom()!=null&&!ctx.importFrom().isEmpty()){
-                res=visit(ctx.importDefault())+"? ("+visit(ctx.importNamespace())+" | "
-                        +visit(ctx.moduleItems())+" "+visit(ctx.importFrom())+" "+visit(ctx.eos())
-                        +" | "+visit(ctx.StringLiteral())+ " "+visit(ctx.eos());
+                if (ctx.importDefault()!=null&&!ctx.importDefault().isEmpty()){
+                    res.append(visitImportDefault(ctx.importDefault()));
+                }
+                if (ctx.importNamespace()!=null&&!ctx.importNamespace().isEmpty()){
+                    res.append(" "+visitImportNamespace(ctx.importNamespace()));
+                }
+                if (ctx.moduleItems()!=null&&!ctx.moduleItems().isEmpty()){
+                    res.append(" "+visitModuleItems(ctx.moduleItems()));
+                }
+                res.append(" "+visitImportFrom(ctx.importFrom()));
+                res.append(" "+visitEos(ctx.eos()));
             }else{
-                res=ctx.StringLiteral().getText()+" "+visitEos(ctx.eos());
+                res.append(ctx.StringLiteral().getText()+" "+visitEos(ctx.eos()));
             }
             parentStack.pop();
-            return res;
+            return res.toString();
         }
 
         @Override public String visitModuleItems(JavaScriptParser.ModuleItemsContext ctx) {
@@ -2140,18 +2151,13 @@ public class JavaScriptASTBuilder {
             if(ctx==null||ctx.isEmpty()){
                 return "";
             }
-            //  : SemiColon
-            //    | EOF
-            //    | {this.lineTerminatorAhead()}?
-            //    | {this.closeBrace()}?
-//            if(ctx.SemiColon()!=null){
-//                return ctx.SemiColon().getText();
-//            }else if(ctx.EOF()!=null){
-//                return ctx.EOF().getText();
-//            }
-//            //TODO
 //            return "";
-            return getOriginalCodeText(ctx);
+            if(ctx.SemiColon()!=null){
+                return ctx.SemiColon().getText();
+            }else if(ctx.EOF()!=null){
+                return ctx.EOF().getText();
+            }
+            return "";
         }
 
         private String getOriginalCodeText(ParserRuleContext ctx) {

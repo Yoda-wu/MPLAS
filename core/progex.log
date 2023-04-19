@@ -1,4 +1,4 @@
-======= LOG CREATED on 周三 2023/4月/19 11:39:22:327 =======
+======= LOG CREATED on 周三 2023/4月/19 12:04:12:246 =======
 
 PROGEX (Program Graph Extractor)  [ v3.4.5 ]
 Visit project website @ https://github.com/ghaffarian/progex
@@ -13,7 +13,7 @@ PROGEX execution config:
         src/test/resources/js/basic/
 
 
-# JavaScript source files = 6
+# JavaScript source files = 9
 
 
 Abstract Syntax Analysis
@@ -24,6 +24,13 @@ AST exported to: ../generate/js/basic/AST/\breakContinue-AST.json
   "nodes": [    {      "id": 0,      "line": 0,      "type": "ROOT",      "label": "breakContinue.js",      "normalized": "breakContinue.js"    },    {      "id": 1,      "line": 1,      "type": "SOURCEELEMENT",      "label": "for(vari=0;i<10;i++){if(i%5==0){break;}}",      "normalized": "for(vari=0;i<10;i++){if(i%5==0){break;}}"    },    {      "id": 2,      "line": 1,      "type": "",      "label": "",      "normalized": ""    },    {      "id": 3,      "line": 6,      "type": "SOURCEELEMENT",      "label": "for(vari=0;i<10;i++){if(i%2==0){continue;}}",      "normalized": "for(vari=0;i<10;i++){if(i%2==0){continue;}}"    },    {      "id": 4,      "line": 6,      "type": "",      "label": "",      "normalized": ""    }  ],
 
   "edges": [    {      "id": 0,      "source": 0,      "target": 1,      "label": ""    },    {      "id": 1,      "source": 0,      "target": 2,      "label": ""    },    {      "id": 2,      "source": 1,      "target": 3,      "label": ""    },    {      "id": 3,      "source": 1,      "target": 4,      "label": ""    }  ]
+}
+AST exported to: ../generate/js/basic/AST/\classDefination-AST.json
+{
+  "directed": true,  "label": "AST of classDefination.js",  "type": "Abstract Syntax Tree (AST)",  "file": "classDefination.js",
+  "nodes": [    {      "id": 0,      "line": 0,      "type": "ROOT",      "label": "classDefination.js",      "normalized": "classDefination.js"    },    {      "id": 1,      "line": 1,      "type": "SOURCEELEMENT",      "label": "classRunoob{constructor(name){this.sitename=name;}gets_name(){returnthis.sitename;}sets_name(x){this.sitename=x;}}",      "normalized": "classRunoob{constructor(name){this.sitename=name;}gets_name(){returnthis.sitename;}sets_name(x){this.sitename=x;}}"    },    {      "id": 2,      "line": 1,      "type": "",      "label": "",      "normalized": ""    },    {      "id": 3,      "line": 1,      "type": "CLASS",      "label": "CLASS",      "normalized": "CLASS"    },    {      "id": 4,      "line": 1,      "type": "MODIFIER",      "label": "MODIFIER",      "normalized": "MODIFIER"    },    {      "id": 5,      "line": 1,      "type": "NAME",      "label": "Runoob",      "normalized": "Runoob"    },    {      "id": 6,      "line": 13,      "type": "SOURCEELEMENT",      "label": "letnoob=newRunoob('菜鸟教程');",      "normalized": "letnoob=newRunoob('菜鸟教程');"    },    {      "id": 7,      "line": 13,      "type": "",      "label": "",      "normalized": ""    },    {      "id": 8,      "line": 13,      "type": "",      "label": "",      "normalized": ""    },    {      "id": 9,      "line": 15,      "type": "SOURCEELEMENT",      "label": "document.getElementById('demo').innerHTML=noob.s_name;",      "normalized": "document.getElementById('demo').innerHTML=noob.s_name;"    },    {      "id": 10,      "line": 15,      "type": "",      "label": "",      "normalized": ""    },    {      "id": 11,      "line": 15,      "type": "",      "label": "",      "normalized": ""    }  ],
+
+  "edges": [    {      "id": 0,      "source": 0,      "target": 1,      "label": ""    },    {      "id": 1,      "source": 0,      "target": 2,      "label": ""    },    {      "id": 2,      "source": 0,      "target": 3,      "label": ""    },    {      "id": 3,      "source": 3,      "target": 4,      "label": ""    },    {      "id": 4,      "source": 3,      "target": 5,      "label": ""    },    {      "id": 5,      "source": 1,      "target": 6,      "label": ""    },    {      "id": 6,      "source": 1,      "target": 7,      "label": ""    },    {      "id": 7,      "source": 1,      "target": 8,      "label": ""    },    {      "id": 8,      "source": 2,      "target": 9,      "label": ""    },    {      "id": 9,      "source": 2,      "target": 10,      "label": ""    },    {      "id": 10,      "source": 2,      "target": 11,      "label": ""    }  ]
 }
 AST exported to: ../generate/js/basic/AST/\functionDefinition-AST.json
 {
@@ -39,12 +46,26 @@ AST exported to: ../generate/js/basic/AST/\ifelse-AST.json
 
   "edges": [    {      "id": 0,      "source": 0,      "target": 1,      "label": ""    },    {      "id": 1,      "source": 0,      "target": 2,      "label": ""    },    {      "id": 2,      "source": 0,      "target": 3,      "label": ""    },    {      "id": 3,      "source": 1,      "target": 4,      "label": ""    },    {      "id": 4,      "source": 1,      "target": 5,      "label": ""    },    {      "id": 5,      "source": 1,      "target": 6,      "label": ""    },    {      "id": 6,      "source": 6,      "target": 7,      "label": ""    },    {      "id": 7,      "source": 6,      "target": 8,      "label": ""    },    {      "id": 8,      "source": 8,      "target": 9,      "label": ""    },    {      "id": 9,      "source": 8,      "target": 10,      "label": ""    },    {      "id": 10,      "source": 8,      "target": 11,      "label": ""    },    {      "id": 11,      "source": 8,      "target": 12,      "label": ""    },    {      "id": 12,      "source": 8,      "target": 13,      "label": ""    },    {      "id": 13,      "source": 6,      "target": 14,      "label": ""    },    {      "id": 14,      "source": 14,      "target": 15,      "label": ""    },    {      "id": 15,      "source": 14,      "target": 16,      "label": ""    },    {      "id": 16,      "source": 14,      "target": 17,      "label": ""    },    {      "id": 17,      "source": 14,      "target": 18,      "label": ""    },    {      "id": 18,      "source": 14,      "target": 19,      "label": ""    }  ]
 }
+AST exported to: ../generate/js/basic/AST/\import-AST.json
+{
+  "directed": true,  "label": "AST of import.js",  "type": "Abstract Syntax Tree (AST)",  "file": "import.js",
+  "nodes": [    {      "id": 0,      "line": 0,      "type": "ROOT",      "label": "import.js",      "normalized": "import.js"    },    {      "id": 1,      "line": 1,      "type": "SOURCEELEMENT",      "label": "import$from'jquery'",      "normalized": "import$from'jquery'"    },    {      "id": 2,      "line": 1,      "type": "",      "label": "",      "normalized": ""    },    {      "id": 3,      "line": 1,      "type": "IMPORT",      "label": "import",      "normalized": "import"    },    {      "id": 4,      "line": 1,      "type": "IMPORTFROMBLOCK",      "label": "IMPORTFROMBLOCK",      "normalized": "IMPORTFROMBLOCK"    },    {      "id": 5,      "line": 1,      "type": "IMPORTNAMESPACE",      "label": "IMPORTNAMESPACE",      "normalized": "IMPORTNAMESPACE"    },    {      "id": 6,      "line": 1,      "type": "IMPORTFROM",      "label": "IMPORTFROM",      "normalized": "IMPORTFROM"    },    {      "id": 7,      "line": 3,      "type": "SOURCEELEMENT",      "label": "exportdefault{created(){console.log($)}}<EOF>",      "normalized": "exportdefault{created(){console.log($)}}<EOF>"    },    {      "id": 8,      "line": 3,      "type": "",      "label": "",      "normalized": ""    }  ],
+
+  "edges": [    {      "id": 0,      "source": 0,      "target": 1,      "label": ""    },    {      "id": 1,      "source": 0,      "target": 2,      "label": ""    },    {      "id": 2,      "source": 0,      "target": 3,      "label": ""    },    {      "id": 3,      "source": 3,      "target": 4,      "label": ""    },    {      "id": 4,      "source": 4,      "target": 5,      "label": ""    },    {      "id": 5,      "source": 5,      "target": 6,      "label": ""    },    {      "id": 6,      "source": 0,      "target": 7,      "label": ""    },    {      "id": 7,      "source": 0,      "target": 8,      "label": ""    }  ]
+}
 AST exported to: ../generate/js/basic/AST/\iteration-AST.json
 {
   "directed": true,  "label": "AST of iteration.js",  "type": "Abstract Syntax Tree (AST)",  "file": "iteration.js",
   "nodes": [    {      "id": 0,      "line": 0,      "type": "ROOT",      "label": "iteration.js",      "normalized": "iteration.js"    },    {      "id": 1,      "line": 1,      "type": "SOURCEELEMENT",      "label": "for(vari=0;i<cars.length;i++){document.write(cars[i]+'<br>');}",      "normalized": "for(vari=0;i<cars.length;i++){document.write(cars[i]+'<br>');}"    },    {      "id": 2,      "line": 1,      "type": "",      "label": "",      "normalized": ""    },    {      "id": 3,      "line": 5,      "type": "SOURCEELEMENT",      "label": "while(i<5){x=x+'The number is '+i+'<br>';i++;}",      "normalized": "while(i<5){x=x+'The number is '+i+'<br>';i++;}"    },    {      "id": 4,      "line": 5,      "type": "",      "label": "",      "normalized": ""    }  ],
 
   "edges": [    {      "id": 0,      "source": 0,      "target": 1,      "label": ""    },    {      "id": 1,      "source": 0,      "target": 2,      "label": ""    },    {      "id": 2,      "source": 1,      "target": 3,      "label": ""    },    {      "id": 3,      "source": 1,      "target": 4,      "label": ""    }  ]
+}
+AST exported to: ../generate/js/basic/AST/\promise-AST.json
+{
+  "directed": true,  "label": "AST of promise.js",  "type": "Abstract Syntax Tree (AST)",  "file": "promise.js",
+  "nodes": [    {      "id": 0,      "line": 0,      "type": "ROOT",      "label": "promise.js",      "normalized": "promise.js"    },    {      "id": 1,      "line": 1,      "type": "SOURCEELEMENT",      "label": "newPromise(function(resolve,reject){setTimeout(function(){console.log('First');resolve();},1000);}).then(function(){returnnewPromise(function(resolve,reject){setTimeout(function(){console.log('Second');resolve();},4000);});}).then(function(){setTimeout(function(){console.log('Third');},3000);});",      "normalized": "newPromise(function(resolve,reject){setTimeout(function(){console.log('First');resolve();},1000);}).then(function(){returnnewPromise(function(resolve,reject){setTimeout(function(){console.log('Second');resolve();},4000);});}).then(function(){setTimeout(function(){console.log('Third');},3000);});"    },    {      "id": 2,      "line": 1,      "type": "",      "label": "",      "normalized": ""    },    {      "id": 3,      "line": 1,      "type": "",      "label": "",      "normalized": ""    }  ],
+
+  "edges": [    {      "id": 0,      "source": 0,      "target": 1,      "label": ""    },    {      "id": 1,      "source": 0,      "target": 2,      "label": ""    },    {      "id": 2,      "source": 0,      "target": 3,      "label": ""    }  ]
 }
 AST exported to: ../generate/js/basic/AST/\switch-AST.json
 {
