@@ -878,6 +878,7 @@ public class CppASTBuilder {
                 }
 
                 // 变量或函数声明，函数声明不会增加到函数列表中，只有变量声明会加进变量列表中
+                // 还有可能是函数调用(是有用命名空间指定的函数调用，如std::min())，这个和变量声明无法区分
                 //initDeclaratorList: initDeclarator (Comma initDeclarator)*;
                 //
                 //initDeclarator: declarator initializer?;
@@ -1259,7 +1260,7 @@ public class CppASTBuilder {
             ASNode nameNode=new ASNode(ASNode.Type.NAME);
             nameNode.setLineOfCode(ctx.getStart().getLine());
             String spaceName=ctx.Identifier().getText();
-            if(!ctx.originalNamespaceName().isEmpty())
+            if(ctx.originalNamespaceName()!=null)
                 spaceName=ctx.originalNamespaceName().getText();
             nameNode.setCode(spaceName);
             AST.addVertex(nameNode);
@@ -1776,11 +1777,16 @@ public class CppASTBuilder {
                 }
             }
 
-            ASNode retNode=new ASNode(ASNode.Type.RETURN);
-            retNode.setLineOfCode(ctx.getStart().getLine());
-            retNode.setCode(type);
-            AST.addVertex(retNode);
-            AST.addEdge(parentStack.peek(),retNode);
+            if(type!="")
+            {
+                ASNode retNode=new ASNode(ASNode.Type.RETURN);
+                retNode.setLineOfCode(ctx.getStart().getLine());
+                retNode.setCode(type);
+                AST.addVertex(retNode);
+                AST.addEdge(parentStack.peek(),retNode);
+                type="";
+            }
+
 
             // noPointerDeclarator:
             //	declaratorid attributeSpecifierSeq?
@@ -1791,7 +1797,7 @@ public class CppASTBuilder {
             //	| LeftParen pointerDeclarator RightParen;
             CppParser.NoPointerDeclaratorContext npdCtx=pdCtx.noPointerDeclarator();
             ++methodsCounter;
-            String normalized="$METHOD_"+getOriginalCodeText(npdCtx.noPointerDeclarator().declaratorid());
+            String normalized="$METHOD_"+methodsCounter;
             ASNode nameNode=new ASNode(ASNode.Type.NAME);
             nameNode.setLineOfCode(npdCtx.getStart().getLine());
             nameNode.setCode(getOriginalCodeText(npdCtx.noPointerDeclarator().declaratorid()));
@@ -2125,7 +2131,7 @@ public class CppASTBuilder {
             {
                 visit(ctx.getChild(i));
             }
-            return visitChildren(ctx);
+            return "";
         }
 
         @Override public String visitMemberdeclaration(CppParser.MemberdeclarationContext ctx) {
