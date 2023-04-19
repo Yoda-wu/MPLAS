@@ -94,9 +94,9 @@ public class JavaScriptASTBuilder {
             JavaScriptParser.ProgramContext rootCntx = (JavaScriptParser.ProgramContext) tree;
             AST.root.setCode(new File(AST.filePath).getName());
             parentStack.push(AST.root);
-            System.out.println(rootCntx.HashBangLine());
             System.out.println(rootCntx.EOF());
             if (rootCntx.sourceElements() != null) {
+                System.out.println("sourceElement:"+rootCntx.sourceElements());
                 visit(rootCntx.sourceElements());
             }
             parentStack.pop();
@@ -115,6 +115,9 @@ public class JavaScriptASTBuilder {
 //            Logger.debug("Adding package");
 //            AST.addVertex(node);
 //            AST.addEdge(parentStack.peek(), node);
+            if(ctx==null){
+                return "";
+            }
             ASNode node=new ASNode(ASNode.Type.SOURCEELEMENTS);
             node.setCode(ctx.sourceElements().getText());
             node.setLineOfCode(ctx.getStart().getLine());
@@ -135,6 +138,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitSourceElement(JavaScriptParser.SourceElementContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode node=new ASNode(ASNode.Type.SOURCEELEMENT);
             node.setLineOfCode(ctx.getStart().getLine());
             node.setCode(ctx.statement().getText());
@@ -147,6 +153,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitStatement(JavaScriptParser.StatementContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode node=new ASNode(ASNode.Type.STATEMENT);
             node.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(node);
@@ -212,6 +221,9 @@ public class JavaScriptASTBuilder {
 
 
         @Override public String visitBlock(JavaScriptParser.BlockContext ctx) {
+            if(ctx==null){
+                return "";
+            }
             ASNode node=new ASNode(ASNode.Type.BLOCK);
             node.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(node);
@@ -223,6 +235,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitStatementList(JavaScriptParser.StatementListContext ctx) {
+            if(ctx==null){
+                return "";
+            }
             ASNode node=new ASNode(ASNode.Type.STATEMENTLIST);
             node.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(node);
@@ -237,6 +252,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitImportStatement(JavaScriptParser.ImportStatementContext ctx) {
+            if(ctx==null){
+                return "";
+            }
             //Import importFromBlock
             ASNode node=new ASNode(ASNode.Type.IMPORT);
             node.setLineOfCode(ctx.getStart().getLine());
@@ -250,6 +268,12 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitImportFromBlock(JavaScriptParser.ImportFromBlockContext ctx) {
+            if(ctx==null){
+                return "";
+            }
+            System.out.println("default:"+ctx.importDefault());
+            System.out.println("namespace:"+ctx.importNamespace());
+            System.out.println("importFrom:"+ctx.importFrom());
             //importDefault? (importNamespace | moduleItems) importFrom eos
             //    | StringLiteral eos
             ASNode node=new ASNode(ASNode.Type.IMPORTFROMBLOCK);
@@ -257,19 +281,30 @@ public class JavaScriptASTBuilder {
             AST.addVertex(node);
             AST.addEdge(parentStack.peek(),node);
             parentStack.push(node);
-            String res=null;
+            StringBuffer res=new StringBuffer();
             if(ctx.importFrom()!=null&&!ctx.importFrom().isEmpty()){
-                res=visit(ctx.importDefault())+"? ("+visit(ctx.importNamespace())+" | "
-                        +visit(ctx.moduleItems())+" "+visit(ctx.importFrom())+" "+visit(ctx.eos())
-                        +" | "+visit(ctx.StringLiteral())+ " "+visit(ctx.eos());
+                if (ctx.importDefault()!=null&&!ctx.importDefault().isEmpty()){
+                    res.append(visitImportDefault(ctx.importDefault()));
+                }
+                if (ctx.importNamespace()!=null&&!ctx.importNamespace().isEmpty()){
+                    res.append(" "+visitImportNamespace(ctx.importNamespace()));
+                }
+                if (ctx.moduleItems()!=null&&!ctx.moduleItems().isEmpty()){
+                    res.append(" "+visitModuleItems(ctx.moduleItems()));
+                }
+                res.append(" "+visitImportFrom(ctx.importFrom()));
+                res.append(" "+visitEos(ctx.eos()));
             }else{
-                res=ctx.StringLiteral().getText()+" "+visitEos(ctx.eos());
+                res.append(ctx.StringLiteral().getText()+" "+visitEos(ctx.eos()));
             }
             parentStack.pop();
-            return res;
+            return res.toString();
         }
 
         @Override public String visitModuleItems(JavaScriptParser.ModuleItemsContext ctx) {
+            if(ctx==null){
+                return "";
+            }
             StringBuffer stringBuffer=new StringBuffer();
             stringBuffer.append("{");
             ASNode node=new ASNode(ASNode.Type.MODULEITEMS);
@@ -285,10 +320,16 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitImportDefault(JavaScriptParser.ImportDefaultContext ctx) {
+            if(ctx==null){
+                return "";
+            }
             return visit(ctx.aliasName())+" ,";
         }
 
         @Override public String visitImportNamespace(JavaScriptParser.ImportNamespaceContext ctx) {
+            if(ctx==null){
+                return "";
+            }
             //importNamespaceDeclration:     : ('*' | identifierName) (As identifierName)?
             ASNode node=new ASNode(ASNode.Type.IMPORTNAMESPACE);
             node.setLineOfCode(ctx.getStart().getLine());
@@ -311,6 +352,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitImportFrom(JavaScriptParser.ImportFromContext ctx) {
+            if(ctx==null){
+                return "";
+            }
             ASNode node=new ASNode(ASNode.Type.IMPORTFROM);
             node.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(node);
@@ -319,6 +363,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitAliasName(JavaScriptParser.AliasNameContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode node=new ASNode(ASNode.Type.ALIASNAME);
             node.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(node);
@@ -330,6 +377,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitExportDeclaration(JavaScriptParser.ExportDeclarationContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode exportNode=new ASNode(ASNode.Type.EXPORT);
             exportNode.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(exportNode);
@@ -346,6 +396,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitExportDefaultDeclaration(JavaScriptParser.ExportDefaultDeclarationContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode exportNode=new ASNode(ASNode.Type.EXPORT);
             exportNode.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(exportNode);
@@ -354,6 +407,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitExportFromBlock(JavaScriptParser.ExportFromBlockContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode node=new ASNode(ASNode.Type.EXPORTFROMBLOCK);
             node.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(node);
@@ -370,6 +426,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitDeclaration(JavaScriptParser.DeclarationContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if(ctx.variableStatement()!=null&&!ctx.variableStatement().isEmpty()){
                 return visitVariableStatement((ctx.variableStatement()));
             }else if(ctx.classDeclaration()!=null&&!ctx.classDeclaration().isEmpty()){
@@ -379,6 +438,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitVariableStatement(JavaScriptParser.VariableStatementContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode expressionNode=new ASNode(ASNode.Type.STATEMENT);
             expressionNode.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(expressionNode);
@@ -390,6 +452,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitVariableDeclarationList(JavaScriptParser.VariableDeclarationListContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             StringBuffer stringBuffer=new StringBuffer();
             stringBuffer.append(visitVarModifier(ctx.varModifier())+" ");
             stringBuffer.append(visitVariableDeclaration(ctx.variableDeclaration(0)));
@@ -400,10 +465,16 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitVariableDeclaration(JavaScriptParser.VariableDeclarationContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visitAssignable(ctx.assignable())+"="+visit(ctx.singleExpression());
         }
 
         @Override public String visitEmptyStatement_(JavaScriptParser.EmptyStatement_Context ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode emptyNode=new ASNode(ASNode.Type.EMPTY);
             emptyNode.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(emptyNode);
@@ -412,6 +483,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitExpressionStatement(JavaScriptParser.ExpressionStatementContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             //    : {this.notOpenBraceAndNotFunction()}? expressionSequence eos
             ASNode expressionNode=new ASNode(ASNode.Type.STATEMENT);
             expressionNode.setLineOfCode(ctx.getStart().getLine());
@@ -424,6 +498,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitIfStatement(JavaScriptParser.IfStatementContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             //     : If '(' expressionSequence ')' statement (Else statement)?
             ASNode ifNode = new ASNode(ASNode.Type.IF);
             ifNode.setLineOfCode(ctx.getStart().getLine());
@@ -458,6 +535,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitDoStatement(JavaScriptParser.DoStatementContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             //     : Do statement While '(' expressionSequence ')' eos                                                                       # DoStatement
             ASNode doWhileNode = new ASNode(ASNode.Type.DO_WHILE);
             doWhileNode.setLineOfCode(ctx.getStart().getLine());
@@ -482,6 +562,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitWhileStatement(JavaScriptParser.WhileStatementContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             //     | While '(' expressionSequence ')' statement                                                                              # WhileStatement
             ASNode whileNode = new ASNode(ASNode.Type.WHILE);
             whileNode.setLineOfCode(ctx.getStart().getLine());
@@ -514,6 +597,9 @@ public class JavaScriptASTBuilder {
             //varModifier: Var| let_ | Const
             //variableDeclaration: assignable ('=' singleExpression)?
             //assignable: identifier| arrayLiteral| objectLiteral
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode forNode;
             forNode=new ASNode(ASNode.Type.FOR);
             forNode.setLineOfCode(ctx.getStart().getLine());
@@ -596,6 +682,9 @@ public class JavaScriptASTBuilder {
         @Override public String visitForInStatement(JavaScriptParser.ForInStatementContext ctx) {
             //    | For '(' (singleExpression | variableDeclarationList) In expressionSequence ')' statement                                # ForInStatement
             //
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode forNode=new ASNode(ASNode.Type.FOR_EACH);
             if (ctx.singleExpression()!=null){
                 ASNode expr=new ASNode(ASNode.Type.STATEMENT);
@@ -634,6 +723,9 @@ public class JavaScriptASTBuilder {
         @Override public String visitForOfStatement(JavaScriptParser.ForOfStatementContext ctx) {
             //    | For Await? '(' (singleExpression | variableDeclarationList) identifier{this.p("of")}? expressionSequence ')' statement  # ForOfStatement
             //TODO
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             StringBuffer stringBuffer=new StringBuffer();
             stringBuffer.append(ctx.For().getText()+" "+ctx.Await().getText());
             stringBuffer.append("(");
@@ -651,6 +743,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitVarModifier(JavaScriptParser.VarModifierContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if(ctx.Var()!=null){
                 return ctx.Var().getText();
             }else if(ctx.let_()!=null&&!ctx.let_().isEmpty()){
@@ -661,6 +756,9 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitContinueStatement(JavaScriptParser.ContinueStatementContext ctx) {
             // TODO   : Continue ({this.notLineTerminator()}? identifier)? eos
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode node=new ASNode(ASNode.Type.CONTINUE);
             node.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(node);
@@ -675,6 +773,9 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitBreakStatement(JavaScriptParser.BreakStatementContext ctx) {
             //:    : Break ({this.notLineTerminator()}? identifier)? eos
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode node=new ASNode(ASNode.Type.BREAK);
             node.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(node);
@@ -689,6 +790,9 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitReturnStatement(JavaScriptParser.ReturnStatementContext ctx) {
             //:        : Return ({this.notLineTerminator()}? expressionSequence)? eos
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode node=new ASNode(ASNode.Type.RETURN);
             node.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(node);
@@ -704,6 +808,9 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitYieldStatement(JavaScriptParser.YieldStatementContext ctx) {
             //:         : Yield ({this.notLineTerminator()}? expressionSequence)? eos
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode node=new ASNode(ASNode.Type.YIELD);
             node.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(node);
@@ -719,6 +826,9 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitWithStatement(JavaScriptParser.WithStatementContext ctx) {
             //:      : With '(' expressionSequence ')' statement
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode withNode=new ASNode(ASNode.Type.WITH);
             withNode.setCode(getOriginalCodeText(ctx.expressionSequence()));
             withNode.setNormalizedCode(visit(ctx.expressionSequence()));
@@ -745,6 +855,9 @@ public class JavaScriptASTBuilder {
 //            AST.addVertex(caseBlockNode);
 //            AST.addEdge(switchNode,caseBlockNode);
 //            return "";
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode switchNode = new ASNode(ASNode.Type.SWITCH);
             switchNode.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(switchNode);
@@ -769,6 +882,9 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitCaseBlock(JavaScriptParser.CaseBlockContext ctx) {
             //    : '{' caseClauses? (defaultClause caseClauses?)? '}'
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode caseBlockNode=new ASNode(ASNode.Type.CASEBLOCK);
             caseBlockNode.setLineOfCode(ctx.getStart().getLine());
             caseBlockNode.setCode(ctx.getText());
@@ -791,6 +907,9 @@ public class JavaScriptASTBuilder {
         @Override public String visitCaseClauses(JavaScriptParser.CaseClausesContext ctx) {
             //caseClauses
             //    : caseClause+
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode caseClausesNode=new ASNode(ASNode.Type.CASECLAUSES);
             caseClausesNode.setLineOfCode(ctx.getStart().getLine());
             caseClausesNode.setCode(ctx.getText());
@@ -816,6 +935,9 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitCaseClause(JavaScriptParser.CaseClauseContext ctx) {
             // : Case expressionSequence ':' statementList?
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode caseNode=new ASNode(ASNode.Type.CASE);
             caseNode.setLineOfCode(ctx.getStart().getLine());
             caseNode.setCode(ctx.getText());
@@ -837,6 +959,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitDefaultClause(JavaScriptParser.DefaultClauseContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if (ctx.Default()!=null){
                 ASNode caseNode=new ASNode(ASNode.Type.CASE);
                 caseNode.setLineOfCode(ctx.getStart().getLine());
@@ -851,11 +976,17 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitLabelledStatement(JavaScriptParser.LabelledStatementContext ctx) {
             //    : identifier ':' statement
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return ctx.identifier().Identifier().getText()+":"+visit(ctx.statement());
         }
 
         @Override public String visitThrowStatement(JavaScriptParser.ThrowStatementContext ctx) {
             //:      : Throw {this.notLineTerminator()}? expressionSequence eos
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode node=new ASNode(ASNode.Type.THROW);
             node.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(node);
@@ -870,6 +1001,9 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitTryStatement(JavaScriptParser.TryStatementContext ctx) {
             //  : Try block (catchProduction finallyProduction? | finallyProduction)
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode tryNode = new ASNode(ASNode.Type.TRY);
             tryNode.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(tryNode);
@@ -921,6 +1055,9 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitCatchProduction(JavaScriptParser.CatchProductionContext ctx) {
            //: Catch ('(' assignable? ')')? block
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode catchNode=new ASNode(ASNode.Type.CATCH);
             catchNode.setLineOfCode(ctx.block().getStart().getLine());
             AST.addVertex(catchNode);
@@ -940,6 +1077,9 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitFinallyProduction(JavaScriptParser.FinallyProductionContext ctx) {
             //: : Finally block
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode finalNode=new ASNode(ASNode.Type.FINALLY);
             finalNode.setLineOfCode(ctx.block().getStart().getLine());
             AST.addVertex(finalNode);
@@ -953,6 +1093,9 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitDebuggerStatement(JavaScriptParser.DebuggerStatementContext ctx) {
             //    : Debugger eos
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if (ctx.Debugger()!=null){
                 visit(ctx.eos());
             }
@@ -962,6 +1105,9 @@ public class JavaScriptASTBuilder {
         @Override public String visitFunctionDeclaration(JavaScriptParser.FunctionDeclarationContext ctx) {
             //      : Async? Function_ '*'? identifier '(' formalParameterList? ')' functionBody
             //TODO
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             StringBuffer stringBuffer=new StringBuffer();
             if(ctx.Async()!=null){
                 stringBuffer.append("Async ");
@@ -1058,6 +1204,9 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitClassDeclaration(JavaScriptParser.ClassDeclarationContext ctx) {
             //    : Class identifier classTail
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             ASNode classNode = new ASNode(ASNode.Type.CLASS);
             classNode.setLineOfCode(ctx.getStart().getLine());
             Logger.debug("Adding class node");
@@ -1112,6 +1261,9 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitClassTail(JavaScriptParser.ClassTailContext ctx) {
            //: (Extends singleExpression)? '{' classElement* '}'
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if(ctx.Extends()!=null){
                 ASNode extendsNode=new ASNode(ASNode.Type.EXTENDS);
                 extendsNode.setCode(ctx.singleExpression().getText());
@@ -1135,6 +1287,9 @@ public class JavaScriptASTBuilder {
             //    | emptyStatement_
             //    | '#'? propertyName '=' singleExpression
             //TODO
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if(ctx.emptyStatement_()!=null&&!ctx.emptyStatement_().isEmpty()){
                 return visitEmptyStatement_(ctx.emptyStatement_());
             }else if(ctx.propertyName()!=null&&!ctx.propertyName().isEmpty()){
@@ -1158,6 +1313,9 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitMethodDefinition(JavaScriptParser.MethodDefinitionContext ctx) {
            //TODO
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if(ctx.propertyName()!=null&&!ctx.propertyName().isEmpty()){
                 return "*#"+visitPropertyName(ctx.propertyName())+" ("+visitFormalParameterList(ctx.formalParameterList())+")"+visitFunctionBody(ctx.functionBody());
             }else if(ctx.getter()!=null&&!ctx.getter().isEmpty()){
@@ -1183,19 +1341,31 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitFormalParameterArg(JavaScriptParser.FormalParameterArgContext ctx) {
             //    : assignable ('=' singleExpression)?      // ECMAScript 6: Initialization
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visitAssignable(ctx.assignable())+"="+visit(ctx.singleExpression());
         }
 
         @Override public String visitLastFormalParameterArg(JavaScriptParser.LastFormalParameterArgContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return ctx.Ellipsis().getText()+" "+visit(ctx.singleExpression());
         }
 
 
         @Override public String visitFunctionBody(JavaScriptParser.FunctionBodyContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return "{"+visitSourceElements(ctx.sourceElements())+"}";
         }
 
         @Override public String visitSourceElements(JavaScriptParser.SourceElementsContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             StringBuffer stringBuffer=new StringBuffer();
             if (ctx.sourceElement()!=null&&ctx.sourceElement().size()>0){
                 for (JavaScriptParser.SourceElementContext sourceContext : ctx.sourceElement()) {
@@ -1206,11 +1376,17 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitArrayLiteral(JavaScriptParser.ArrayLiteralContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return "["+visitElementList(ctx.elementList())+"]";
         }
 
         @Override public String visitElementList(JavaScriptParser.ElementListContext ctx) {
            //TODO
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             StringBuffer stringBuffer=new StringBuffer();
             stringBuffer.append(",");
             stringBuffer.append(visitArrayElement(ctx.arrayElement(0)));
@@ -1224,6 +1400,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitArrayElement(JavaScriptParser.ArrayElementContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if (ctx.Ellipsis()!=null){
                 return ctx.Ellipsis().getText()+" "+visit(ctx.singleExpression());
             }
@@ -1231,14 +1410,23 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitPropertyExpressionAssignment(JavaScriptParser.PropertyExpressionAssignmentContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visitPropertyName(ctx.propertyName())+":"+visit(ctx.singleExpression());
         }
 
         @Override public String visitComputedPropertyExpressionAssignment(JavaScriptParser.ComputedPropertyExpressionAssignmentContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return "["+visit(ctx.singleExpression(0))+"]:"+visit(ctx.singleExpression(1));
         }
 
         @Override public String visitFunctionProperty(JavaScriptParser.FunctionPropertyContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             //TODO
             StringBuffer stringBuffer=new StringBuffer();
             if (ctx.Async()!=null){
@@ -1256,14 +1444,23 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitPropertyGetter(JavaScriptParser.PropertyGetterContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visitGetter(ctx.getter())+"()"+visitFunctionBody(ctx.functionBody());
         }
 
         @Override public String visitPropertySetter(JavaScriptParser.PropertySetterContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return  visitSetter(ctx.setter())+"("+visitFormalParameterArg(ctx.formalParameterArg())+")"+visitFunctionBody(ctx.functionBody());
         }
 
         @Override public String visitPropertyShorthand(JavaScriptParser.PropertyShorthandContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if(ctx.Ellipsis()!=null){
                 return ctx.Ellipsis().getText()+" "+visit(ctx.singleExpression());
             }
@@ -1271,6 +1468,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitPropertyName(JavaScriptParser.PropertyNameContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if(ctx.identifierName()!=null){
                 return visitIdentifierName(ctx.identifierName());
             }else if(ctx.numericLiteral()!=null){
@@ -1282,6 +1482,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitArguments(JavaScriptParser.ArgumentsContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             // arguments :  '(' expressionList? ')'
             if (ctx.argument() == null)
                 return "()";
@@ -1295,6 +1498,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitArgument(JavaScriptParser.ArgumentContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             StringBuffer stringBuffer=new StringBuffer();
             if(ctx.Ellipsis()!=null){
                 stringBuffer.append(ctx.Ellipsis().getText()+" ");
@@ -1308,6 +1514,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitExpressionSequence(JavaScriptParser.ExpressionSequenceContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             //TODO
             StringBuffer stringBuffer=new StringBuffer();
             stringBuffer.append(visit(ctx.singleExpression(0)));
@@ -1319,56 +1528,95 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitTemplateStringExpression(JavaScriptParser.TemplateStringExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visit(ctx.singleExpression())+" "+visitTemplateStringLiteral(ctx.templateStringLiteral());
         }
 
         @Override public String visitTernaryExpression(JavaScriptParser.TernaryExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visit(ctx.singleExpression(0))+"?"+visit(ctx.singleExpression(1))+":"+visit(ctx.singleExpression(2));
         }
 
         @Override public String visitLogicalAndExpression(JavaScriptParser.LogicalAndExpressionContext ctx) {
             // exprBitAnd :  expression '&&' expression
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visit(ctx.singleExpression(0)) + " && " + visit(ctx.singleExpression(1));
         }
 
         @Override public String visitPowerExpression(JavaScriptParser.PowerExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visit(ctx.singleExpression(0))+" ** "+visit(ctx.singleExpression(1));
         }
 
         @Override public String visitPreIncrementExpression(JavaScriptParser.PreIncrementExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return "++"+visit(ctx.singleExpression());
         }
 
         @Override public String visitObjectLiteralExpression(JavaScriptParser.ObjectLiteralExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visitObjectLiteral(ctx.objectLiteral());
         }
 
         @Override public String visitMetaExpression(JavaScriptParser.MetaExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return ctx.New().getText()+"."+visitIdentifier(ctx.identifier());
         }
 
         @Override public String visitInExpression(JavaScriptParser.InExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visit(ctx.singleExpression(0))+" "+ctx.In().getText()+" "+visit(ctx.singleExpression(1));
         }
 
         @Override public String visitLogicalOrExpression(JavaScriptParser.LogicalOrExpressionContext ctx) {
             // exprBitAnd :  expression '||' expression
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visit(ctx.singleExpression(0)) + " || " + visit(ctx.singleExpression(1));
         }
 
         @Override public String visitOptionalChainExpression(JavaScriptParser.OptionalChainExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visit(ctx.singleExpression(0))+"?."+visit(ctx.singleExpression(1));
         }
 
         @Override public String visitNotExpression(JavaScriptParser.NotExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return "!"+visit(ctx.singleExpression());
         }
 
         @Override public String visitPreDecreaseExpression(JavaScriptParser.PreDecreaseExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return "--"+visit(ctx.singleExpression());
         }
 
         @Override public String visitArgumentsExpression(JavaScriptParser.ArgumentsExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             // arguments :  '(' expressionList? ')'
             if (ctx.arguments() == null)
                 return "()";
@@ -1376,56 +1624,92 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitAwaitExpression(JavaScriptParser.AwaitExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return ctx.Await().getText()+" "+visit(ctx.singleExpression());
         }
 
         @Override public String visitThisExpression(JavaScriptParser.ThisExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return ctx.This().getText();
         }
 
         @Override public String visitFunctionExpression(JavaScriptParser.FunctionExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return ctx.anonymousFunction().getText();
         }
 
         @Override public String visitUnaryMinusExpression(JavaScriptParser.UnaryMinusExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return "- "+visit(ctx.singleExpression());
         }
 
         @Override public String visitAssignmentExpression(JavaScriptParser.AssignmentExpressionContext ctx) {
             // exprAssignment :  expression  ( '='  | '+='  | '-='   | '*='  | '/=' | '&=' |
             //                                 '|=' | '^=' | '>>=' | '>>>=' | '<<=' | '%=' )  expression
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visit(ctx.singleExpression(0)) + " ?= " + visit(ctx.singleExpression(1));
         }
 
         @Override public String visitPostDecreaseExpression(JavaScriptParser.PostDecreaseExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visit(ctx.singleExpression())+"--";
         }
 
         @Override public String visitTypeofExpression(JavaScriptParser.TypeofExpressionContext ctx) {
             // exprTypeOf: typeof(expression)
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visit(ctx.Typeof())+"("+visit(ctx.singleExpression())+")";
         }
 
         @Override public String visitInstanceofExpression(JavaScriptParser.InstanceofExpressionContext ctx) {
             // exprInstanceOf :  expression 'instanceof' typeType
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visit(ctx.singleExpression(0)) + " instanceof " + getOriginalCodeText(ctx.singleExpression(1));
         }
 
 
         @Override public String visitUnaryPlusExpression(JavaScriptParser.UnaryPlusExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return "+"+visit(ctx.singleExpression());
         }
 
         @Override public String visitDeleteExpression(JavaScriptParser.DeleteExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return ctx.Delete().getText()+" "+visit(ctx.singleExpression());
         }
 
         @Override public String visitImportExpression(JavaScriptParser.ImportExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return "("+visit(ctx.singleExpression())+")";
         }
 
         @Override public String visitEqualityExpression(JavaScriptParser.EqualityExpressionContext ctx) {
             // exprEquality :  expression ('==' | '!=') expression
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             String sub = ctx.getText().substring(ctx.singleExpression(0).getText().length());
             String op;
             if (sub.startsWith("=="))
@@ -1437,19 +1721,31 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitBitXOrExpression(JavaScriptParser.BitXOrExpressionContext ctx) {
             // exprBitAnd :  expression '^' expression
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visit(ctx.singleExpression(0)) + " ^ " + visit(ctx.singleExpression(1));
         }
 
         @Override public String visitSuperExpression(JavaScriptParser.SuperExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return ctx.Super().getText();
         }
 
         @Override public String visitMultiplicativeExpression(JavaScriptParser.MultiplicativeExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visit(ctx.singleExpression(0))+" * "+visit(ctx.singleExpression(1));
         }
 
         @Override public String visitBitShiftExpression(JavaScriptParser.BitShiftExpressionContext ctx) {
             // exprBitShift :  expression ('<' '<' | '>' '>' '>' | '>' '>') expression
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             String sub = ctx.getText().substring(ctx.singleExpression(0).getText().length());
             String op;
             if (sub.startsWith(">>>"))
@@ -1460,43 +1756,73 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitParenthesizedExpression(JavaScriptParser.ParenthesizedExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return "(" + visitExpressionSequence(ctx.expressionSequence()) + ")";
         }
 
         @Override public String visitAdditiveExpression(JavaScriptParser.AdditiveExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visit(ctx.singleExpression(0))+" + "+visit(ctx.singleExpression(1));
         }
 
         @Override public String visitRelationalExpression(JavaScriptParser.RelationalExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visit(ctx.singleExpression(0))+" "+ctx.getText()+" "+visit(ctx.singleExpression(1));
         }
 
         @Override public String visitPostIncrementExpression(JavaScriptParser.PostIncrementExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visit(ctx.singleExpression())+"++";
         }
 
         @Override public String visitYieldExpression(JavaScriptParser.YieldExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visitYieldStatement(ctx.yieldStatement());
         }
 
         @Override public String visitBitNotExpression(JavaScriptParser.BitNotExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return "~"+visit(ctx.singleExpression());
         }
 
         @Override public String visitNewExpression(JavaScriptParser.NewExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return ctx.New().getText()+" "+visit(ctx.singleExpression())+" "+visitArguments(ctx.arguments());
         }
 
         @Override public String visitLiteralExpression(JavaScriptParser.LiteralExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visitLiteral(ctx.literal());
         }
 
         @Override public String visitArrayLiteralExpression(JavaScriptParser.ArrayLiteralExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visitArrayLiteral(ctx.arrayLiteral());
         }
 
         //TODO 待确认
         @Override public String visitMemberDotExpression(JavaScriptParser.MemberDotExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if(ctx.singleExpression()!=null){
                 return visit(ctx.singleExpression())+"?";
             }else if(ctx.identifierName()!=null){
@@ -1506,6 +1832,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitClassExpression(JavaScriptParser.ClassExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if (ctx.identifier()!=null){
                 return ctx.Class().getText()+" "+visitIdentifier(ctx.identifier());
             }
@@ -1513,28 +1842,46 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitMemberIndexExpression(JavaScriptParser.MemberIndexExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return ctx.singleExpression().getText()+"?."+visitExpressionSequence(ctx.expressionSequence());
         }
 
         @Override public String visitIdentifierExpression(JavaScriptParser.IdentifierExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visitIdentifier(ctx.identifier());
         }
 
         @Override public String visitBitAndExpression(JavaScriptParser.BitAndExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             // exprBitAnd :  expression '&' expression
             return visit(ctx.singleExpression(0)) + " & " + visit(ctx.singleExpression(1));
         }
 
         @Override public String visitBitOrExpression(JavaScriptParser.BitOrExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             // exprBitAnd :  expression '|' expression
             return visit(ctx.singleExpression(0)) + " | " + visit(ctx.singleExpression(1));
         }
 
         @Override public String visitAssignmentOperatorExpression(JavaScriptParser.AssignmentOperatorExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return ctx.getText();
         }
 
         @Override public String visitVoidExpression(JavaScriptParser.VoidExpressionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             //    | Void singleExpression
             ASNode voidNode=new ASNode(ASNode.Type.VOID);
             voidNode.setLineOfCode(ctx.getStart().getLine());
@@ -1552,10 +1899,16 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitCoalesceExpression(JavaScriptParser.CoalesceExpressionContext ctx) {
             //    | singleExpression '??' singleExpression                                # CoalesceExpression
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visit(ctx.singleExpression(0))+"??"+visit(ctx.singleExpression(1));
         }
 
         @Override public String visitAssignable(JavaScriptParser.AssignableContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if(ctx.identifier()!=null){
                 return ctx.identifier().getText();
             }else if(ctx.arrayLiteral()!=null){
@@ -1565,6 +1918,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitObjectLiteral(JavaScriptParser.ObjectLiteralContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             StringBuffer stringBuffer=new StringBuffer();
             stringBuffer.append("{");
             stringBuffer.append(visit(ctx.propertyAssignment(0)));
@@ -1578,10 +1934,16 @@ public class JavaScriptASTBuilder {
 
 
         @Override public String visitFunctionDecl(JavaScriptParser.FunctionDeclContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return visitFunctionDeclaration(ctx.functionDeclaration());
         }
 
         @Override public String visitAnonymousFunctionDecl(JavaScriptParser.AnonymousFunctionDeclContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             StringBuffer stringBuffer=new StringBuffer();
             if (ctx.Async()!=null){
                 stringBuffer.append(ctx.Async().getText()+" ");
@@ -1593,6 +1955,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitArrowFunction(JavaScriptParser.ArrowFunctionContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             //TODO
             StringBuffer stringBuffer=new StringBuffer();
             if (ctx.Async()!=null){
@@ -1605,6 +1970,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitArrowFunctionParameters(JavaScriptParser.ArrowFunctionParametersContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if (ctx.identifier()!=null){
                 return ctx.identifier().getText();
             }
@@ -1612,6 +1980,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitArrowFunctionBody(JavaScriptParser.ArrowFunctionBodyContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if(ctx.singleExpression()!=null){
                 return visit(ctx.singleExpression());
             }
@@ -1619,10 +1990,16 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitAssignmentOperator(JavaScriptParser.AssignmentOperatorContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             return ctx.getText();
         }
 
         @Override public String visitLiteral(JavaScriptParser.LiteralContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if (ctx.NullLiteral()!=null){
                 return ctx.NullLiteral().getText();
             }else if(ctx.BooleanLiteral()!=null){
@@ -1638,6 +2015,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitTemplateStringLiteral(JavaScriptParser.TemplateStringLiteralContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             StringBuffer stringBuffer=new StringBuffer();
             stringBuffer.append(ctx.BackTick().get(0).getText()+" ");
             for (JavaScriptParser.TemplateStringAtomContext atomContent : ctx.templateStringAtom()) {
@@ -1651,6 +2031,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitTemplateStringAtom(JavaScriptParser.TemplateStringAtomContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if(ctx.TemplateStringAtom()!=null){
                 return ctx.TemplateStringAtom().getText();
             }
@@ -1658,6 +2041,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String  visitNumericLiteral(JavaScriptParser.NumericLiteralContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if (ctx.DecimalLiteral()!=null){
                 return ctx.DecimalLiteral().getText();
             }else if(ctx.HexIntegerLiteral()!=null){
@@ -1671,6 +2057,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitBigintLiteral(JavaScriptParser.BigintLiteralContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if (ctx.BigBinaryIntegerLiteral()!=null){
                 return ctx.BigBinaryIntegerLiteral().getText();
             }else if(ctx.BigHexIntegerLiteral()!=null){
@@ -1682,18 +2071,27 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitGetter(JavaScriptParser.GetterContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             //TODO
             //    : {this.n("get")}? identifier propertyName
             return visitIdentifier(ctx.identifier())+" "+visitPropertyName(ctx.propertyName());
         }
 
         @Override public String visitSetter(JavaScriptParser.SetterContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             //TODO
             //       : {this.n("set")}? identifier propertyName
             return visitIdentifier(ctx.identifier())+" "+visitPropertyName(ctx.propertyName());
         }
 
         @Override public String visitIdentifierName(JavaScriptParser.IdentifierNameContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if (ctx.identifier()!=null){
                 return visitIdentifier(ctx.identifier());
             }
@@ -1701,6 +2099,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitIdentifier(JavaScriptParser.IdentifierContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if(ctx.Identifier()!=null){
                 return ctx.Identifier().getText();
             }else if(ctx.NonStrictLet()!=null){
@@ -1712,6 +2113,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitReservedWord(JavaScriptParser.ReservedWordContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if (ctx.keyword()!=null){
                 return visitKeyword(ctx.keyword());
             }else if(ctx.NullLiteral()!=null){
@@ -1723,6 +2127,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitKeyword(JavaScriptParser.KeywordContext ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
             if(ctx.let_()!=null&&!ctx.let_().isEmpty()){
                 return visitLet_(ctx.let_());
             }
@@ -1730,6 +2137,9 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitLet_(JavaScriptParser.Let_Context ctx) {
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
 //            if (ctx.NonStrictLet()!=null){
 //                return ctx.NonStrictLet().getText();
 //            }
@@ -1738,18 +2148,16 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitEos(JavaScriptParser.EosContext ctx) {
-            //  : SemiColon
-            //    | EOF
-            //    | {this.lineTerminatorAhead()}?
-            //    | {this.closeBrace()}?
-//            if(ctx.SemiColon()!=null){
-//                return ctx.SemiColon().getText();
-//            }else if(ctx.EOF()!=null){
-//                return ctx.EOF().getText();
-//            }
-//            //TODO
+            if(ctx==null||ctx.isEmpty()){
+                return "";
+            }
 //            return "";
-            return getOriginalCodeText(ctx);
+            if(ctx.SemiColon()!=null){
+                return ctx.SemiColon().getText();
+            }else if(ctx.EOF()!=null){
+                return ctx.EOF().getText();
+            }
+            return "";
         }
 
         private String getOriginalCodeText(ParserRuleContext ctx) {
@@ -1762,6 +2170,9 @@ public class JavaScriptASTBuilder {
         }
 
         private void visitStatement(ParserRuleContext ctx, String normalized) {
+            if(ctx==null||ctx.isEmpty()){
+                return;
+            }
             Logger.printf(Logger.Level.DEBUG, "Visiting: (%d)  %s", ctx.getStart().getLine(), getOriginalCodeText(ctx));
             ASNode statementNode = new ASNode(ASNode.Type.STATEMENT);
             statementNode.setCode(getOriginalCodeText(ctx));
