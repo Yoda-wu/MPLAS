@@ -53,7 +53,7 @@ public class CppCFGBuilder {
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         CppParser parser = new CppParser(tokens);
         ParseTree tree = parser.translationUnit();
-        return build(cppFile.getPath(), tree, null, null);
+        return build(cppFile.getName(), tree, null, null);
     }
     public static ControlFlowGraph build(String fileName, InputStream inputStream) throws IOException {
 
@@ -626,7 +626,7 @@ public class CppCFGBuilder {
             //		| forRangeDeclaration Colon forRangeInitializer
             //	) RightParen statement;
             {
-                if (ctx.While() != null) {
+                if (ctx.While() != null && ctx.Do()==null) {
                     //While LeftParen condition RightParen statement
                     CFNode whileNode = new CFNode();
                     whileNode.setLineOfCode(ctx.getStart().getLine());
@@ -1394,17 +1394,20 @@ public class CppCFGBuilder {
 
                 CFNode funcNode=new CFNode();
                 funcNode.setLineOfCode(ctx.getStart().getLine());
-                funcNode.setCode(getOriginalCodeText(ctx));
+
                 addContextualProperty(funcNode,ctx);
                 cfg.addVertex(funcNode);
 
                 String retype="void";
                 String name="";
+                String args="";
+                String func="";
                 if(ctx.declSpecifierSeq()!=null)
                 {
                     getTypeForDeclSpecifierSeq(ctx.declSpecifierSeq());
                     if(type!="")
                         retype=type;
+                    func=getOriginalCodeText(ctx.declSpecifierSeq());
                 }
 
                 //declarator:
@@ -1417,6 +1420,7 @@ public class CppCFGBuilder {
                     //	Arrow trailingTypeSpecifierSeq abstractDeclarator?;
                     retype=getOriginalCodeText(declCtx.trailingReturnType().trailingTypeSpecifierSeq());
                     name=getOriginalCodeText(declCtx.pointerDeclarator());
+                    args=getOriginalCodeText(declCtx.parametersAndQualifiers());
                 }
                 else
                 {
@@ -1424,7 +1428,10 @@ public class CppCFGBuilder {
                     for(int i=0;i<declCtx.children.size()-1;++i)
                         retype+=declCtx.getChild(i).getText();
                     name=getOriginalCodeText(declCtx.pointerDeclarator().noPointerDeclarator().noPointerDeclarator());
+                    args=getOriginalCodeText(declCtx.pointerDeclarator().noPointerDeclarator().parametersAndQualifiers());
                 }
+                funcNode.setCode(func+" "+getOriginalCodeText(ctx.declarator())+
+                        getOriginalCodeText(ctx.virtualSpecifierSeq()));
                 funcNode.setProperty("name",name);
                 funcNode.setProperty("namespace",nameSpaces.peek());
                 funcNode.setProperty("type",retype);
@@ -1923,6 +1930,8 @@ public class CppCFGBuilder {
          * This is required for preserving whitespaces.
          */
         private String getOriginalCodeText(ParserRuleContext ctx) {
+            if(ctx==null)
+                return "";
             int start = ctx.start.getStartIndex();
             int stop = ctx.stop.getStopIndex();
             Interval interval = new Interval(start, stop);
