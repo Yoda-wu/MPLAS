@@ -856,7 +856,7 @@ public class CppCFGBuilder {
             else if (ctx.Goto() != null){
                 CFNode gotoNode = new CFNode();
                 gotoNode.setLineOfCode(ctx.getStart().getLine());
-                gotoNode.setCode(getOriginalCodeText(ctx));
+                gotoNode.setCode("goto:  "+ctx.Identifier().getText());
                 addContextualProperty(gotoNode, ctx);
                 addNodeAndPreEdge(gotoNode);
                     // a label is specified

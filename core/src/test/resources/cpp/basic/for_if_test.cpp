@@ -14,4 +14,15 @@ void main() {
 			std::cout << i << endl;
 		}
 	}
+
+    //goto语句
+
+    	goto here ;
+    	cout << "本应该输出这句。" << endl;
+    here:
+    	cout << "现在打印这句。" <<  endl;
+    	return 0;
+
+
+
 }
