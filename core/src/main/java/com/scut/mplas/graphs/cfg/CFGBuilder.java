@@ -6,6 +6,7 @@ import java.io.InputStream;
 
 import com.scut.mplas.cpp.CppCFGBuilder;
 import com.scut.mplas.java.JavaCFGBuilder;
+import com.scut.mplas.javascript.JavaScriptCFGBuilder;
 
 /**
  * Control Flow Graph (CFG) Builder.
@@ -28,6 +29,8 @@ public class CFGBuilder {
 			//
 			case "Java":
 				return JavaCFGBuilder.build(srcFilePath);
+			case "JavaScript":
+				return JavaScriptCFGBuilder.build(srcFilePath);
 			//
 			case "Python":
 				return null;
