@@ -101,6 +101,7 @@ public class CppCFGBuilder {
         private String type;
         private boolean isInClass;
         private boolean isInFunction;
+        private CFNode endCatchNode;
 
         public ControlFlowVisitor(ControlFlowGraph cfg, String propKey, Map<ParserRuleContext, Object> ctxProps) {
             preNodes = new ArrayDeque<>();
@@ -449,13 +450,25 @@ public class CppCFGBuilder {
              * {@link #visitChildren} on {@code ctx}.</p>
              */
             @Override public Void visitAssignmentOperator(CppParser.AssignmentOperatorContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitExpression(CppParser.ExpressionContext ctx) { return visitChildren(ctx); }
+
+            @Override public Void visitExpression(CppParser.ExpressionContext ctx) {
+                //expression: assignmentExpression (Comma assignmentExpression)*;
+                //
+                //assignmentExpression:
+                //	conditionalExpression
+                //	| logicalOrExpression assignmentOperator initializerClause
+                //	| throwExpression;
+                if(ctx.assignmentExpression(0).throwExpression()!=null)
+                    return visit(ctx.assignmentExpression(0).throwExpression());
+                CFNode statNode=new CFNode();
+                statNode.setLineOfCode(ctx.getStart().getLine());
+                statNode.setCode(getOriginalCodeText(ctx));
+                addNodeAndPreEdge(statNode);
+
+                preNodes.push(statNode);
+                preEdges.push(CFEdge.Type.EPSILON);
+                return null;
+            }
             /**
              * {@inheritDoc}
              *
@@ -521,6 +534,8 @@ public class CppCFGBuilder {
             @Override public Void visitExpressionStatement(CppParser.ExpressionStatementContext ctx)
             //expressionStatement: expression? Semi;
             {
+                if(ctx.expression()!=null && ctx.expression().assignmentExpression(0).throwExpression()!=null)
+                    return visit(ctx.expression());
                 CFNode expr = new CFNode();
                 expr.setLineOfCode(ctx.getStart().getLine());
                 expr.setCode(getOriginalCodeText(ctx));
@@ -895,7 +910,8 @@ public class CppCFGBuilder {
                     CFNode statNode=new CFNode();
                     statNode.setLineOfCode(ctx.getStart().getLine());
                     statNode.setCode(getOriginalCodeText(ctx));
-                    cfg.addVertex(statNode);
+                    addNodeAndPreEdge(statNode);
+
                     preNodes.push(statNode);
                     preEdges.push(CFEdge.Type.EPSILON);
                 }
@@ -929,7 +945,8 @@ public class CppCFGBuilder {
                     CFNode statNode=new CFNode();
                     statNode.setLineOfCode(ctx.getStart().getLine());
                     statNode.setCode(getOriginalCodeText(ctx));
-                    cfg.addVertex(statNode);
+                    addNodeAndPreEdge(statNode);
+
                     preNodes.push(statNode);
                     preEdges.push(CFEdge.Type.EPSILON);
                 }
@@ -1419,6 +1436,8 @@ public class CppCFGBuilder {
                 //functionDefinition:
                 //	attributeSpecifierSeq? declSpecifierSeq? declarator virtualSpecifierSeq? functionBody;
                 init();
+                if(ctx.functionBody().Assign()!=null)
+                    return null;
                 isInFunction=true;
 
                 CFNode funcNode=new CFNode();
@@ -1798,12 +1817,7 @@ public class CppCFGBuilder {
              * {@link #visitChildren} on {@code ctx}.</p>
              */
             @Override public Void visitExplicitSpecialization(CppParser.ExplicitSpecializationContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
+
             @Override public Void visitTryBlock(CppParser.TryBlockContext ctx) {
                 //tryBlock: Try compoundStatement handlerSeq;
                 //compoundStatement: LeftBrace statementSeq? RightBrace;
@@ -1811,25 +1825,72 @@ public class CppCFGBuilder {
                 //handler:Catch LeftParen exceptionDeclaration RightParen compoundStatement;
                 CFNode tryNode = new CFNode();
                 tryNode.setLineOfCode(ctx.getStart().getLine());
-                tryNode.setCode(ctx.Try().getText()+getOriginalCodeText(ctx.compoundStatement()));
+                tryNode.setCode("try");
                 addContextualProperty(tryNode, ctx);
                 addNodeAndPreEdge(tryNode);
-                //
-                preEdges.push(CFEdge.Type.EPSILON);
-                preNodes.push(tryNode);
-                visit(ctx.handlerSeq());
-                //
+
                 CFNode endTry = new CFNode();
                 endTry.setLineOfCode(0);
                 endTry.setCode("end-try");
-                addNodeAndPreEdge(endTry);
+                cfg.addVertex(endTry);
 
-                //
+                tryBlocks.push(new Block(tryNode,endTry));
+                preNodes.push(tryNode);
+                preEdges.push(CFEdge.Type.EPSILON);
+                visit(ctx.compoundStatement());
+                popAddPreEdgeTo(endTry);
+                tryBlocks.pop();
+
+                endCatchNode=new CFNode();
+                endCatchNode.setLineOfCode(0);
+                endCatchNode.setCode("end-catch");
+                cfg.addVertex(endCatchNode);
+
+                preEdges.push(CFEdge.Type.THROWS);
+                preNodes.push(tryNode);
+                visit(ctx.handlerSeq());
+                preEdges.pop();
+                preNodes.pop();
+
+                cfg.addEdge(new Edge<>(endCatchNode,new CFEdge(CFEdge.Type.EPSILON),endTry));
                 preEdges.push(CFEdge.Type.EPSILON);
                 preNodes.push(endTry);
                 return null;
             }
-            @Override public Void visitFunctionTryBlock(CppParser.FunctionTryBlockContext ctx) { return visitChildren(ctx); }
+            @Override public Void visitFunctionTryBlock(CppParser.FunctionTryBlockContext ctx) {
+                //functionTryBlock:
+                //	Try constructorInitializer? compoundStatement handlerSeq;
+                CFNode tryNode=new CFNode();
+                tryNode.setLineOfCode(ctx.getStart().getLine());
+                tryNode.setCode("try "+getOriginalCodeText(ctx.constructorInitializer()));
+                addContextualProperty(tryNode,ctx);
+                addNodeAndPreEdge(tryNode);
+                preNodes.push(tryNode);
+                preEdges.push(CFEdge.Type.EPSILON);
+
+                CFNode endTryNode=new CFNode();
+                endTryNode.setLineOfCode(0);
+                endTryNode.setCode("end-try");
+                addNodeAndPreEdge(endTryNode);
+
+                endCatchNode=new CFNode();
+                endCatchNode.setLineOfCode(0);
+                endCatchNode.setCode("end-catch");
+                cfg.addVertex(endCatchNode);
+
+                preNodes.push(tryNode);
+                preEdges.push(CFEdge.Type.THROWS);
+                visit(ctx.handlerSeq());
+                cfg.addEdge(new Edge<>(endCatchNode,new CFEdge(CFEdge.Type.EPSILON),endTryNode));
+
+                preNodes.push(endTryNode);
+                preEdges.push(CFEdge.Type.EPSILON);
+
+                visit(ctx.compoundStatement());
+
+
+                return null;
+            }
             /**
              * {@inheritDoc}
              *
@@ -1837,13 +1898,24 @@ public class CppCFGBuilder {
              * {@link #visitChildren} on {@code ctx}.</p>
              */
             @Override public Void visitHandlerSeq(CppParser.HandlerSeqContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitHandler(CppParser.HandlerContext ctx) { return visitChildren(ctx); }
+
+            @Override public Void visitHandler(CppParser.HandlerContext ctx) {
+                //handler:
+                //	Catch LeftParen exceptionDeclaration RightParen compoundStatement;
+                CFNode catchNode=new CFNode();
+                catchNode.setLineOfCode(ctx.getStart().getLine());
+                catchNode.setCode("catch("+getOriginalCodeText(ctx.exceptionDeclaration())+")");
+                addContextualProperty(catchNode,ctx);
+
+                cfg.addVertex(catchNode);
+                cfg.addEdge(new Edge<>(preNodes.peek(),new CFEdge(preEdges.peek()),catchNode));
+                preNodes.push(catchNode);
+                preEdges.push(CFEdge.Type.EPSILON);
+
+                visit(ctx.compoundStatement());
+                popAddPreEdgeTo(endCatchNode);
+                return null;
+            }
             /**
              * {@inheritDoc}
              *
@@ -1862,7 +1934,7 @@ public class CppCFGBuilder {
             {
                 CFNode throwNode = new CFNode();
                 throwNode.setLineOfCode(ctx.getStart().getLine());
-                throwNode.setCode(ctx.Throw() + getOriginalCodeText(ctx.assignmentExpression()));
+                throwNode.setCode(ctx.Throw() + " " + getOriginalCodeText(ctx.assignmentExpression()));
                 addContextualProperty(throwNode, ctx);
                 addNodeAndPreEdge(throwNode);
                 //

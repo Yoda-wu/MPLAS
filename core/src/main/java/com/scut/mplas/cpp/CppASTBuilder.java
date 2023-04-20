@@ -1746,6 +1746,7 @@ public class CppASTBuilder {
 //                visit(ctx.attributeSpecifierSeq());
 //
 //            }
+            type="";
             if(ctx.declSpecifierSeq()!=null)
             {
                 visit(ctx.declSpecifierSeq());
