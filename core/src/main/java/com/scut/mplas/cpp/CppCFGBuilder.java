@@ -6,6 +6,7 @@ import com.scut.mplas.graphs.cfg.CFEdge;
 import com.scut.mplas.graphs.cfg.CFNode;
 import com.scut.mplas.graphs.cfg.ControlFlowGraph;
 import com.scut.mplas.cpp.parser.CppBaseVisitor;
+import com.scut.mplas.java.JavaCFGBuilder;
 import com.scut.mplas.java.parser.JavaParser;
 import ghaffarian.graphs.*;
 import ghaffarian.nanologger.Logger;
@@ -14,6 +15,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -485,7 +487,7 @@ public class CppCFGBuilder {
                 // The newly created label-block is stored in an ArrayList of Blocks.
                     CFNode labelNode = new CFNode();
                     labelNode.setLineOfCode(ctx.getStart().getLine());
-                if (ctx.Identifier()!=null) {
+                if (ctx.Identifier()!=null) {//
                     labelNode.setCode(getOriginalCodeText(ctx.attributeSpecifierSeq())+ctx.Identifier().getText()+ ": ");
                     addContextualProperty(labelNode, ctx);
                     addNodeAndPreEdge(labelNode);
@@ -615,72 +617,72 @@ public class CppCFGBuilder {
                         return null;
                     }
                 }
-                if (ctx.Switch() != null) {
-                    //
-                    //Switch LeftParen condition RightParen statement;
-                CFNode switchNode = new CFNode();
-                switchNode.setLineOfCode(ctx.getStart().getLine());
-                switchNode.setCode("switch " + getOriginalCodeText(ctx.condition()));
-                addContextualProperty(switchNode, ctx);
-                addNodeAndPreEdge(switchNode);
-                //
-                CFNode endSwitch = new CFNode();
-                endSwitch.setLineOfCode(0);
-                endSwitch.setCode("end-switch");
-                cfg.addVertex(endSwitch);
-                //
-                preEdges.push(CFEdge.Type.EPSILON);
-                preNodes.push(switchNode);
-                loopBlocks.push(new ControlFlowVisitor.Block(switchNode, endSwitch));
-                //
-                CFNode preCase = null;
-                for (CppParser.StatementContext Selec : ctx.statement()) {
-                        preCase = visitSwitchLabels(labeledBlocks, preCase);
-
-                    }
-                loopBlocks.pop();
-                popAddPreEdgeTo(endSwitch);
-                if (preCase != null)
-                    cfg.addEdge(new Edge<>(preCase, new CFEdge(CFEdge.Type.FALSE), endSwitch));
-                //
-                preEdges.push(CFEdge.Type.EPSILON);
-                preNodes.push(endSwitch);
+//                if (ctx.Switch() != null) {
+//                    //
+//                    //Switch LeftParen condition RightParen statement;
+//                CFNode switchNode = new CFNode();
+//                switchNode.setLineOfCode(ctx.getStart().getLine());
+//                switchNode.setCode("switch " + getOriginalCodeText(ctx.condition()));
+//                addContextualProperty(switchNode, ctx);
+//                addNodeAndPreEdge(switchNode);
+//                //
+//                CFNode endSwitch = new CFNode();
+//                endSwitch.setLineOfCode(0);
+//                endSwitch.setCode("end-switch");
+//                cfg.addVertex(endSwitch);
+//                //
+//                preEdges.push(CFEdge.Type.EPSILON);
+//                preNodes.push(switchNode);
+//                loopBlocks.push(new ControlFlowVisitor.Block(switchNode, endSwitch));
+//                //
+//                CFNode preCase = null;
+//                for (CppParser.StatementContext Selec : ctx.statement()) {
+//                        preCase = visitSwitchLabels(labeledBlocks, preCase);
+//
+//                    }
+//                loopBlocks.pop();
+//                popAddPreEdgeTo(endSwitch);
+//                if (preCase != null)
+//                    cfg.addEdge(new Edge<>(preCase, new CFEdge(CFEdge.Type.FALSE), endSwitch));
+//                //
+//                preEdges.push(CFEdge.Type.EPSILON);
+//                preNodes.push(endSwitch);
+//                return null;
+//            }
                 return null;
             }
-                return null;
-            }
 
-        private CFNode visitSwitchLabels(List<Block> list, CFNode preCase) {
-//            labeledStatement:
-//            attributeSpecifierSeq? (
-//                    Identifier
-//                            | Case constantExpression
-//                    | Default
-//	) Colon statement;
-            CFNode caseStmnt = preCase;
-            for (Block ctx: list) {
-                caseStmnt = new CFNode();
-                caseStmnt.setLineOfCode(ctx.getLine());
-                caseStmnt.setCode(getOriginalCodeText());
-                cfg.addVertex(caseStmnt);
-                if (dontPop)
-                    dontPop = false;
-                else
-                    cfg.addEdge(new Edge<>(preNodes.pop(), new CFEdge(preEdges.pop()), caseStmnt));
-                if (preCase != null)
-                    cfg.addEdge(new Edge<>(preCase, new CFEdge(CFEdge.Type.FALSE), caseStmnt));
-                if (ctx.getStart().getText().equals("default")) {
-                    preEdges.push(CFEdge.Type.EPSILON);
-                    preNodes.push(caseStmnt);
-                    caseStmnt = null;
-                } else { // any other case ...
-                    dontPop = true;
-                    casesQueue.add(caseStmnt);
-                    preCase = caseStmnt;
-                }
-            }
-            return caseStmnt;
-        }
+//        private CFNode visitSwitchLabels(List<Block> list, CFNode preCase) {
+////            labeledStatement:
+////            attributeSpecifierSeq? (
+////                    Identifier
+////                            | Case constantExpression
+////                    | Default
+////	) Colon statement;
+//            CFNode caseStmnt = preCase;
+//            for (Block ctx: list) {
+//                caseStmnt = new CFNode();
+//                caseStmnt.setLineOfCode(ctx.getLine());
+//                caseStmnt.setCode(getOriginalCodeText());
+//                cfg.addVertex(caseStmnt);
+//                if (dontPop)
+//                    dontPop = false;
+//                else
+//                    cfg.addEdge(new Edge<>(preNodes.pop(), new CFEdge(preEdges.pop()), caseStmnt));
+//                if (preCase != null)
+//                    cfg.addEdge(new Edge<>(preCase, new CFEdge(CFEdge.Type.FALSE), caseStmnt));
+//                if (ctx.getStart().getText().equals("default")) {
+//                    preEdges.push(CFEdge.Type.EPSILON);
+//                    preNodes.push(caseStmnt);
+//                    caseStmnt = null;
+//                } else { // any other case ...
+//                    dontPop = true;
+//                    casesQueue.add(caseStmnt);
+//                    preCase = caseStmnt;
+//                }
+//            }
+//            return caseStmnt;
+//        }
 
 
             @Override public Void visitCondition(CppParser.ConditionContext ctx) { return visitChildren(ctx); }
@@ -930,11 +932,15 @@ public class CppCFGBuilder {
                 gotoNode.setCode("goto:  "+ctx.Identifier().getText());
                 addContextualProperty(gotoNode, ctx);
                 addNodeAndPreEdge(gotoNode);
-                    // a label is specified
+//                     a label is specified
                     for (ControlFlowVisitor.Block block: labeledBlocks) {
                         if (block.label.equals(ctx.Identifier().getText())) {
                             cfg.addEdge(new Edge<>(gotoNode, new CFEdge(CFEdge.Type.EPSILON), block.end));
                             break;
+                        }else {
+                            // no label
+                            Block block2 = loopBlocks.peek();
+                            cfg.addEdge(new Edge<>(gotoNode, new CFEdge(CFEdge.Type.EPSILON), block.end));
                         }
                     }
                 dontPop = true;
@@ -942,6 +948,29 @@ public class CppCFGBuilder {
             }
                 return null;
     }
+
+
+
+//        private CFNode visitgotoLabels(TerminalNode identifier, CFNode pregoto) {
+//            CFNode labelNode = pregoto;
+//                labelNode = new CFNode();
+//                labelNode.setLineOfCode(labelNode.getLineOfCode());
+//                labelNode.setCode(labelNode.getCode()+ ": ");
+//                cfg.addVertex(labelNode);
+//                if (dontPop)
+//                    dontPop = false;
+//                else
+//                    cfg.addEdge(new Edge<>(preNodes.pop(), new CFEdge(preEdges.pop()), labelNode));
+//                if (pregoto != null)
+//                    cfg.addEdge(new Edge<>(pregoto, new CFEdge(CFEdge.Type.FALSE), labelNode));
+//                 else { // any other case ...
+//                    dontPop = true;
+//                    casesQueue.add(labelNode);
+//                    pregoto = labelNode;
+//                }
+//
+//            return labelNode;
+//        }
             @Override public Void visitDeclarationStatement(CppParser.DeclarationStatementContext ctx) { return visitChildren(ctx); }
             /**
              * {@inheritDoc}
