@@ -1,29 +1,30 @@
-======= LOG CREATED on 周五 2023/4月/21 00:41:57:149 =======
+======= LOG CREATED on 周五 2023/4月/21 01:10:41:252 =======
 
 PROGEX (Program Graph Extractor)  [ v3.4.5 ]
 Visit project website @ https://github.com/ghaffarian/progex
 
 PROGEX execution config:
-  Language = Java
-  Output format = GML
-  Output directory = ../generate/java/basic/AST/\
-  Analysis types = [AST]
+  Language = Cpp
+  Output format = JSON
+  Output directory = ../generate/cpp/basic/CFG/\
+  Analysis types = [CFG]
   File name = 
   Input paths = 
-        src/test/resources/java/basic/
+        src/test/resources/cpp/basic/
 
 
-# Java source files = 9
+# Cpp source files = 10
 
 
-Abstract Syntax Analysis
-========================
-AST exported to: ../generate/java/basic/AST/\Test1-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test2-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test3-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test4-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test5-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test6-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test7-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test8-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test9-AST.gml
+Control-Flow Analysis
+=====================
+CFG exported to: ../generate/cpp/basic/CFG/\and_keyword-CFG.json
+CFG exported to: ../generate/cpp/basic/CFG/\class_test-CFG.json
+CFG exported to: ../generate/cpp/basic/CFG/\exception_test-CFG.json
+CFG exported to: ../generate/cpp/basic/CFG/\for_if_test-CFG.json
+CFG exported to: ../generate/cpp/basic/CFG/\function_and_struct_definations_test-CFG.json
+CFG exported to: ../generate/cpp/basic/CFG/\function_Declarations_and_integers-CFG.json
+CFG exported to: ../generate/cpp/basic/CFG/\iteration_test-CFG.json
+CFG exported to: ../generate/cpp/basic/CFG/\switch_test-CFG.json
+CFG exported to: ../generate/cpp/basic/CFG/\template_args_test-CFG.json
+CFG exported to: ../generate/cpp/basic/CFG/\test1-CFG.json
