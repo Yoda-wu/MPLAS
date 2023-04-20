@@ -1,29 +1,29 @@
-======= LOG CREATED on 周四 2023/4月/20 12:05:30:159 =======
+======= LOG CREATED on 周四 2023/4月/20 15:13:50:139 =======
 
 PROGEX (Program Graph Extractor)  [ v3.4.5 ]
 Visit project website @ https://github.com/ghaffarian/progex
 
 PROGEX execution config:
-  Language = JavaScript
-  Output format = JSON
-  Output directory = ../generate/js/basic/CFG/\
-  Analysis types = [CFG]
+  Language = Java
+  Output format = GML
+  Output directory = ../generate/java/basic/AST/\
+  Analysis types = [AST]
   File name = 
   Input paths = 
-        src/test/resources/js/basic/
+        src/test/resources/java/basic/
 
 
-# JavaScript source files = 9
+# Java source files = 9
 
 
-Control-Flow Analysis
-=====================
-CFG exported to: ../generate/js/basic/CFG/\breakContinue-CFG.json
-CFG exported to: ../generate/js/basic/CFG/\classDefination-CFG.json
-CFG exported to: ../generate/js/basic/CFG/\functionDefinition-CFG.json
-CFG exported to: ../generate/js/basic/CFG/\ifelse-CFG.json
-CFG exported to: ../generate/js/basic/CFG/\import-CFG.json
-CFG exported to: ../generate/js/basic/CFG/\iteration-CFG.json
-CFG exported to: ../generate/js/basic/CFG/\promise-CFG.json
-CFG exported to: ../generate/js/basic/CFG/\switch-CFG.json
-CFG exported to: ../generate/js/basic/CFG/\varDefination-CFG.json
+Abstract Syntax Analysis
+========================
+AST exported to: ../generate/java/basic/AST/\Test1-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test2-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test3-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test4-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test5-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test6-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test7-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test8-AST.gml
+AST exported to: ../generate/java/basic/AST/\Test9-AST.gml
