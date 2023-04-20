@@ -774,8 +774,6 @@ public class CppCFGBuilder {
 
                     loopBlocks.pop();
                     popAddPreEdgeTo(endSwitch);
-                    if (preCase != null)
-                        cfg.addEdge(new Edge<>(preCase, new CFEdge(CFEdge.Type.FALSE), endSwitch));
                     //
                     preEdges.push(CFEdge.Type.EPSILON);
                     preNodes.push(endSwitch);
