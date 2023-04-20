@@ -1,29 +1,30 @@
-======= LOG CREATED on 周四 2023/4月/20 15:13:50:139 =======
+======= LOG CREATED on 周五 2023/4月/21 01:10:41:252 =======
 
 PROGEX (Program Graph Extractor)  [ v3.4.5 ]
 Visit project website @ https://github.com/ghaffarian/progex
 
 PROGEX execution config:
-  Language = JavaScript
+  Language = Cpp
   Output format = JSON
-  Output directory = ../generate/js/basic/CFG/\
+  Output directory = ../generate/cpp/basic/CFG/\
   Analysis types = [CFG]
   File name = 
   Input paths = 
-        src/test/resources/js/basic/
+        src/test/resources/cpp/basic/
 
 
-# JavaScript source files = 9
+# Cpp source files = 10
 
 
 Control-Flow Analysis
 =====================
-CFG exported to: ../generate/js/basic/CFG/\breakContinue-CFG.json
-CFG exported to: ../generate/js/basic/CFG/\classDefination-CFG.json
-CFG exported to: ../generate/js/basic/CFG/\functionDefinition-CFG.json
-CFG exported to: ../generate/js/basic/CFG/\ifelse-CFG.json
-CFG exported to: ../generate/js/basic/CFG/\import-CFG.json
-CFG exported to: ../generate/js/basic/CFG/\iteration-CFG.json
-CFG exported to: ../generate/js/basic/CFG/\promise-CFG.json
-CFG exported to: ../generate/js/basic/CFG/\switch-CFG.json
-CFG exported to: ../generate/js/basic/CFG/\varDefination-CFG.json
+CFG exported to: ../generate/cpp/basic/CFG/\and_keyword-CFG.json
+CFG exported to: ../generate/cpp/basic/CFG/\class_test-CFG.json
+CFG exported to: ../generate/cpp/basic/CFG/\exception_test-CFG.json
+CFG exported to: ../generate/cpp/basic/CFG/\for_if_test-CFG.json
+CFG exported to: ../generate/cpp/basic/CFG/\function_and_struct_definations_test-CFG.json
+CFG exported to: ../generate/cpp/basic/CFG/\function_Declarations_and_integers-CFG.json
+CFG exported to: ../generate/cpp/basic/CFG/\iteration_test-CFG.json
+CFG exported to: ../generate/cpp/basic/CFG/\switch_test-CFG.json
+CFG exported to: ../generate/cpp/basic/CFG/\template_args_test-CFG.json
+CFG exported to: ../generate/cpp/basic/CFG/\test1-CFG.json

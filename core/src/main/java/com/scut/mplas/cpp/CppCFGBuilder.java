@@ -19,12 +19,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 
 /**
  * A Control Flow Graph (CFG) builder for Cpp programs.
@@ -630,72 +625,164 @@ public class CppCFGBuilder {
                         return null;
                     }
                 }
-                if (ctx.Switch() != null) {
+                if (ctx.Switch() != null)
+                {
                     //
                     //Switch LeftParen condition RightParen statement;
-                CFNode switchNode = new CFNode();
-                switchNode.setLineOfCode(ctx.getStart().getLine());
-                switchNode.setCode("switch " + getOriginalCodeText(ctx.condition()));
-                addContextualProperty(switchNode, ctx);
-                addNodeAndPreEdge(switchNode);
-                //
-                CFNode endSwitch = new CFNode();
-                endSwitch.setLineOfCode(0);
-                endSwitch.setCode("end-switch");
-                cfg.addVertex(endSwitch);
-                //
-                preEdges.push(CFEdge.Type.EPSILON);
-                preNodes.push(switchNode);
-                loopBlocks.push(new ControlFlowVisitor.Block(switchNode, endSwitch));
-                //
-                CFNode preCase = null;
-                for (CppParser.StatementContext Selec : ctx.statement()) {
-                        preCase = visitSwitchLabels(labeledBlocks, preCase);
-
-                    }
-                loopBlocks.pop();
-                popAddPreEdgeTo(endSwitch);
-                if (preCase != null)
-                    cfg.addEdge(new Edge<>(preCase, new CFEdge(CFEdge.Type.FALSE), endSwitch));
-                //
-                preEdges.push(CFEdge.Type.EPSILON);
-                preNodes.push(endSwitch);
-                return null;
-            }
-                return null;
-            }
-
-        private CFNode visitSwitchLabels(List<Block> list, CFNode preCase) {
-//            labeledStatement:
-//            attributeSpecifierSeq? (
-//                    Identifier
-//                            | Case constantExpression
-//                    | Default
-//	) Colon statement;
-            CFNode caseStmnt = preCase;
-            for (Block ctx: list) {
-                caseStmnt = new CFNode();
-                caseStmnt.setLineOfCode(ctx.getLine());
-                caseStmnt.setCode(getOriginalCodeText());
-                cfg.addVertex(caseStmnt);
-                if (dontPop)
-                    dontPop = false;
-                else
-                    cfg.addEdge(new Edge<>(preNodes.pop(), new CFEdge(preEdges.pop()), caseStmnt));
-                if (preCase != null)
-                    cfg.addEdge(new Edge<>(preCase, new CFEdge(CFEdge.Type.FALSE), caseStmnt));
-                if (ctx.getStart().getText().equals("default")) {
+                    CFNode switchNode = new CFNode();
+                    switchNode.setLineOfCode(ctx.getStart().getLine());
+                    switchNode.setCode("switch " + getOriginalCodeText(ctx.condition()));
+                    addContextualProperty(switchNode, ctx);
+                    addNodeAndPreEdge(switchNode);
+                    //
+                    CFNode endSwitch = new CFNode();
+                    endSwitch.setLineOfCode(0);
+                    endSwitch.setCode("end-switch");
+                    cfg.addVertex(endSwitch);
+                    //
                     preEdges.push(CFEdge.Type.EPSILON);
-                    preNodes.push(caseStmnt);
-                    caseStmnt = null;
-                } else { // any other case ...
-                    dontPop = true;
-                    casesQueue.add(caseStmnt);
-                    preCase = caseStmnt;
+                    preNodes.push(switchNode);
+                    loopBlocks.push(new ControlFlowVisitor.Block(switchNode, endSwitch));
+                    //
+                    CFNode preCase = null;
+                    List<CFNode> nullCase=new LinkedList<>();
+                    boolean lastIsCase=false;
+                    if(ctx.statement(0).compoundStatement()==null)
+                        visit(ctx.statement(0));
+                    else
+                    {
+                        // 只能支持case语句要么空要么存在break的CFG分析
+                        for (CppParser.StatementContext Selec : ctx.statement(0).compoundStatement().statementSeq().statement())
+                        {
+                            if(Selec.labeledStatement()!=null && Selec.labeledStatement().Default()!=null)
+                            {
+                                //labeledStatement:
+                                //	attributeSpecifierSeq? (
+                                //		| Default
+                                //	) Colon statement;
+                                CFNode defNode=new CFNode();
+                                defNode.setLineOfCode(Selec.getStart().getLine());
+                                defNode.setCode("default");
+                                if(preCase==null)
+                                    addNodeAndPreEdge(defNode);
+                                else
+                                {
+                                    cfg.addVertex(defNode);
+                                    cfg.addEdge(new Edge<>(preCase,new CFEdge(CFEdge.Type.FALSE),defNode));
+                                }
+                                preNodes.push(defNode);
+                                preEdges.push(CFEdge.Type.EPSILON);
+                                visit(Selec.labeledStatement().statement());
+                                lastIsCase=false;
+                            }
+                            else if(Selec.labeledStatement()!=null && Selec.labeledStatement().Case()!=null)
+                            {
+                                //labeledStatement:
+                                //	attributeSpecifierSeq? (
+                                //		| Case constantExpression
+                                //	) Colon statement;
+                                CppParser.LabeledStatementContext caseCtx=Selec.labeledStatement();
+                                Selec=null;
+                                while(caseCtx.Case()!=null)
+                                {
+                                    CFNode caseNode=new CFNode();
+                                    caseNode.setLineOfCode(caseCtx.getStart().getLine());
+                                    caseNode.setCode("case "+getOriginalCodeText(caseCtx.constantExpression()));
+                                    if(preCase==null)
+                                        addNodeAndPreEdge(caseNode);
+                                    else
+                                    {
+                                        cfg.addVertex(caseNode);
+                                        cfg.addEdge(new Edge<>(preCase,new CFEdge(CFEdge.Type.FALSE),caseNode));
+                                    }
+
+                                    preCase=caseNode;
+                                    lastIsCase=true;
+
+                                    if(caseCtx.statement().labeledStatement()!=null && caseCtx.statement().labeledStatement().Case()!=null)
+                                    {
+                                        // case的下一个语句还是case
+                                        preNodes.push(caseNode);
+                                        preEdges.push(CFEdge.Type.FALSE);
+                                        nullCase.add(caseNode);
+                                        caseCtx=caseCtx.statement().labeledStatement();
+                                    }
+                                    else if(caseCtx.statement().labeledStatement()!=null && caseCtx.statement().labeledStatement().Default()!=null)
+                                    {
+                                        // case的下一个语句是default
+                                        preNodes.push(caseNode);
+                                        preEdges.push(CFEdge.Type.FALSE);
+                                        nullCase.add(caseNode);
+                                        caseCtx=caseCtx.statement().labeledStatement();
+                                    }
+                                    else
+                                    {
+                                        // case的下一个语句是非case,default语句
+                                        preNodes.push(caseNode);
+                                        preEdges.push(CFEdge.Type.TRUE);
+                                        nullCase.add(caseNode);
+                                        Selec=caseCtx.statement();
+                                        break;
+                                    }
+                                }
+
+                                if(Selec!=null)
+                                {
+                                    // 非case,default语句
+                                    if(!nullCase.isEmpty())
+                                    {
+                                        pushNodeToCaseList(nullCase);
+                                        nullCase.clear();
+                                        dontPop=true;
+                                    }
+                                    visit(Selec);
+                                }
+                                else
+                                {
+                                    // default语句
+                                    CFNode defNode=new CFNode();
+                                    defNode.setLineOfCode(caseCtx.getStart().getLine());
+                                    defNode.setCode("default");
+                                    if(preCase==null)
+                                        addNodeAndPreEdge(defNode);
+                                    else
+                                    {
+                                        cfg.addVertex(defNode);
+                                        cfg.addEdge(new Edge<>(preCase,new CFEdge(CFEdge.Type.FALSE),defNode));
+                                    }
+                                    preNodes.push(defNode);
+                                    preEdges.push(CFEdge.Type.EPSILON);
+                                    visit(caseCtx.statement());
+                                }
+                                lastIsCase=false;
+                            }
+                            else
+                            {
+                                //非case,default语句
+                                if(!nullCase.isEmpty())
+                                {
+                                    pushNodeToCaseList(nullCase);
+                                    nullCase.clear();
+                                    dontPop=true;
+                                }
+                                visit(Selec);
+                                lastIsCase=false;
+                            }
+
+                        }
+                    }
+
+                    loopBlocks.pop();
+                    popAddPreEdgeTo(endSwitch);
+                    if (preCase != null)
+                        cfg.addEdge(new Edge<>(preCase, new CFEdge(CFEdge.Type.FALSE), endSwitch));
+                    //
+                    preEdges.push(CFEdge.Type.EPSILON);
+                    preNodes.push(endSwitch);
+                    return null;
                 }
+                return null;
             }
-            return caseStmnt;
-        }
 
 
             @Override public Void visitCondition(CppParser.ConditionContext ctx) { return visitChildren(ctx); }
@@ -2060,6 +2147,12 @@ public class CppCFGBuilder {
 
 
 
+        private void pushNodeToCaseList(List<CFNode> nullCase)
+        {
+            casesQueue.clear();
+            for(CFNode caseNode:nullCase)
+                casesQueue.add(caseNode);
+        }
 
         /**
          * Get resulting Control-Flow-Graph of this CFG-Builder.
