@@ -190,5 +190,15 @@ public class BasicAnalysisTests {
         assertEquals(testFiles.length, outFiles.length);
     }
 
+    @Test
+    public void jsCFGJsonTest() {
+        String outDir = JS_OUTPUT_DIR + "CFG/";
+        String[] args = {"-cfg", "-outdir", outDir, "-format", "json", "-lang","js",JS_SRC_DIR};
+        Main.main(args);
+        //
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {JS_SRC_DIR}, Execution.Languages.JAVASCRIPT.suffix);
+        String[] outFiles = FileUtils.listFilesWithSuffix(new String[] {outDir}, "-CFG.json");
+        assertEquals(testFiles.length, outFiles.length);
+    }
 
 }

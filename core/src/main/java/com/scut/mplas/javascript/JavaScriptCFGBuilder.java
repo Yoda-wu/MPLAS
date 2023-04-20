@@ -1,5 +1,6 @@
 package com.scut.mplas.javascript;
 
+import com.scut.mplas.graphs.ast.ASNode;
 import com.scut.mplas.graphs.cfg.CFEdge;
 import com.scut.mplas.graphs.cfg.CFNode;
 import com.scut.mplas.graphs.cfg.ControlFlowGraph;
@@ -40,10 +41,10 @@ public class JavaScriptCFGBuilder {
             throw new IOException("Not a JavaScript File!");
         InputStream inFile = new FileInputStream(jsFile);
         ANTLRInputStream input = new ANTLRInputStream(inFile);
-        JavaLexer lexer = new JavaLexer(input);
+        JavaScriptLexer lexer = new JavaScriptLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
-        JavaParser parser = new JavaParser(tokens);
-        ParseTree tree = parser.compilationUnit();
+        JavaScriptParser parser = new JavaScriptParser(tokens);
+        ParseTree tree = parser.program();
         return build(jsFile.getName(), tree, null, null);
     }
 
@@ -64,9 +65,9 @@ public class JavaScriptCFGBuilder {
      * in the parse-tree, which can be used for linking this graph with other
      * graphs by using the same parse-tree and the same contextual-properties.
      */
-    public static ControlFlowGraph build(String javaFileName, ParseTree tree,
+    public static ControlFlowGraph build(String jsFileName, ParseTree tree,
                                          String propKey, Map<ParserRuleContext, Object> ctxProps) {
-        ControlFlowGraph cfg = new ControlFlowGraph(javaFileName);
+        ControlFlowGraph cfg = new ControlFlowGraph(jsFileName);
         JavaScriptCFGBuilder.ControlFlowVisitor visitor = new JavaScriptCFGBuilder.ControlFlowVisitor(cfg, propKey, ctxProps);
         visitor.visit(tree);
         return cfg;
@@ -129,6 +130,100 @@ public class JavaScriptCFGBuilder {
             }
         }
 
+
+//        @Override public Void visitProgram(JavaScriptParser.ProgramContext ctx) {
+//           //program
+//            //    : HashBangLine? sourceElements? EOF
+//            System.out.println("进入visit=================");
+//            cfg.setPackage(ctx.sourceElements().getText());
+//            visitSourceElements(ctx.sourceElements());
+//            return null;
+//        }
+//
+//
+//        @Override public Void visitSourceElements(JavaScriptParser.SourceElementsContext ctx) {
+//            for (JavaScriptParser.SourceElementContext sourceElementContext : ctx.sourceElement()) {
+//                visitSourceElement(sourceElementContext);
+//            }
+//            return null;
+//        }
+//
+//
+//        @Override public Void visitSourceElement(JavaScriptParser.SourceElementContext ctx) {
+//            if (ctx==null||ctx.isEmpty()){
+//                return null;
+//            }
+//            System.out.println("进入sourceElement======");
+//            return visitStatement(ctx.statement());
+//        }
+//
+//
+//        @Override public Void visitStatement(JavaScriptParser.StatementContext ctx) {
+//            if(ctx==null||ctx.isEmpty()){
+//                return null;
+//            }
+//            String res=null;
+//            if (ctx.block()!=null&&!ctx.block().isEmpty()){
+//                System.out.println("block");
+//                return visitBlock(ctx.block());
+//            }else if(ctx.importStatement()!=null&&!ctx.importStatement().isEmpty()) {
+//                System.out.println("import");
+//                return visitImportStatement(ctx.importStatement());
+//            }else if (ctx.variableStatement()!=null&&!ctx.variableStatement().isEmpty()){
+//                System.out.println("variable");
+//                return  visitVariableStatement(ctx.variableStatement());
+//            }else if (ctx.exportStatement()!=null&&!ctx.exportStatement().isEmpty()){
+//                System.out.println("export");
+//                return  visitExpressionStatement(ctx.expressionStatement());
+//            } else if (ctx.emptyStatement_()!=null&&!ctx.emptyStatement_().isEmpty()){
+//                System.out.println("empty");
+//                return  visitEmptyStatement_(ctx.emptyStatement_());
+//            }else if (ctx.classDeclaration()!=null&&!ctx.classDeclaration().isEmpty()){
+//                System.out.println("classDeclarataion");
+//                return  visitClassDeclaration(ctx.classDeclaration());
+//            }else if (ctx.expressionStatement()!=null&&!ctx.expressionStatement().isEmpty()){
+//                System.out.println("expression");
+//                return  visitExpressionStatement(ctx.expressionStatement());
+//            }else if (ctx.ifStatement()!=null&&!ctx.ifStatement().isEmpty()){
+//                System.out.println("if");
+//                return  visitIfStatement(ctx.ifStatement());
+//            }else if (ctx.iterationStatement()!=null&&!ctx.iterationStatement().isEmpty()){
+//                return  null;
+//            }else if (ctx.continueStatement()!=null&&!ctx.continueStatement().isEmpty()){
+//                System.out.println("continue");
+//                return  visitContinueStatement(ctx.continueStatement());
+//            }else if (ctx.breakStatement()!=null&&!ctx.breakStatement().isEmpty()){
+//                System.out.println("break;");
+//                return  visitBreakStatement(ctx.breakStatement());
+//            }else if (ctx.returnStatement()!=null&&!ctx.returnStatement().isEmpty()){
+//                System.out.println("return");
+//                return  visitReturnStatement(ctx.returnStatement());
+//            }else if (ctx.yieldStatement()!=null&&!ctx.yieldStatement().isEmpty()){
+//                System.out.println("yield");
+//                return  visitYieldStatement(ctx.yieldStatement());
+//            }else if (ctx.withStatement()!=null&&!ctx.withStatement().isEmpty()){
+//                System.out.println("with");
+//                return  visitWithStatement(ctx.withStatement());
+//            }else if (ctx.labelledStatement()!=null&&!ctx.labelledStatement().isEmpty()){
+//                System.out.println("label");
+//                return  visitLabelledStatement(ctx.labelledStatement());
+//            }else if (ctx.switchStatement()!=null&&!ctx.switchStatement().isEmpty()){
+//                System.out.println("switch");
+//                return  visitSwitchStatement(ctx.switchStatement());
+//            }else if (ctx.throwStatement()!=null&&!ctx.throwStatement().isEmpty()){
+//                System.out.println("throw");
+//                return  visitThrowStatement(ctx.throwStatement());
+//            }else if (ctx.tryStatement()!=null&&!ctx.tryStatement().isEmpty()){
+//                System.out.println("try");
+//                return  visitTryStatement(ctx.tryStatement());
+//            }else if (ctx.debuggerStatement()!=null&&!ctx.debuggerStatement().isEmpty()){
+//                System.out.println("debugg");
+//                return  visitDebuggerStatement(ctx.debuggerStatement());
+//            }else{
+//                System.out.println("function");
+//                return visitFunctionDeclaration(ctx.functionDeclaration());
+//            }
+//        }
 
         @Override public Void visitExpressionStatement(JavaScriptParser.ExpressionStatementContext ctx) {
             //    : {this.notOpenBraceAndNotFunction()}? expressionSequence eos
@@ -296,7 +391,7 @@ public class JavaScriptCFGBuilder {
             //
             preEdges.push(CFEdge.Type.EPSILON);
             preNodes.push(forEnd);
-            return visitChildren(ctx);
+            return null;
         }
 
         @Override public Void visitForInStatement(JavaScriptParser.ForInStatementContext ctx) {
@@ -386,7 +481,7 @@ public class JavaScriptCFGBuilder {
             continueNode.setCode(getOriginalCodeText(ctx));
             addContextualProperty(continueNode, ctx);
             addNodeAndPreEdge(continueNode);
-            if (ctx.identifier().Identifier() != null) {
+            if (ctx.identifier() != null) {
                 // a label is specified
                 for (Block block: labeledBlocks) {
                     if (block.label.equals(ctx.identifier().Identifier().getText())) {
@@ -410,7 +505,7 @@ public class JavaScriptCFGBuilder {
             breakNode.setCode(getOriginalCodeText(ctx));
             addContextualProperty(breakNode, ctx);
             addNodeAndPreEdge(breakNode);
-            if (ctx.identifier().Identifier() != null) {
+            if (ctx.identifier()!= null) {
                 // a label is specified
                 for (Block block: labeledBlocks) {
                     if (block.label.equals(ctx.identifier().Identifier().getText())) {
@@ -705,7 +800,10 @@ public class JavaScriptCFGBuilder {
             //
             CFNode entry = new CFNode();
             entry.setLineOfCode(ctx.getStart().getLine());
-            String args = getOriginalCodeText(ctx.formalParameterList());
+            String args ="";
+            if(ctx.formalParameterList()!=null&&!ctx.formalParameterList().isEmpty()){
+                args=  getOriginalCodeText(ctx.formalParameterList());
+            }
             entry.setCode( ctx.identifier().Identifier() + args);
             addContextualProperty(entry, ctx);
             cfg.addVertex(entry);
@@ -721,9 +819,16 @@ public class JavaScriptCFGBuilder {
 
         @Override public Void visitClassDeclaration(JavaScriptParser.ClassDeclarationContext ctx) {
             //Class identifier classTail
-            classNames.push(ctx.identifier().Identifier().getText());
+            classNames.push(getOriginalCodeText(ctx.identifier()));
             visit(ctx.classTail());
             classNames.pop();
+            CFNode classNode=new CFNode();
+            classNode.setCode(getOriginalCodeText(ctx));
+            classNode.setLineOfCode(ctx.getStart().getLine());
+            cfg.addVertex(classNode);
+            cfg.addMethodEntry(classNode);
+            preNodes.push(classNode);
+            preEdges.push(CFEdge.Type.EPSILON);
             return null;
         }
 
@@ -739,6 +844,7 @@ public class JavaScriptCFGBuilder {
                 extend+=getOriginalCodeText(classElement);
             }
             classTail.setCode(extend);
+            classTail.setLineOfCode(ctx.getStart().getLine());
             cfg.addVertex(classTail);
             cfg.addMethodEntry(classTail);
             preNodes.push(classTail);
@@ -779,8 +885,8 @@ public class JavaScriptCFGBuilder {
             addNodeAndPreEdge(mdNode);
             CFNode mdEnd=new CFNode();
             mdEnd.setLineOfCode(0);
-            mdEnd.setCode("endMethodDefinition");
             cfg.addVertex(mdNode);
+            cfg.addVertex(mdEnd);
             cfg.addEdge(new Edge<>(mdNode,new CFEdge(CFEdge.Type.EPSILON),mdEnd));
             preEdges.push(CFEdge.Type.EPSILON);
             preNodes.push(mdNode);
@@ -789,7 +895,20 @@ public class JavaScriptCFGBuilder {
             labeledBlocks.remove(labeledBlocks.size()-1);
             preEdges.push(CFEdge.Type.EPSILON);
             preNodes.push(mdEnd);
-            return visitChildren(ctx);
+            return null;
+        }
+
+
+        @Override public Void visitLet_(JavaScriptParser.Let_Context ctx) {
+            //    : Let ({this.notLineTerminator()}? expressionSequence)? eos
+            System.out.println("let");
+            CFNode ret = new CFNode();
+            ret.setLineOfCode(ctx.getStart().getLine());
+            ret.setCode(getOriginalCodeText(ctx));
+            addContextualProperty(ret, ctx);
+            addNodeAndPreEdge(ret);
+            dontPop = true;
+            return null;
         }
 
         @Override public Void visitFormalParameterList(JavaScriptParser.FormalParameterListContext ctx) {
@@ -805,7 +924,9 @@ public class JavaScriptCFGBuilder {
                 stringBuffer.append(getOriginalCodeText(ctx.formalParameterArg(i)));
             }
             stringBuffer.append(",");
-            stringBuffer.append(getOriginalCodeText(ctx.lastFormalParameterArg()));
+            if (ctx.lastFormalParameterArg()!=null&&!ctx.lastFormalParameterArg().isEmpty()){
+                stringBuffer.append(getOriginalCodeText(ctx.lastFormalParameterArg()));
+            }
             ret.setCode(stringBuffer.toString());
             addContextualProperty(ret, ctx);
             addNodeAndPreEdge(ret);
@@ -878,7 +999,9 @@ public class JavaScriptCFGBuilder {
             else {
                 Logger.debug("\nPRE-NODES = " + preNodes.size());
                 Logger.debug("PRE-EDGES = " + preEdges.size() + '\n');
-                cfg.addEdge(new Edge<>(preNodes.pop(), new CFEdge(preEdges.pop()), node));
+                if (preNodes.size()>0){
+                    cfg.addEdge(new Edge<>(preNodes.pop(), new CFEdge(preEdges.pop()), node));
+                }
             }
             //
             for (int i = casesQueue.size(); i > 0; --i)
