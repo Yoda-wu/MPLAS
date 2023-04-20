@@ -691,9 +691,6 @@ public class CppCFGBuilder {
                     //		| forRangeDeclaration Colon forRangeInitializer
                     //	) RightParen statement;
 
-                    // 'for' '(' forControl ')' statement
-                    //    |   forInit? ';' expression? ';' forUpdate?
-                    //    ;
 
                     //  First, we should check forRange ...
                     //forRangeDeclaration Colon forRangeInitializer
@@ -763,15 +760,15 @@ public class CppCFGBuilder {
                         forEnd.setLineOfCode(0);
                         forEnd.setCode("endfor");
                         cfg.addVertex(forEnd);
-                        cfg.addEdge(new Edge<>(forExpr, new CFEdge(CFEdge.Type.FALSE), forEnd));
+                        cfg.addEdge(new Edge<>(forcondition, new CFEdge(CFEdge.Type.FALSE), forEnd));
                         //
                         preEdges.push(CFEdge.Type.TRUE);
-                        preNodes.push(forExpr);
+                        preNodes.push(forcondition);
                         loopBlocks.push(new ControlFlowVisitor.Block(forExpr, forEnd)); // NOTE: start is 'forexpr'
                         visit(ctx.statement());
                         loopBlocks.pop();
                         popAddPreEdgeTo(forExpr);
-                        cfg.addEdge(new Edge<>(forExpr, new CFEdge(CFEdge.Type.EPSILON), forExpr));
+                        cfg.addEdge(new Edge<>(forExpr, new CFEdge(CFEdge.Type.EPSILON), forcondition));
                         //
                         preEdges.push(CFEdge.Type.EPSILON);
                         preNodes.push(forEnd);
