@@ -1061,7 +1061,6 @@ public class CppCFGBuilder {
 //                            gotolabel=ctx.Identifier().getText();
 //                        }
                     }
-                System.out.println("isGoto:"+isgoto);
                 dontPop = true;
                 return null;
             }
