@@ -518,6 +518,8 @@ public class CppCFGBuilder {
                         for (ControlFlowVisitor.Block block: labeledBlocks) {
                             if (block.label.equals(gotolabel)) {
                                 cfg.addEdge(new Edge<>(gotoNode, new CFEdge(CFEdge.Type.EPSILON), block.start));
+                                //将isgoto重新设置为false
+                                isgoto=false;
                                 break;
                             }
                         }
@@ -1043,6 +1045,9 @@ public class CppCFGBuilder {
                 cfg.addVertex(gotoNode);
                 addContextualProperty(gotoNode, ctx);
                 addNodeAndPreEdge(gotoNode);
+                this.gotoNode=gotoNode;
+                this.gotolabel=ctx.Identifier().getText();
+                this.isgoto=true;
                     // a label is specified
                 //label需要在goto语句前
                     for (ControlFlowVisitor.Block block: labeledBlocks) {
@@ -1050,11 +1055,13 @@ public class CppCFGBuilder {
                             cfg.addEdge(new Edge<>(gotoNode, new CFEdge(CFEdge.Type.EPSILON), block.start));
                             break;
                         }
-                        else {
-                            isgoto=true;
-                            gotolabel=ctx.Identifier().getText();
-                        }
+                        //如果label 在goto后面，此时labeledBlocks为空，就不能将isgoto设置为true了，所以在进入for循环前就先将isGoto设置为true
+//                        else {
+//                            isgoto=true;
+//                            gotolabel=ctx.Identifier().getText();
+//                        }
                     }
+                System.out.println("isGoto:"+isgoto);
                 dontPop = true;
                 return null;
             }
