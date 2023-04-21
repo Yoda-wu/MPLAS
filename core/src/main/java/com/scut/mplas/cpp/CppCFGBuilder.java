@@ -6,7 +6,6 @@ import com.scut.mplas.graphs.cfg.CFEdge;
 import com.scut.mplas.graphs.cfg.CFNode;
 import com.scut.mplas.graphs.cfg.ControlFlowGraph;
 import com.scut.mplas.cpp.parser.CppBaseVisitor;
-import com.scut.mplas.java.parser.JavaParser;
 import ghaffarian.graphs.*;
 import ghaffarian.nanologger.Logger;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -92,7 +91,10 @@ public class CppCFGBuilder {
         private String type;
         private boolean isInClass;
         private boolean isInFunction;
+        private boolean isgoto;
+        private String gotolabel;
         private CFNode endCatchNode;
+        private CFNode gotoNode;
 
         public ControlFlowVisitor(ControlFlowGraph cfg, String propKey, Map<ParserRuleContext, Object> ctxProps) {
             preNodes = new ArrayDeque<>();
@@ -107,6 +109,7 @@ public class CppCFGBuilder {
             dontPop = false;
             isInClass=false;
             isInFunction=false;
+            isgoto=false;
             this.cfg = cfg;
             //
             this.propKey = propKey;
@@ -511,7 +514,16 @@ public class CppCFGBuilder {
                     //
                     preEdges.push(CFEdge.Type.EPSILON);
                     preNodes.push(endLabelNode);
-                    return null;}
+                    if(isgoto==true){
+                        for (ControlFlowVisitor.Block block: labeledBlocks) {
+                            if (block.label.equals(gotolabel)) {
+                                cfg.addEdge(new Edge<>(gotoNode, new CFEdge(CFEdge.Type.EPSILON), block.start));
+                                break;
+                            }
+                        }
+                    }
+                    return null;
+                }
                 else if(ctx.Case()!=null)
                 {
                     labelNode.setCode(getOriginalCodeText
@@ -1028,13 +1040,19 @@ public class CppCFGBuilder {
                 CFNode gotoNode = new CFNode();
                 gotoNode.setLineOfCode(ctx.getStart().getLine());
                 gotoNode.setCode("goto:  "+ctx.Identifier().getText());
+                cfg.addVertex(gotoNode);
                 addContextualProperty(gotoNode, ctx);
                 addNodeAndPreEdge(gotoNode);
                     // a label is specified
+                //label需要在goto语句前
                     for (ControlFlowVisitor.Block block: labeledBlocks) {
                         if (block.label.equals(ctx.Identifier().getText())) {
-                            cfg.addEdge(new Edge<>(gotoNode, new CFEdge(CFEdge.Type.EPSILON), block.end));
+                            cfg.addEdge(new Edge<>(gotoNode, new CFEdge(CFEdge.Type.EPSILON), block.start));
                             break;
+                        }
+                        else {
+                            isgoto=true;
+                            gotolabel=ctx.Identifier().getText();
                         }
                     }
                 dontPop = true;
@@ -1042,6 +1060,7 @@ public class CppCFGBuilder {
             }
                 return null;
     }
+
             @Override public Void visitDeclarationStatement(CppParser.DeclarationStatementContext ctx) { return visitChildren(ctx); }
             /**
              * {@inheritDoc}
