@@ -3,10 +3,6 @@ package com.scut.mplas.ruby;
 import com.scut.mplas.graphs.cfg.CFEdge;
 import com.scut.mplas.graphs.cfg.CFNode;
 import com.scut.mplas.graphs.cfg.ControlFlowGraph;
-import com.scut.mplas.java.JavaCFGBuilder;
-import com.scut.mplas.java.parser.JavaBaseVisitor;
-import com.scut.mplas.java.parser.JavaLexer;
-import com.scut.mplas.java.parser.JavaParser;
 import com.scut.mplas.ruby.parser.RubyBaseVisitor;
 import com.scut.mplas.ruby.parser.RubyLexer;
 import com.scut.mplas.ruby.parser.RubyParser;
@@ -73,6 +69,7 @@ public class RubyCFGBuilder {
         visitor.visit(tree);
         return cfg;
     }
+
     private static class ControlFlowVisitor extends RubyBaseVisitor<Void> {
         private ControlFlowGraph cfg;
         private Deque<CFNode> preNodes;
@@ -96,6 +93,7 @@ public class RubyCFGBuilder {
             this.propKey = propKey;
             contexutalProperties = ctxProps;
         }
+
         /**
          * Reset all data-structures and flags for visiting a new method declaration.
          */
@@ -156,20 +154,33 @@ public class RubyCFGBuilder {
          * @param ctx
          */
         @Override
+        public Void visitExpression(RubyParser.ExpressionContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
         public Void visitFunction_definition(RubyParser.Function_definitionContext ctx) {
             // function_definition : function_definition_header function_definition_body END;
             init();
 
             CFNode entry = new CFNode();
             entry.setLineOfCode(ctx.getStart().getLine());
-            String parameters =getOriginalCodeText(ctx.function_definition_header().function_definition_params());
+            String parameters = getOriginalCodeText(ctx.function_definition_header().function_definition_params());
             String funcName = getOriginalCodeText(ctx.function_definition_header().function_name());
-            entry.setCode(funcName + " "+parameters);
+            entry.setCode(funcName + " " + parameters);
             addContextualProperty(entry, ctx);
             cfg.addVertex(entry);
 
             entry.setProperty("name", funcName);
-            entry.setProperty("args",parameters);
+            entry.setProperty("args", parameters);
             cfg.addMethodEntry(entry);
 
             preNodes.push(entry);
@@ -187,12 +198,231 @@ public class RubyCFGBuilder {
          * @param ctx
          */
         @Override
+        public Void visitFunction_inline_call(RubyParser.Function_inline_callContext ctx) {
+            CFNode func = new CFNode();
+            func.setLineOfCode(ctx.getStart().getLine());
+            String parameters = getOriginalCodeText(ctx.function_call().function_call_param_list());
+            String funcName = getOriginalCodeText(ctx.function_call().function_name());
+            func.setCode(funcName + " " + parameters);
+            addContextualProperty(func, ctx);
+            cfg.addVertex(func);
+
+            func.setProperty("name", funcName);
+            func.setProperty("args", parameters);
+            cfg.addMethodEntry(func);
+
+            preNodes.push(func);
+            preEdges.push(CFEdge.Type.EPSILON);
+            return null;
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public Void visitRequire_block(RubyParser.Require_blockContext ctx) {
+
+            CFNode requireBlock = new CFNode();
+            requireBlock.setLineOfCode(ctx.getStart().getLine());
+            requireBlock.setCode("require" + getOriginalCodeText(ctx.literal_t()));
+            addContextualProperty(requireBlock, ctx);
+            addNodeAndPreEdge(requireBlock);
+            //
+            preEdges.push(CFEdge.Type.EPSILON);
+            preNodes.push(requireBlock);
+            return null ;
+        }
+
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public Void visitIf_statement(RubyParser.If_statementContext ctx) {
+            //if_statement : IF cond_expression crlf statement_body END
+            //             | IF cond_expression crlf statement_body else_token crlf statement_body END
+            //             | IF cond_expression crlf statement_body elsif_statement END
+            //             ;
+            CFNode ifNode = new CFNode();
+            ifNode.setLineOfCode(ctx.getStart().getLine());
+            ifNode.setCode("if " + getOriginalCodeText(ctx.cond_expression()));
+            addContextualProperty(ifNode, ctx);
+            addNodeAndPreEdge(ifNode);
+
+            preEdges.push(CFEdge.Type.TRUE);
+            preNodes.push(ifNode);
+            visit(ctx.statement_body(0));
+            CFNode endIf = new CFNode();
+            endIf.setLineOfCode(0);
+            endIf.setCode("endif");
+            addNodeAndPreEdge(endIf);
+
+            if (ctx.else_token() != null) {
+                preEdges.push(CFEdge.Type.FALSE);
+                preNodes.push(ifNode);
+                visit(ctx.statement_body(1));
+                popAddPreEdgeTo(endIf);
+            } else if (ctx.elsif_statement() != null) {
+                preEdges.push(CFEdge.Type.FALSE);
+                preNodes.push(ifNode);
+                visit(ctx.elsif_statement());
+                popAddPreEdgeTo(endIf);
+            } else {
+                cfg.addEdge(new Edge<>(ifNode, new CFEdge(CFEdge.Type.FALSE), endIf));
+            }
+            preEdges.push(CFEdge.Type.EPSILON);
+            preNodes.push(endIf);
+            return null;
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public Void visitElsif_statement(RubyParser.Elsif_statementContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public Void visitIf_elsif_statement(RubyParser.If_elsif_statementContext ctx) {
+            // if_elsif_statement : ELSIF cond_expression crlf statement_body
+            //                   | ELSIF cond_expression crlf statement_body else_token crlf statement_body
+            //                   | ELSIF cond_expression crlf statement_body if_elsif_statement
+            //                   ;
+            CFNode elseIf = new CFNode();
+            elseIf.setLineOfCode(ctx.getStart().getLine());
+            elseIf.setCode("elseif " + getOriginalCodeText(ctx.cond_expression()));
+            addContextualProperty(elseIf, ctx);
+            addNodeAndPreEdge(elseIf);
+
+            preEdges.push(CFEdge.Type.TRUE);
+            preNodes.push(elseIf);
+            visit(ctx.statement_body(0));
+
+            CFNode endIf = new CFNode();
+            endIf.setLineOfCode(0);
+            endIf.setCode("endif");
+            addNodeAndPreEdge(endIf);
+            if (ctx.else_token() != null) {
+                preEdges.push(CFEdge.Type.FALSE);
+                preNodes.push(elseIf);
+                visit(ctx.statement_body(1));
+                popAddPreEdgeTo(endIf);
+            } else if (ctx.if_elsif_statement() != null) {
+                preEdges.push(CFEdge.Type.FALSE);
+                preNodes.push(elseIf);
+                visit(ctx.if_elsif_statement());
+                popAddPreEdgeTo(endIf);
+            } else {
+                cfg.addEdge(new Edge<>(elseIf, new CFEdge(CFEdge.Type.FALSE), endIf));
+            }
+            preEdges.push(CFEdge.Type.EPSILON);
+            preNodes.push(endIf);
+            return null;
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public Void visitUnless_statement(RubyParser.Unless_statementContext ctx) {
+            CFNode unless = new CFNode();
+            unless.setLineOfCode(ctx.getStart().getLine());
+            unless.setCode("unless " + getOriginalCodeText(ctx.cond_expression()));
+            addContextualProperty(unless, ctx);
+            addNodeAndPreEdge(unless);
+
+            preEdges.push(CFEdge.Type.TRUE);
+            preNodes.push(unless);
+            visit(ctx.statement_body(0));
+            CFNode endUnless = new CFNode();
+            endUnless.setLineOfCode(0);
+            endUnless.setCode("endif");
+            addNodeAndPreEdge(endUnless);
+
+            if (ctx.else_token() != null) {
+                preEdges.push(CFEdge.Type.FALSE);
+                preNodes.push(unless);
+                visit(ctx.statement_body(1));
+                popAddPreEdgeTo(endUnless);
+            } else if (ctx.elsif_statement() != null) {
+                preEdges.push(CFEdge.Type.FALSE);
+                preNodes.push(unless);
+                visit(ctx.elsif_statement());
+                popAddPreEdgeTo(endUnless);
+            } else {
+                cfg.addEdge(new Edge<>(unless, new CFEdge(CFEdge.Type.FALSE), endUnless));
+            }
+            preEdges.push(CFEdge.Type.EPSILON);
+            preNodes.push(endUnless);
+            return null;
+        }
+
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public Void visitRvalue(RubyParser.RvalueContext ctx) {
+            CFNode rvalue = new CFNode();
+            rvalue.setLineOfCode(ctx.getStart().getLine());
+            rvalue.setCode(getOriginalCodeText(ctx));
+            addContextualProperty(rvalue, ctx);
+            addNodeAndPreEdge(rvalue);
+            //
+            preEdges.push(CFEdge.Type.EPSILON);
+            preNodes.push(rvalue);
+            return null;
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
         public Void visitReturn_statement(RubyParser.Return_statementContext ctx) {
             // return_statement : RETURN all_result;
             CFNode ret = new CFNode();
             ret.setLineOfCode(ctx.getStart().getLine());
             ret.setCode(getOriginalCodeText(ctx));
-            addContextualProperty(ret,ctx);
+            addContextualProperty(ret, ctx);
             addNodeAndPreEdge(ret);
             dontPop = true;
             return null;
@@ -211,8 +441,8 @@ public class RubyCFGBuilder {
         public Void visitWhile_statement(RubyParser.While_statementContext ctx) {
             CFNode whileNode = new CFNode();
             whileNode.setLineOfCode(ctx.getStart().getLine());
-            whileNode.setCode("while "+getOriginalCodeText(ctx.cond_expression()));
-            addContextualProperty(whileNode,ctx);
+            whileNode.setCode("while " + getOriginalCodeText(ctx.cond_expression()));
+            addContextualProperty(whileNode, ctx);
             addNodeAndPreEdge(whileNode);
 
             CFNode endWhile = new CFNode();
@@ -231,7 +461,7 @@ public class RubyCFGBuilder {
 
             preEdges.push(CFEdge.Type.EPSILON);
             preNodes.push(endWhile);
-            return null ;
+            return null;
         }
 
 
@@ -257,11 +487,107 @@ public class RubyCFGBuilder {
             addNodeAndPreEdge(forInit);
 
             // cond_expression
-
+            CFNode condNode = new CFNode();
+            condNode.setLineOfCode(ctx.cond_expression().getStart().getLine());
+            condNode.setCode("for (" + getOriginalCodeText(ctx.cond_expression()) + ")");
+            addContextualProperty(condNode, ctx.cond_expression());
+            cfg.addVertex(condNode);
+            cfg.addEdge(new Edge<>(forInit, new CFEdge(CFEdge.Type.EPSILON), condNode));
             // loop_expression
+            CFNode forUpdate = new CFNode();
+            forUpdate.setCode(getOriginalCodeText(ctx.loop_expression()));
+            forUpdate.setLineOfCode(ctx.loop_expression().getStart().getLine());
+            addContextualProperty(forUpdate, ctx.loop_expression());
+            cfg.addVertex(forUpdate);
 
+            // for-end
+            CFNode forEnd = new CFNode();
+            forEnd.setLineOfCode(0);
+            forEnd.setCode("end for");
+            cfg.addVertex(forEnd);
+            cfg.addEdge(new Edge<>(condNode, new CFEdge(CFEdge.Type.FALSE), forEnd));
+            // for-body-statement
 
-            // statement
+            preEdges.push(CFEdge.Type.TRUE);
+            preNodes.push(condNode);
+            loopBlocks.push(new Block(forUpdate, forEnd));
+            visit(ctx.statement_body());
+            loopBlocks.pop();
+
+            popAddPreEdgeTo(forUpdate);
+            cfg.addEdge(new Edge<>(forUpdate, new CFEdge(CFEdge.Type.EPSILON), condNode));
+
+            preEdges.push(CFEdge.Type.EPSILON);
+            preNodes.push(forEnd);
+            return null;
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public Void visitStatement_body(RubyParser.Statement_bodyContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public Void visitStatement_expression_list(RubyParser.Statement_expression_listContext ctx) {
+            if (ctx.statement_expression_list() != null) {
+                return visit(ctx.statement_expression_list());
+            }
+            if (ctx.expression() != null) {
+                return visit(ctx.expression());
+            }
+            if (ctx.break_expression() != null) {
+                return visit(ctx.break_expression());
+            }
+            if (ctx.RETRY() != null) {
+                CFNode retry = new CFNode();
+                retry.setCode("retry");
+                retry.setLineOfCode(ctx.getStart().getLine());
+                addContextualProperty(retry, ctx);
+                addNodeAndPreEdge(retry);
+
+                preEdges.push(CFEdge.Type.EPSILON);
+                preNodes.push(retry);
+            }
+
+            return null;
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public Void visitBreak_expression(RubyParser.Break_expressionContext ctx) {
+            CFNode breakNode = new CFNode();
+            breakNode.setLineOfCode(ctx.getStart().getLine());
+            breakNode.setCode(getOriginalCodeText(ctx));
+            addContextualProperty(breakNode, ctx);
+            addNodeAndPreEdge(breakNode);
+
+            Block block = loopBlocks.peek();
+            cfg.addEdge(new Edge<>(breakNode, new CFEdge(CFEdge.Type.EPSILON), block.end));
+
+            dontPop = true;
             return null;
         }
 
