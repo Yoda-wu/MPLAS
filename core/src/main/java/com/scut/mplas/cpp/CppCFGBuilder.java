@@ -2028,7 +2028,7 @@ public class CppCFGBuilder {
                 cfg.addVertex(endCatchNode);
 
                 preEdges.push(CFEdge.Type.THROWS);
-                preNodes.push(tryNode);
+                preNodes.push(endTry);
                 visit(ctx.handlerSeq());
                 preEdges.pop();
                 preNodes.pop();
@@ -2059,7 +2059,7 @@ public class CppCFGBuilder {
                 endCatchNode.setCode("end-catch");
                 cfg.addVertex(endCatchNode);
 
-                preNodes.push(tryNode);
+                preNodes.push(endTryNode);
                 preEdges.push(CFEdge.Type.THROWS);
                 visit(ctx.handlerSeq());
                 cfg.addEdge(new Edge<>(endCatchNode,new CFEdge(CFEdge.Type.EPSILON),endTryNode));
