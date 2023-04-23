@@ -7,7 +7,7 @@ void main() {
 //	int x =0;
 //	x=x+1;
 		if (i % 2 == 0) {
-			continue;
+			break;
 		}
 		else
 		{
