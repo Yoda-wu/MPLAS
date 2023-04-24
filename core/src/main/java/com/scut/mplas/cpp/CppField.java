@@ -17,7 +17,7 @@ public class CppField {
 
     @Override
     public String toString() {
-        String specifier = SPECIFIER == null ? "null" : SPECIFIER;
+        String specifier = SPECIFIER == "" ? "null" : SPECIFIER;
         StringBuilder str = new StringBuilder();
         str.append("{ SPECIFIER : \"").append(specifier).append("\", ");
         str.append("TYPE : \"").append(TYPE).append("\", ");

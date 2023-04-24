@@ -9,17 +9,15 @@ import java.util.Objects;
  */
 public class CppClass {
     public final String NAME;
-    public final String FILE;
     public final  String NAMESPACE;
     private ArrayList<CppField> fields;
     private ArrayList<CppMethod> methods;
 
 
-    public CppClass(String name,String namespace,String filePath)
+    public CppClass(String name,String namespace)
     {
         NAME=name;
         NAMESPACE=namespace;
-        FILE=filePath;
         fields=new ArrayList<>();
         methods=new ArrayList<>();
     }
@@ -58,7 +56,6 @@ public class CppClass {
         StringBuilder str = new StringBuilder("CLASS \n{\n");
         str.append("  NAME : \"").append(NAME).append("\",\n");
         str.append("  NAMESPACE : \"").append(NAMESPACE).append("\",\n");
-        str.append("  FILE : \"").append(FILE).append("\",\n");
         str.append("  FIELDS : \n  [\n");
         for (CppField fld: fields)
             str.append("    ").append(fld).append(",\n");

@@ -26,8 +26,8 @@ public class CppMethod {
 
     @Override
     public String toString() {
-        String specifier = SPECIFIER == null ? "null" : SPECIFIER;
-        String retType = RET_TYPE == null ? "null" : RET_TYPE;
+        String specifier = SPECIFIER == "" ? "null" : SPECIFIER;
+        String retType = RET_TYPE == "" ? "null" : RET_TYPE;
         String args = ARG_TYPES == null ? "null" : Arrays.toString(ARG_TYPES);
         StringBuilder str = new StringBuilder();
         str.append("{ SPECIFIER : \"").append(specifier).append("\", ");
