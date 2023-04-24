@@ -254,7 +254,320 @@ public class CppDDGBuilder {
             localVars = new ArrayList<>();
         }
 
+        private void analyseDefUse(PDNode node, ParseTree expression) {
+            Logger.debug("--- ANALYSIS ---");
+            Logger.debug(node.toString());
+            analysisVisit = true;
+            String expr = visit(expression);
+            Logger.debug(expr);
+            //
+            StringBuilder locVarsStr = new StringBuilder(256);
+            locVarsStr.append("LOCAL VARS = [");
+            for (CppField lv: localVars)
+                locVarsStr.append(lv.TYPE).append(' ').append(lv.NAME).append(", ");
+            locVarsStr.append("]");
+            Logger.debug(locVarsStr.toString());
+            //
+            if (isUsableExpression(expr)) {
+                useList.add(expr);
+                Logger.debug("USABLE");
+            }
+            analysisVisit = false;
+            Logger.debug("Changed = " + changed);
+            Logger.debug("DEFs = " + Arrays.toString(node.getAllDEFs()));
+            Logger.debug("USEs = " + Arrays.toString(node.getAllUSEs()));
+            for (String def: defList) {
+                int status = isDefined(def);
+                if (status > -1) {
+                    if (status < 100) {
+                        methodDefInfo.setArgDEF(status, true);
+                        Logger.debug("Method defines argument #" + status);
+                    } else if (status == FIELD) {
+                        methodDefInfo.setStateDEF(true);
+                        if (def.startsWith("this."))
+                            def = def.substring(5);
+                        def = "$THIS." + def;
+                        Logger.debug("Method defines object state.");
+                    }
+                    changed |= node.addDEF(def);
+                }
+                else
+                    Logger.debug(def + " is not defined!");
+            }
+            Logger.debug("Changed = " + changed);
+            Logger.debug("DEFs = " + Arrays.toString(node.getAllDEFs()));
+            //
+            for (String use: useList) {
+                int status = isDefined(use);
+                if (status > -1) {
+                    if (status == FIELD) {
+                        if (use.startsWith("this."))
+                            use = use.substring(5);
+                        use = "$THIS." + use;
+                    }
+                    changed |= node.addUSE(use);
+                } else
+                    Logger.debug(use + " is not defined!");
+            }
+            Logger.debug("Changed = " + changed);
+            Logger.debug("USEs = " + Arrays.toString(node.getAllUSEs()));
+            //
+            for (String flow: selfFlowList) {
+                int status = isDefined(flow);
+                if (status > -1) {
+                    if (status == FIELD) {
+                        if (flow.startsWith("this."))
+                            flow = flow.substring(5);
+                        flow = "$THIS." + flow;
+                    }
+                    changed |= node.addSelfFlow(flow);
+                } else
+                    Logger.debug(flow + " is not defined!");
+            }
+            Logger.debug("Changed = " + changed);
+            Logger.debug("SELF_FLOWS = " + Arrays.toString(node.getAllSelfFlows()));
+            defList.clear();
+            useList.clear();
+            selfFlowList.clear();
+            Logger.debug("----------------");
+        }
+
+        /**
+         * Check if a given symbol is a defined variable.
+         * This returns -1 if the symbol is not defined; otherwise,
+         * it returns 101 if the symbol is a class field,
+         * or returns 202 if the symbol is a local variable,
+         * or returns 303 if the symbol is an outer class field,
+         * or if the symbol is a method parameter, returns the index of the parameter.
+         */
+        private int isDefined(String id) {
+            for (int i = 0; i < methodParams.length; ++i)
+                if (methodParams[i].NAME.equals(id))
+                    return i;
+            for (CppField local: localVars)
+                if (local.NAME.equals(id))
+                    return LOCAL;
+            if (id.startsWith("this."))
+                id = id.substring(5);
+            for (CppField field: activeClasses.peek().getAllFields())
+                if (field.NAME.equals(id))
+                    return FIELD;
+            for (CppClass cls: activeClasses)
+                for (CppField field: cls.getAllFields())
+                    if (field.NAME.equals(id))
+                        return OUTER;
+            return -1;
+        }
+
+        /**
+         * Return type of a given symbol.
+         * Returns null if symbol is not found.
+         */
+        private String getType(String id) {
+            if (isUsableExpression(id)) {
+                for (CppField param: methodParams)
+                    if (param.NAME.equals(id))
+                        return param.TYPE;
+                for (CppField local: localVars)
+                    if (local.NAME.equals(id))
+                        return local.TYPE;
+                if (id.startsWith("this."))
+                    id = id.substring(4);
+                for (CppField field: activeClasses.peek().getAllFields())
+                    if (field.NAME.equals(id))
+                        return field.TYPE;
+                for (CppClass cls: activeClasses)
+                    for (CppField field: cls.getAllFields())
+                        if (field.NAME.equals(id))
+                            return field.TYPE;
+                Logger.debug("getType(" + id + ") : is USABLE but NOT DEFINED");
+                return null;
+            } else {
+                Logger.debug("getType(" + id + ") : is NOT USABLE");
+                // might be:
+                // 'this'
+                // 'super'
+                // literal ($INT, $DBL, $CHR, $STR, $BOL)
+                // class-name  [ ID ]
+                // constructor-call [ $NEW creator ]
+                // method-call [ expr(exprList) ]
+                // casting [ $CAST(type) expr ]
+                // array-indexing  [ expr[expr] ]
+                // unary-op [ ++, --, !, ~ ]
+                // paren-expr [ (...) ]
+                // array-init [ {...} ]
+                return null;
+            }
+        }
+
+        private CppClass findClass(String type) {
+            return null;
+        }
+
+        /**
+         * Find and return matching method-definition-info.
+         * Returns null if not found.
+         */
+        private MethodDefInfo findDefInfo(String callee, String name, CppParser.InitializerListContext ctx) {
+            List<MethodDefInfo> list = methodDEFs.get(name);
+            Logger.debug("METHOD NAME: " + name);
+            Logger.debug("# found = " + (list == null ? 0 : list.size()));
+            //
+            if (list == null)
+                return null;
+            //
+            if (list.size() == 1) { // only one candidate
+                Logger.debug("SINGLE CANDIDATE");
+                MethodDefInfo mtd = list.get(0);
+                // just check params-count to make sure
+                if (ctx != null && mtd.PARAM_TYPES != null &&
+                        mtd.PARAM_TYPES.length != ctx.initializerClause().size())
+                    return null;
+                Logger.debug("WITH MATCHING PARAMS COUNT");
+                return mtd;
+            }
+            //
+            if (callee == null) { // no callee; so search for self methods
+                Logger.debug("NO CALLEE");
+                forEachDefInfo:
+                for (MethodDefInfo mtd : list) {
+                    // check class-name
+                    boolean classNameMatch = false;
+                    for (CppClass cls: activeClasses) {
+                        if (mtd.CLASS_NAME.equals(cls.NAME)) {
+                            classNameMatch = true;
+                            break;
+                        }
+                    }
+                    if (!classNameMatch)
+                        continue;
+                    // check params-count
+                    if (ctx != null && mtd.PARAM_TYPES != null &&
+                            mtd.PARAM_TYPES.length != ctx.initializerClause().size())
+                        continue;
+                    // check params-types
+                    if (ctx != null) {
+                        String[] argTypes = new String[ctx.initializerClause().size()];
+                        for (int i = 0; i < argTypes.length; ++i) {
+                            String arg = visit(ctx.initializerClause(i));
+                            argTypes[i] = getType(arg);
+                        }
+                        if (mtd.PARAM_TYPES != null) {
+                            for (int i = 0; i < argTypes.length; ++i) {
+                                if (argTypes[i] == null)
+                                    continue;
+                                if (!argTypes[i].equals(mtd.PARAM_TYPES[i]))
+                                    continue forEachDefInfo;
+                            }
+                        }
+                    }
+                    return mtd;
+                }
+            } else if (isDefined(callee) > -1) { // has a defined callee
+                Logger.debug("DEFINED CALLEE");
+                String type = getType(callee);
+                CppClass cls = allClassInfos.get(type);
+                if (cls != null && cls.hasMethod(name)) {
+                    forEachDefInfo:
+                    for (MethodDefInfo mtd : list) {
+
+                        // check class-name
+                        if (!mtd.CLASS_NAME.equals(cls.NAME))
+                            continue;
+                        // check params-count
+                        if (ctx != null && mtd.PARAM_TYPES != null &&
+                                mtd.PARAM_TYPES.length != ctx.initializerClause().size())
+                            continue;
+                        // check params-types
+                        if (ctx != null) {
+                            String[] argTypes = new String[ctx.initializerClause().size()];
+                            for (int i = 0; i < argTypes.length; ++i) {
+                                String arg = visit(ctx.initializerClause(i));
+                                argTypes[i] = getType(arg);
+                            }
+                            if (mtd.PARAM_TYPES != null) {
+                                for (int i = 0; i < argTypes.length; ++i) {
+                                    if (argTypes[i] == null)
+                                        continue;
+                                    if (!argTypes[i].equals(mtd.PARAM_TYPES[i]))
+                                        continue forEachDefInfo;
+                                }
+                            }
+                        }
+                        return mtd;
+                    }
+                    Logger.debug("METHOD DEF INFO NOT FOUND!");
+                } else {
+                    Logger.debug((cls == null ?
+                            "CLASS OF TYPE " + type + " NOT FOUND!" :
+                            "CLASS HAS NO SUCH METHOD!"));
+                }
+            } else { // has an undefined callee
+                Logger.debug("UNDEFINED CALLEE.");
+                //
+                // TODO: use a global retType for visiting expressions
+                //
+            }
+            return null;
+        }
+        /**
+         * Find and return matching method-definition-info.
+         * Returns null if not found.
+         */
+
+
+
+        /*****************************************************
+         行列式表达式（返回对象
+         *****************************************************/
+
+        /**
+         * Check to see if the given expression is USABLE.
+         * An expression is usable if we are required to add it to the USE-list.
+         * Any expression who is DEFINABLE should be added to the USE-list.
+         * An expression is definable, if it holds a value which can be modified in the program.
+         * For example, Class names and Class types are not definable.
+         * Method invocations are not definable.
+         * Literals are also not definable.
+         */
+        private boolean isUsableExpression(String expr) {
+            // must not be a literal or of type 'class'.
+            if (expr.startsWith("$"))
+                return false;
+            // must not be a method-call or parenthesized expression
+            if (expr.endsWith(")"))
+                return false;
+            // must not be an array-indexing expression
+            if (expr.endsWith("]"))
+                return false;
+            // must not be post unary operation expression
+            if (expr.endsWith("++") || expr.endsWith("--"))
+                return false;
+            // must not be a pre unary operation expression
+            if (expr.startsWith("+") || expr.startsWith("-") || expr.startsWith("!") || expr.startsWith("~"))
+                return false;
+            // must not be an array initialization expression
+            if (expr.endsWith("}"))
+                return false;
+            // must not be an explicit generic invocation expression
+            if (expr.startsWith("<"))
+                return false;
+            //
+            return true;
+        }
+        /**
+         * Get the original program text for the given parser-rule context.
+         * This is required for preserving whitespaces.
+         */
+        private String getOriginalCodeText(ParserRuleContext ctx) {
+            int start = ctx.start.getStartIndex();
+            int stop = ctx.stop.getStopIndex();
+            Interval interval = new Interval(start, stop);
+            return ctx.start.getInputStream().getText(interval);
+        }
     }
+
+
 
     /**
      * A simple structure to store DEF information about a Cpp Function.
