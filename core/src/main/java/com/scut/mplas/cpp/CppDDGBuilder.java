@@ -11,6 +11,8 @@ import com.scut.mplas.graphs.cfg.ControlFlowGraph;
 import com.scut.mplas.graphs.pdg.DDEdge;
 import com.scut.mplas.graphs.pdg.DataDependenceGraph;
 import com.scut.mplas.graphs.pdg.PDNode;
+import com.scut.mplas.java.JavaField;
+
 import ghaffarian.graphs.*;
 import java.io.File;
 import java.io.FileInputStream;
@@ -513,9 +515,143 @@ public class CppDDGBuilder {
         /**
          * Find and return matching method-definition-info.
          * Returns null if not found.
+
          */
+        private MethodDefInfo findDefInfo(String name, String type, JavaField[] params) {
+            List<MethodDefInfo> infoList = methodDEFs.get(name);
+            if (infoList.size() > 1) {
+                forEachInfo:
+                for (MethodDefInfo info: infoList) {
+                    if (!info.CLASS_NAME.equals(activeClasses.peek().NAME))
+                        continue;
+                    if ((info.RET_TYPE == null && type != null) ||
+                            (info.RET_TYPE != null && type == null))
+                        continue;
+                    if (type != null && !type.startsWith(info.RET_TYPE))
+                        continue;
+                    if (info.PARAM_TYPES != null) {
+                        if (info.PARAM_TYPES.length != params.length)
+                            continue;
+                        for (int i = 0; i < params.length; ++i)
+                            if (!params[i].TYPE.startsWith(info.PARAM_TYPES[i]))
+                                continue forEachInfo;
+                    } else if (params.length > 0)
+                        continue;
+                    return info;
+                }
+            } else
+            if (infoList.size() == 1)
+                return infoList.get(0);
+            return null;
+        }
 
-
+        /**************************************
+         ***          DECLARATIONS          ***
+         **************************************/
+        @Override
+        public String visitClassHead(CppParser.ClassHeadContext ctx)
+//        classHead:
+//        classKey attributeSpecifierSeq? (
+//        classHeadName classVirtSpecifier?
+//                )? baseClause?
+//                | Union attributeSpecifierSeq? (
+//        classHeadName classVirtSpecifier?
+//                )?;
+        { return visitChildren(ctx); }
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public String visitLambdaDeclarator(CppParser.LambdaDeclaratorContext ctx) { return visitChildren(ctx); }
+//        lambdaDeclarator:
+//        LeftParen parameterDeclarationClause? RightParen Mutable? exceptionSpecification?
+//        attributeSpecifierSeq? trailingReturnType?;
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override public String visitTemplateDeclaration(CppParser.TemplateDeclarationContext ctx) { return visitChildren(ctx); }
+//        templateDeclaration:
+//        Template Less templateparameterList Greater declaration;
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override public String visitAliasDeclaration(CppParser.AliasDeclarationContext ctx)
+//        aliasDeclaration:
+//        Using Identifier attributeSpecifierSeq? Assign theTypeId Semi;
+        { return visitChildren(ctx); }
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         */
+        @Override public String visitEnumeratorDefinition(CppParser.EnumeratorDefinitionContext ctx) { return visitChildren(ctx); }
+//
+//        enumeratorDefinition: enumerator (Assign constantExpression)?;
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override public String visitNamespaceDefinition(CppParser.NamespaceDefinitionContext ctx) { return visitChildren(ctx); }
+//        namespaceDefinition:
+//        Inline? Namespace (Identifier | originalNamespaceName)? LeftBrace namespaceBody = declarationseq
+//                ? RightBrace;
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override public String visitFunctionDefinition(CppParser.FunctionDefinitionContext ctx) { return visitChildren(ctx); }
+//        functionDefinition:
+//        attributeSpecifierSeq? declSpecifierSeq? declarator virtualSpecifierSeq? functionBody;
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override public String visitNamespaceAliasDefinition(CppParser.NamespaceAliasDefinitionContext ctx) { return visitChildren(ctx); }
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+//        namespaceAliasDefinition:
+//        Namespace Identifier Assign qualifiednamespacespecifier Semi;
+        @Override public String visitParameterDeclarationClause(CppParser.ParameterDeclarationClauseContext ctx) { return visitChildren(ctx); }
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+//        parameterDeclaration:
+//        attributeSpecifierSeq? declSpecifierSeq (
+//		(declarator | abstractDeclarator?) (
+//        Assign initializerClause
+//		)?
+//                );
+        @Override public String visitOpaqueEnumDeclaration(CppParser.OpaqueEnumDeclarationContext ctx) { return visitChildren(ctx); }
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+//        opaqueEnumDeclaration:
+//        enumkey attributeSpecifierSeq? Identifier enumbase? Semi;
 
         /*****************************************************
          行列式表达式（返回对象
