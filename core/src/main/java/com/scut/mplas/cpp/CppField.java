@@ -12,7 +12,7 @@ public class CppField {
     {
         NAME=name;
         TYPE=type;
-        SPECIFIER=specifier;
+        SPECIFIER=specifier==null?"":specifier;
     }
 
     @Override
