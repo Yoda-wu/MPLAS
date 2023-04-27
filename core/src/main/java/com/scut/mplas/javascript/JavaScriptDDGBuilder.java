@@ -42,7 +42,7 @@ public class JavaScriptDDGBuilder {
     private static Map<String, List<MethodDefInfo>> methodDEFs;
 
     public static DataDependenceGraph[] buildForAll(File[] files) throws IOException {
-        // Parse all Java source files
+        // Parse all JavaScript source files
         Logger.info("Parsing all source files ... ");
         ParseTree[] parseTrees = new ParseTree[files.length];
         for (int i = 0; i < files.length; ++i) {
@@ -137,11 +137,12 @@ public class JavaScriptDDGBuilder {
     /**
      * Analyze method DEF information for imported libraries.
      */
+    //TODO
     private static void analyzeImportsDEF(List<JavaScriptClass[]> filesClasses) throws IOException {
         // Extract the import strings
         Logger.info("\nExtracting & Parsing imports ... ");
         Set<String> rawImports = new LinkedHashSet<>();
-        rawImports.add("java.lang.*");
+//        rawImports.add("java.lang.*");
         for (JavaScriptClass[] classes: filesClasses)
             for (JavaScriptClass cls: classes)
                 for (String qualifiedName: cls.IMPORTS)
@@ -655,6 +656,477 @@ public class JavaScriptDDGBuilder {
          ***          DECLARATIONS          ***
          **************************************
          **************************************/
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override public String visitClassDeclaration(JavaScriptParser.ClassDeclarationContext ctx) { return visitChildren(ctx); }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override public String visitClassTail(JavaScriptParser.ClassTailContext ctx) { return visitChildren(ctx); }
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override public String visitClassElement(JavaScriptParser.ClassElementContext ctx) { return visitChildren(ctx); }
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override public String visitMethodDefinition(JavaScriptParser.MethodDefinitionContext ctx) { return visitChildren(ctx); }
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override public String visitFormalParameterList(JavaScriptParser.FormalParameterListContext ctx) { return visitChildren(ctx); }
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override public String visitFormalParameterArg(JavaScriptParser.FormalParameterArgContext ctx) { return visitChildren(ctx); }
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override public String visitLastFormalParameterArg(JavaScriptParser.LastFormalParameterArgContext ctx) { return visitChildren(ctx); }
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override public String visitFunctionBody(JavaScriptParser.FunctionBodyContext ctx) { return visitChildren(ctx); }
+
+
+        /************************************
+         ************************************
+         ***          STATEMENTS          ***
+         ************************************
+         ************************************/
+
+
+        @Override public String visitExpressionStatement(JavaScriptParser.ExpressionStatementContext ctx) {
+            //expressionStatement
+            //    : {this.notOpenBraceAndNotFunction()}? expressionSequence eos
+            //    ;
+            if (analysisVisit)
+                return visit(ctx.expressionSequence());
+            //
+            PDNode expr;
+            if (iteration == 1) {
+                expr = new PDNode();
+                expr.setLineOfCode(ctx.getStart().getLine());
+                expr.setCode(getOriginalCodeText(ctx));
+                ddg.addVertex(expr);
+                pdNodes.put(ctx, expr);
+            } else
+                expr = (PDNode) pdNodes.get(ctx);
+            //
+            // Now analyse DEF-USE by visiting the expression ...
+            analyseDefUse(expr, ctx.expressionSequence());
+            return null;
+        }
+
+        @Override public String visitIfStatement(JavaScriptParser.IfStatementContext ctx) {
+            //
+//            ifStatement
+//            : If '(' expressionSequence ')' statement (Else statement)?
+//            ;
+            PDNode ifNode;
+            if (iteration == 1) {
+                ifNode = new PDNode();
+                ifNode.setLineOfCode(ctx.getStart().getLine());
+                ifNode.setCode("if " + getOriginalCodeText(ctx.expressionSequence()));
+                ddg.addVertex(ifNode);
+                pdNodes.put(ctx, ifNode);
+            } else
+                ifNode = (PDNode) pdNodes.get(ctx);
+            //
+            for (JavaScriptParser.SingleExpressionContext expressionContext : ctx.expressionSequence().singleExpression()) {
+                // Now analyse DEF-USE by visiting the expression ...
+                analyseDefUse(ifNode, expressionContext);
+            }
+            //
+            for (JavaScriptParser.StatementContext stmnt: ctx.statement())
+                visit(stmnt);
+            return null;
+        }
+
+        @Override public String visitDoStatement(JavaScriptParser.DoStatementContext ctx) {
+            //     : Do statement While '(' expressionSequence ')' eos                                                                       # DoStatement
+            visit(ctx.statement());
+            //
+            PDNode whileNode;
+            if (iteration == 1) {
+                whileNode = new PDNode();
+                whileNode.setLineOfCode(ctx.expressionSequence().getStart().getLine());
+                whileNode.setCode("while " + getOriginalCodeText(ctx.expressionSequence()));
+                ddg.addVertex(whileNode);
+                pdNodes.put(ctx, whileNode);
+            } else
+                whileNode = (PDNode) pdNodes.get(ctx);
+            //
+            // Now analyse DEF-USE by visiting the expression ...
+            analyseDefUse(whileNode, ctx.expressionSequence());
+            return null;
+        }
+
+        @Override public String visitWhileStatement(JavaScriptParser.WhileStatementContext ctx) {
+            //     | While '(' expressionSequence ')' statement                                                                              # WhileStatement
+            PDNode whileNode;
+            if (iteration == 1) {
+                whileNode = new PDNode();
+                whileNode.setLineOfCode(ctx.getStart().getLine());
+                whileNode.setCode("while " + getOriginalCodeText(ctx.expressionSequence()));
+                ddg.addVertex(whileNode);
+                pdNodes.put(ctx, whileNode);
+            } else
+                whileNode = (PDNode) pdNodes.get(ctx);
+            //
+            // Now analyse DEF-USE by visiting the expression ...
+            for (JavaScriptParser.SingleExpressionContext singleExpression : ctx.expressionSequence().singleExpression()) {
+                analyseDefUse(whileNode, singleExpression);
+            }
+            //
+            return visit(ctx.statement());
+        }
+
+        @Override public String visitForStatement(JavaScriptParser.ForStatementContext ctx) {
+            //     | For '(' (expressionSequence | variableDeclarationList)? ';' expressionSequence? ';' expressionSequence? ')' statement   # ForStatement
+            int entrySize = localVars.size();
+            //  First, we should check type of for-loop ...
+            // It's a traditional for-loop:
+            int index=0;
+            if(ctx.expressionSequence().size()==3){
+                ++index;
+                PDNode forInit;
+                if (iteration == 1) {
+                    forInit = new PDNode();
+                    forInit.setLineOfCode(ctx.expressionSequence(0).getStart().getLine());
+                    forInit.setCode(getOriginalCodeText(ctx.expressionSequence(0)));
+                    ddg.addVertex(forInit);
+                    pdNodes.put(ctx.expressionSequence(0), forInit);
+                } else
+                    forInit = (PDNode) pdNodes.get(ctx.expressionSequence(0));
+                //
+                // Now analyse DEF-USE by visiting the expression ...
+                if (ctx.variableDeclarationList()!= null)
+                    analyseDefUse(forInit, ctx.variableDeclarationList());
+            }else{
+                //variableDeclarationList不为空或为空
+                if (ctx.variableDeclarationList()!=null){
+                    PDNode forInit;
+                    if (iteration == 1) {
+                        forInit = new PDNode();
+                        forInit.setLineOfCode(ctx.variableDeclarationList().getStart().getLine());
+                        forInit.setCode(getOriginalCodeText(ctx.variableDeclarationList()));
+                        ddg.addVertex(forInit);
+                        pdNodes.put(ctx.variableDeclarationList(), forInit);
+                    } else
+                        forInit = (PDNode) pdNodes.get(ctx.variableDeclarationList());
+                    //
+                    // Now analyse DEF-USE by visiting the expression ...
+                    if (ctx.variableDeclarationList()!= null)
+                        analyseDefUse(forInit, ctx.variableDeclarationList());
+                }
+            }
+            // for-expression
+            if (ctx.expressionSequence(index) != null) { // non-empty predicate-expression
+                PDNode forExpr;
+                if (iteration == 1) {
+                    forExpr = new PDNode();
+                    forExpr.setLineOfCode(ctx.expressionSequence(index).getStart().getLine());
+                    forExpr.setCode("for (" + getOriginalCodeText(ctx.expressionSequence(index)) + ")");
+                    ddg.addVertex(forExpr);
+                    pdNodes.put(ctx.expressionSequence(index), forExpr);
+                } else
+                    forExpr = (PDNode) pdNodes.get(ctx.expressionSequence(index));
+                //
+                // Now analyse DEF-USE by visiting the expression ...
+                analyseDefUse(forExpr, ctx.expressionSequence(index));
+            }
+            // for-update
+            if (ctx.expressionSequence(index+1) != null) { // non-empty for-update
+                PDNode forUpdate;
+                if (iteration == 1) {
+                    forUpdate = new PDNode();
+                    forUpdate.setCode(getOriginalCodeText(ctx.expressionSequence(index+1)));
+                    forUpdate.setLineOfCode(ctx.expressionSequence(index+1).getStart().getLine());
+                    ddg.addVertex(forUpdate);
+                    pdNodes.put(ctx.expressionSequence(index+1), forUpdate);
+                } else
+                    forUpdate = (PDNode) pdNodes.get(ctx.expressionSequence(index+1));
+                //
+                // Now analyse DEF-USE by visiting the expression ...
+                analyseDefUse(forUpdate, ctx.expressionSequence(index+1));
+            }
+            // visit for loop body
+            String visit = visit(ctx.statement());
+            // clear any local vars defined in the for loop
+            if (localVars.size() > entrySize)
+                localVars.subList(entrySize, localVars.size()).clear();
+            return visit;
+        }
+
+        @Override public String visitForInStatement(JavaScriptParser.ForInStatementContext ctx) {
+            //    | For '(' (singleExpression | variableDeclarationList) In expressionSequence ')' statement                                # ForInStatement
+            int entrySize = localVars.size();
+            PDNode forExpr;
+            if (iteration == 1) {
+                forExpr = new PDNode();
+                forExpr.setLineOfCode(ctx.getStart().getLine());
+                forExpr.setCode("for (" + getOriginalCodeText(ctx) + ")");
+                ddg.addVertex(forExpr);
+                pdNodes.put(ctx, forExpr);
+            } else
+                forExpr = (PDNode) pdNodes.get(ctx);
+            //
+            // Now analyse DEF-USE by visiting the expression ...
+            String type = null;
+            String var=null;
+            if (ctx.singleExpression()!=null){
+                var=getOriginalCodeText(ctx.singleExpression());
+            }else if(ctx.variableDeclarationList()!=null){
+                var=getOriginalCodeText(ctx.variableDeclarationList());
+            }
+            localVars.add(new JavaScriptField(null, false, type, var));
+            changed |= forExpr.addDEF(var);
+            analyseDefUse(forExpr, ctx);
+            // visit for loop body
+            String visit = visit(ctx.statement());
+            // clear any local vars defined in the for loop
+            if (localVars.size() > entrySize)
+                localVars.subList(entrySize, localVars.size()).clear();
+            return visit;
+        }
+
+        @Override public String visitContinueStatement(JavaScriptParser.ContinueStatementContext ctx) {
+            //continueStatement
+            //    : Continue ({this.notLineTerminator()}? identifier)? eos
+            //    ;
+            PDNode ret;
+            if (iteration == 1) {
+                ret = new PDNode();
+                ret.setLineOfCode(ctx.getStart().getLine());
+                ret.setCode(getOriginalCodeText(ctx));
+                ddg.addVertex(ret);
+                pdNodes.put(ctx, ret);
+            } else
+                ret = (PDNode) pdNodes.get(ctx);
+            //
+            // Now analyse DEF-USE by visiting the expression ...
+            if (ctx.identifier() != null)
+                analyseDefUse(ret, ctx.identifier());
+            return null;
+        }
+
+        @Override public String visitBreakStatement(JavaScriptParser.BreakStatementContext ctx) {
+            //breakStatement
+            //    : Break ({this.notLineTerminator()}? identifier)? eos
+            //    ;
+            PDNode ret;
+            if (iteration == 1) {
+                ret = new PDNode();
+                ret.setLineOfCode(ctx.getStart().getLine());
+                ret.setCode(getOriginalCodeText(ctx));
+                ddg.addVertex(ret);
+                pdNodes.put(ctx, ret);
+            } else
+                ret = (PDNode) pdNodes.get(ctx);
+            //
+            // Now analyse DEF-USE by visiting the expression ...
+            if (ctx.identifier() != null)
+                analyseDefUse(ret, ctx.identifier());
+            return null;
+        }
+
+        @Override public String visitReturnStatement(JavaScriptParser.ReturnStatementContext ctx) {
+            //returnStatement
+            //    : Return ({this.notLineTerminator()}? expressionSequence)? eos
+            //    ;
+            PDNode ret;
+            if (iteration == 1) {
+                ret = new PDNode();
+                ret.setLineOfCode(ctx.getStart().getLine());
+                ret.setCode(getOriginalCodeText(ctx));
+                ddg.addVertex(ret);
+                pdNodes.put(ctx, ret);
+            } else
+                ret = (PDNode) pdNodes.get(ctx);
+            //
+            // Now analyse DEF-USE by visiting the expression ...
+            if (ctx.expressionSequence() != null)
+                analyseDefUse(ret, ctx.expressionSequence());
+            return null;
+        }
+
+        @Override public String visitYieldStatement(JavaScriptParser.YieldStatementContext ctx) {
+           //yieldStatement
+            //    : Yield ({this.notLineTerminator()}? expressionSequence)? eos
+            //    ;
+            PDNode ret;
+            if (iteration == 1) {
+                ret = new PDNode();
+                ret.setLineOfCode(ctx.getStart().getLine());
+                ret.setCode(getOriginalCodeText(ctx));
+                ddg.addVertex(ret);
+                pdNodes.put(ctx, ret);
+            } else
+                ret = (PDNode) pdNodes.get(ctx);
+            //
+            // Now analyse DEF-USE by visiting the expression ...
+            if (ctx.expressionSequence() != null)
+                analyseDefUse(ret, ctx.expressionSequence());
+            return null;
+        }
+
+        @Override public String visitWithStatement(JavaScriptParser.WithStatementContext ctx) {
+            //withStatement
+            //    : With '(' expressionSequence ')' statement
+            //    ;
+            PDNode ret;
+            if (iteration == 1) {
+                ret = new PDNode();
+                ret.setLineOfCode(ctx.getStart().getLine());
+                ret.setCode(getOriginalCodeText(ctx));
+                ddg.addVertex(ret);
+                pdNodes.put(ctx, ret);
+            } else
+                ret = (PDNode) pdNodes.get(ctx);
+            //
+            // Now analyse DEF-USE by visiting the expression ...
+            if (ctx.expressionSequence() != null)
+                analyseDefUse(ret, ctx.expressionSequence());
+            return null;
+        }
+
+        @Override public String visitSwitchStatement(JavaScriptParser.SwitchStatementContext ctx) {
+            //  switchStatement
+            //    : Switch '(' expressionSequence ')' caseBlock
+            //    ;
+            // caseBlock
+            //    : '{' caseClauses? (defaultClause caseClauses?)? '}'
+            //    ;
+            //
+            //caseClauses
+            //    : caseClause+
+            //    ;
+            //
+            //caseClause
+            //    : Case expressionSequence ':' statementList?
+            //    ;
+            //
+            //defaultClause
+            //    : Defa
+            PDNode switchNode;
+            if (iteration == 1) {
+                switchNode = new PDNode();
+                switchNode.setLineOfCode(ctx.getStart().getLine());
+                switchNode.setCode("switch " + getOriginalCodeText(ctx.expressionSequence()));
+                ddg.addVertex(switchNode);
+                pdNodes.put(ctx, switchNode);
+            } else
+                switchNode = (PDNode) pdNodes.get(ctx);
+            //
+            // Now analyse DEF-USE by visiting the expression ...
+            analyseDefUse(switchNode, ctx.expressionSequence());
+            //
+            for (JavaScriptParser.CaseClausesContext caseClause : ctx.caseBlock().caseClauses()) {
+                for (JavaScriptParser.CaseClauseContext caseContext : caseClause.caseClause()) {
+                    visit(caseContext);
+                }
+            }
+            if (ctx.caseBlock().defaultClause()!=null){
+                visit(ctx.caseBlock().defaultClause());
+            }
+            return null;
+        }
+
+
+        @Override public String visitThrowStatement(JavaScriptParser.ThrowStatementContext ctx) {
+            //     : Throw {this.notLineTerminator()}? expressionSequence eos
+            PDNode throwNode;
+            if (iteration == 1) {
+                throwNode = new PDNode();
+                throwNode.setLineOfCode(ctx.getStart().getLine());
+                throwNode.setCode("throw " + getOriginalCodeText(ctx.expressionSequence()));
+                ddg.addVertex(throwNode);
+                pdNodes.put(ctx, throwNode);
+            } else
+                throwNode = (PDNode) pdNodes.get(ctx);
+            //
+            // Now analyse DEF-USE by visiting the expression ...
+            analyseDefUse(throwNode, ctx.expressionSequence());
+            return null;
+        }
+
+        @Override public String visitTryStatement(JavaScriptParser.TryStatementContext ctx) {
+            //tryStatement
+            //    : Try block (catchProduction finallyProduction? | finallyProduction)
+            //    ;
+            // The 'try' block has no DEF-USE effect, so no need for PDNodes;
+            // just visit the 'block'
+            visit(ctx.block());
+            //
+            // But the 'catchClause' define a local exception variable;
+            // so we need to visit any available catch clauses
+            if (ctx.catchProduction() != null ) {
+                //catchProduction
+                //    : Catch ('(' assignable? ')')? block
+                JavaScriptParser.CatchProductionContext cx = ctx.catchProduction();
+                PDNode catchNode;
+                if (iteration == 1) {
+                    catchNode = new PDNode();
+                    catchNode.setLineOfCode(cx.getStart().getLine());
+                    catchNode.setCode("catch (" + getOriginalCodeText(cx.assignable()) +  ")");
+                    ddg.addVertex(catchNode);
+                    pdNodes.put(cx, catchNode);
+                } else
+                    catchNode = (PDNode) pdNodes.get(cx);
+                //
+                // Define the exception var
+                String type = getOriginalCodeText(cx);
+                String var = getOriginalCodeText(cx.assignable());
+                JavaScriptField exceptionVar = new JavaScriptField(null, false, type, var);
+                localVars.add(exceptionVar);
+                changed |= catchNode.addDEF(var);
+                //
+                visit(cx.block());
+                localVars.remove(exceptionVar);
+            }
+            if (ctx.finallyProduction() != null)
+                // 'finally' block
+                visit(ctx.finallyProduction().block());
+
+            return null;
+        }
+
+
+
+        /***********************************************
+         ***********************************************
+         ***       NON-DETERMINANT EXPRESSIONS       ***
+         ***********************************************
+         ***********************************************/
+
 
 
         /**
