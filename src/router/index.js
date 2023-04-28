@@ -12,33 +12,62 @@ const routes = [
   },*/
   {
     path: '/',
-    redirect: '/input',
+    redirect: '/upload',
   },
-  {
+  /* {
     path: '/input',
     name: 'input',
-    component: () => import('../views/inputView.vue')
-  },
+    component: () => import('../views/inputView.vue'),
+    children:[
+      {
+        path: '/ast',
+        name: 'ast',
+        component: () => import('../views/result/astView.vue')
+      },
+      {
+        path: '/cfg',
+        name: 'cfg',
+        component: () => import('../views/result/cfgView.vue')
+      },
+      {
+        path: '/ddg',
+        name: 'ddg',
+        component: () => import('../views/result/ddgView.vue')
+      },
+      {
+        path: '/pdg',
+        name: 'pdg',
+        component: () => import('../views/result/pdgView.vue')
+      }
+    ],
+  }, */
   {
-    path: '/ast',
-    name: 'ast',
-    component: () => import('../views/result/astView.vue')
+    path: '/upload',
+    name: 'upload',
+    component: () => import('../views/test/uploadView.vue'),
+    children:[
+      {
+        path: '/ast',
+        name: 'ast',
+        component: () => import('../views/result/astView.vue')
+      },
+      {
+        path: '/cfg',
+        name: 'cfg',
+        component: () => import('../views/result/cfgView.vue')
+      },
+      {
+        path: '/ddg',
+        name: 'ddg',
+        component: () => import('../views/result/ddgView.vue')
+      },
+      {
+        path: '/pdg',
+        name: 'pdg',
+        component: () => import('../views/result/pdgView.vue')
+      }
+    ],
   },
-  {
-    path: '/cfg',
-    name: 'cfg',
-    component: () => import('../views/result/cfgView.vue')
-  },
-  {
-    path: '/ddg',
-    name: 'ddg',
-    component: () => import('../views/result/ddgView.vue')
-  },
-  {
-    path: '/pdg',
-    name: 'pdg',
-    component: () => import('../views/result/pdgView.vue')
-  }
 ]
 
 const router = new VueRouter({
