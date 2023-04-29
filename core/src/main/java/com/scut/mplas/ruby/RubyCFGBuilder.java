@@ -3,9 +3,9 @@ package com.scut.mplas.ruby;
 import com.scut.mplas.graphs.cfg.CFEdge;
 import com.scut.mplas.graphs.cfg.CFNode;
 import com.scut.mplas.graphs.cfg.ControlFlowGraph;
-import com.scut.mplas.ruby.parser.RubyBaseVisitor;
-import com.scut.mplas.ruby.parser.RubyLexer;
-import com.scut.mplas.ruby.parser.RubyParser;
+import com.scut.mplas.ruby.parser.old.RubyBaseVisitor;
+import com.scut.mplas.ruby.parser.old.RubyLexer;
+import com.scut.mplas.ruby.parser.old.RubyParser;
 import ghaffarian.graphs.Edge;
 import ghaffarian.nanologger.Logger;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -18,7 +18,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Map;
+import java.util.Queue;
 
 public class RubyCFGBuilder {
 

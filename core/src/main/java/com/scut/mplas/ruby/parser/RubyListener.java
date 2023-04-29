@@ -1,4 +1,4 @@
-// Generated from D:/Application/IDEA/Project/mplas/core/src/main/java/com/scut/mplas/ruby/parser\Ruby.g4 by ANTLR 4.12.0
+// Generated from D:/school/github/mplas/core/src/main/java/com/scut/mplas/ruby/parser\Ruby.g4 by ANTLR 4.12.0
 package com.scut.mplas.ruby.parser;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -28,50 +28,205 @@ public interface RubyListener extends ParseTreeListener {
 	 */
 	void exitExpression_list(RubyParser.Expression_listContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link RubyParser#expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterExpression(RubyParser.ExpressionContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitExpression(RubyParser.ExpressionContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RubyParser#global_get}.
-	 * @param ctx the parse tree
-	 */
-	void enterGlobal_get(RubyParser.Global_getContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#global_get}.
-	 * @param ctx the parse tree
-	 */
-	void exitGlobal_get(RubyParser.Global_getContext ctx);
-	/**
+     * Enter a parse tree produced by {@link RubyParser#expression}.
+     * @param ctx the parse tree
+     */
+    void enterExpression(RubyParser.ExpressionContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#expression}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitExpression(RubyParser.ExpressionContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#begin_expression}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterBegin_expression(RubyParser.Begin_expressionContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#begin_expression}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitBegin_expression(RubyParser.Begin_expressionContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#end_expression}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterEnd_expression(RubyParser.End_expressionContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#end_expression}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitEnd_expression(RubyParser.End_expressionContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#begin_rescue_expression}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterBegin_rescue_expression(RubyParser.Begin_rescue_expressionContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#begin_rescue_expression}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitBegin_rescue_expression(RubyParser.Begin_rescue_expressionContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#error_type}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterError_type(RubyParser.Error_typeContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#error_type}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitError_type(RubyParser.Error_typeContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#rescue_expression}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterRescue_expression(RubyParser.Rescue_expressionContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#rescue_expression}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitRescue_expression(RubyParser.Rescue_expressionContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#ensure_expression}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterEnsure_expression(RubyParser.Ensure_expressionContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#ensure_expression}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitEnsure_expression(RubyParser.Ensure_expressionContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#global_get}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterGlobal_get(RubyParser.Global_getContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#global_get}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitGlobal_get(RubyParser.Global_getContext ctx);
+
+    /**
 	 * Enter a parse tree produced by {@link RubyParser#global_set}.
 	 * @param ctx the parse tree
-	 */
-	void enterGlobal_set(RubyParser.Global_setContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#global_set}.
-	 * @param ctx the parse tree
-	 */
-	void exitGlobal_set(RubyParser.Global_setContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RubyParser#global_result}.
-	 * @param ctx the parse tree
-	 */
-	void enterGlobal_result(RubyParser.Global_resultContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#global_result}.
-	 * @param ctx the parse tree
-	 */
-	void exitGlobal_result(RubyParser.Global_resultContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RubyParser#function_inline_call}.
-	 * @param ctx the parse tree
-	 */
-	void enterFunction_inline_call(RubyParser.Function_inline_callContext ctx);
+     */
+    void enterGlobal_set(RubyParser.Global_setContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#global_set}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitGlobal_set(RubyParser.Global_setContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#global_result}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterGlobal_result(RubyParser.Global_resultContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#global_result}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitGlobal_result(RubyParser.Global_resultContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#instance_get}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterInstance_get(RubyParser.Instance_getContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#instance_get}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitInstance_get(RubyParser.Instance_getContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#instance_set}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterInstance_set(RubyParser.Instance_setContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#instance_set}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitInstance_set(RubyParser.Instance_setContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#instance_result}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterInstance_result(RubyParser.Instance_resultContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#instance_result}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitInstance_result(RubyParser.Instance_resultContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#const_set}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterConst_set(RubyParser.Const_setContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#const_set}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitConst_set(RubyParser.Const_setContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#function_inline_call}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterFunction_inline_call(RubyParser.Function_inline_callContext ctx);
 	/**
 	 * Exit a parse tree produced by {@link RubyParser#function_inline_call}.
 	 * @param ctx the parse tree
@@ -84,29 +239,65 @@ public interface RubyListener extends ParseTreeListener {
 	void enterRequire_block(RubyParser.Require_blockContext ctx);
 	/**
 	 * Exit a parse tree produced by {@link RubyParser#require_block}.
-	 * @param ctx the parse tree
-	 */
-	void exitRequire_block(RubyParser.Require_blockContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RubyParser#pir_inline}.
-	 * @param ctx the parse tree
-	 */
-	void enterPir_inline(RubyParser.Pir_inlineContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#pir_inline}.
-	 * @param ctx the parse tree
-	 */
-	void exitPir_inline(RubyParser.Pir_inlineContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RubyParser#pir_expression_list}.
-	 * @param ctx the parse tree
-	 */
-	void enterPir_expression_list(RubyParser.Pir_expression_listContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#pir_expression_list}.
-	 * @param ctx the parse tree
-	 */
-	void exitPir_expression_list(RubyParser.Pir_expression_listContext ctx);
+     * @param ctx the parse tree
+     */
+    void exitRequire_block(RubyParser.Require_blockContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#pir_inline}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterPir_inline(RubyParser.Pir_inlineContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#pir_inline}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitPir_inline(RubyParser.Pir_inlineContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#pir_expression_list}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterPir_expression_list(RubyParser.Pir_expression_listContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#pir_expression_list}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitPir_expression_list(RubyParser.Pir_expression_listContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#class_definition}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterClass_definition(RubyParser.Class_definitionContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#class_definition}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitClass_definition(RubyParser.Class_definitionContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#module_definition}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterModule_definition(RubyParser.Module_definitionContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#module_definition}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitModule_definition(RubyParser.Module_definitionContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link RubyParser#function_definition}.
 	 * @param ctx the parse tree
@@ -302,91 +493,102 @@ public interface RubyListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void enterUnless_statement(RubyParser.Unless_statementContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#unless_statement}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitUnless_statement(RubyParser.Unless_statementContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#while_statement}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterWhile_statement(RubyParser.While_statementContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#while_statement}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitWhile_statement(RubyParser.While_statementContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#all_assignment}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterAll_assignment(RubyParser.All_assignmentContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#all_assignment}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitAll_assignment(RubyParser.All_assignmentContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#for_statement}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterFor_statement(RubyParser.For_statementContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#for_statement}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitFor_statement(RubyParser.For_statementContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link RubyParser#unless_statement}.
+	 * Enter a parse tree produced by {@link RubyParser#for_each_statement}.
 	 * @param ctx the parse tree
 	 */
-	void exitUnless_statement(RubyParser.Unless_statementContext ctx);
+	void enterFor_each_statement(RubyParser.For_each_statementContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link RubyParser#while_statement}.
-	 * @param ctx the parse tree
-	 */
-	void enterWhile_statement(RubyParser.While_statementContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#while_statement}.
-	 * @param ctx the parse tree
-	 */
-	void exitWhile_statement(RubyParser.While_statementContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RubyParser#for_statement}.
-	 * @param ctx the parse tree
-	 */
-	void enterFor_statement(RubyParser.For_statementContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#for_statement}.
-	 * @param ctx the parse tree
-	 */
-	void exitFor_statement(RubyParser.For_statementContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RubyParser#init_expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterInit_expression(RubyParser.Init_expressionContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#init_expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitInit_expression(RubyParser.Init_expressionContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RubyParser#all_assignment}.
-	 * @param ctx the parse tree
-	 */
-	void enterAll_assignment(RubyParser.All_assignmentContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#all_assignment}.
-	 * @param ctx the parse tree
-	 */
-	void exitAll_assignment(RubyParser.All_assignmentContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RubyParser#for_init_list}.
-	 * @param ctx the parse tree
-	 */
-	void enterFor_init_list(RubyParser.For_init_listContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#for_init_list}.
-	 * @param ctx the parse tree
-	 */
-	void exitFor_init_list(RubyParser.For_init_listContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RubyParser#cond_expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterCond_expression(RubyParser.Cond_expressionContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#cond_expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitCond_expression(RubyParser.Cond_expressionContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RubyParser#loop_expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterLoop_expression(RubyParser.Loop_expressionContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#loop_expression}.
+	 * Exit a parse tree produced by {@link RubyParser#for_each_statement}.
+     * @param ctx the parse tree
+     */
+    void exitFor_each_statement(RubyParser.For_each_statementContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#cond_expression}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterCond_expression(RubyParser.Cond_expressionContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#cond_expression}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitCond_expression(RubyParser.Cond_expressionContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#loop_expression}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterLoop_expression(RubyParser.Loop_expressionContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#loop_expression}.
 	 * @param ctx the parse tree
 	 */
 	void exitLoop_expression(RubyParser.Loop_expressionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link RubyParser#for_loop_list}.
+	 * Enter a parse tree produced by {@link RubyParser#hash_expression}.
 	 * @param ctx the parse tree
 	 */
-	void enterFor_loop_list(RubyParser.For_loop_listContext ctx);
+	void enterHash_expression(RubyParser.Hash_expressionContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link RubyParser#for_loop_list}.
+	 * Exit a parse tree produced by {@link RubyParser#hash_expression}.
 	 * @param ctx the parse tree
 	 */
-	void exitFor_loop_list(RubyParser.For_loop_listContext ctx);
+	void exitHash_expression(RubyParser.Hash_expressionContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link RubyParser#statement_body}.
 	 * @param ctx the parse tree
@@ -489,34 +691,53 @@ public interface RubyListener extends ParseTreeListener {
 	void exitArray_definition(RubyParser.Array_definitionContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link RubyParser#array_definition_elements}.
-	 * @param ctx the parse tree
-	 */
-	void enterArray_definition_elements(RubyParser.Array_definition_elementsContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#array_definition_elements}.
-	 * @param ctx the parse tree
-	 */
-	void exitArray_definition_elements(RubyParser.Array_definition_elementsContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RubyParser#array_selector}.
-	 * @param ctx the parse tree
-	 */
-	void enterArray_selector(RubyParser.Array_selectorContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#array_selector}.
-	 * @param ctx the parse tree
-	 */
-	void exitArray_selector(RubyParser.Array_selectorContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RubyParser#dynamic_result}.
-	 * @param ctx the parse tree
-	 */
-	void enterDynamic_result(RubyParser.Dynamic_resultContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#dynamic_result}.
-	 * @param ctx the parse tree
+     * @param ctx the parse tree
+     */
+    void enterArray_definition_elements(RubyParser.Array_definition_elementsContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#array_definition_elements}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitArray_definition_elements(RubyParser.Array_definition_elementsContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#array_selector}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterArray_selector(RubyParser.Array_selectorContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#array_selector}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitArray_selector(RubyParser.Array_selectorContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#dynamic_result}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterDynamic_result(RubyParser.Dynamic_resultContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#dynamic_result}.
+     * @param ctx the parse tree
 	 */
 	void exitDynamic_result(RubyParser.Dynamic_resultContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link RubyParser#map_result}.
+	 * @param ctx the parse tree
+	 */
+	void enterMap_result(RubyParser.Map_resultContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link RubyParser#map_result}.
+	 * @param ctx the parse tree
+	 */
+	void exitMap_result(RubyParser.Map_resultContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link RubyParser#dynamic_}.
 	 * @param ctx the parse tree
@@ -582,41 +803,78 @@ public interface RubyListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void enterComp_var(RubyParser.Comp_varContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#comp_var}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitComp_var(RubyParser.Comp_varContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#lvalue}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterLvalue(RubyParser.LvalueContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#lvalue}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitLvalue(RubyParser.LvalueContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#rvalue}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterRvalue(RubyParser.RvalueContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#rvalue}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitRvalue(RubyParser.RvalueContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#break_expression}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterBreak_expression(RubyParser.Break_expressionContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#break_expression}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitBreak_expression(RubyParser.Break_expressionContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#raise_expression}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterRaise_expression(RubyParser.Raise_expressionContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#raise_expression}.
+     * @param ctx the parse tree
+	 */
+	void exitRaise_expression(RubyParser.Raise_expressionContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link RubyParser#comp_var}.
+	 * Enter a parse tree produced by {@link RubyParser#yield_expression}.
 	 * @param ctx the parse tree
 	 */
-	void exitComp_var(RubyParser.Comp_varContext ctx);
+	void enterYield_expression(RubyParser.Yield_expressionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link RubyParser#lvalue}.
+	 * Exit a parse tree produced by {@link RubyParser#yield_expression}.
 	 * @param ctx the parse tree
 	 */
-	void enterLvalue(RubyParser.LvalueContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#lvalue}.
-	 * @param ctx the parse tree
-	 */
-	void exitLvalue(RubyParser.LvalueContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RubyParser#rvalue}.
-	 * @param ctx the parse tree
-	 */
-	void enterRvalue(RubyParser.RvalueContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#rvalue}.
-	 * @param ctx the parse tree
-	 */
-	void exitRvalue(RubyParser.RvalueContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RubyParser#break_expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterBreak_expression(RubyParser.Break_expressionContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#break_expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitBreak_expression(RubyParser.Break_expressionContext ctx);
+	void exitYield_expression(RubyParser.Yield_expressionContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link RubyParser#literal_t}.
 	 * @param ctx the parse tree
@@ -647,46 +905,83 @@ public interface RubyListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitInt_t(RubyParser.Int_tContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#bool_t}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterBool_t(RubyParser.Bool_tContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#bool_t}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitBool_t(RubyParser.Bool_tContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#nil_t}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterNil_t(RubyParser.Nil_tContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#nil_t}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitNil_t(RubyParser.Nil_tContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#id_}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterId_(RubyParser.Id_Context ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#id_}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitId_(RubyParser.Id_Context ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#id_global}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterId_global(RubyParser.Id_globalContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#id_global}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitId_global(RubyParser.Id_globalContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#id_instance}.
+     * @param ctx the parse tree
+	 */
+	void enterId_instance(RubyParser.Id_instanceContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link RubyParser#bool_t}.
+	 * Exit a parse tree produced by {@link RubyParser#id_instance}.
 	 * @param ctx the parse tree
 	 */
-	void enterBool_t(RubyParser.Bool_tContext ctx);
+	void exitId_instance(RubyParser.Id_instanceContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link RubyParser#bool_t}.
+	 * Enter a parse tree produced by {@link RubyParser#id_constence}.
 	 * @param ctx the parse tree
 	 */
-	void exitBool_t(RubyParser.Bool_tContext ctx);
+	void enterId_constence(RubyParser.Id_constenceContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link RubyParser#nil_t}.
+	 * Exit a parse tree produced by {@link RubyParser#id_constence}.
 	 * @param ctx the parse tree
 	 */
-	void enterNil_t(RubyParser.Nil_tContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#nil_t}.
-	 * @param ctx the parse tree
-	 */
-	void exitNil_t(RubyParser.Nil_tContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RubyParser#id_}.
-	 * @param ctx the parse tree
-	 */
-	void enterId_(RubyParser.Id_Context ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#id_}.
-	 * @param ctx the parse tree
-	 */
-	void exitId_(RubyParser.Id_Context ctx);
-	/**
-	 * Enter a parse tree produced by {@link RubyParser#id_global}.
-	 * @param ctx the parse tree
-	 */
-	void enterId_global(RubyParser.Id_globalContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RubyParser#id_global}.
-	 * @param ctx the parse tree
-	 */
-	void exitId_global(RubyParser.Id_globalContext ctx);
+	void exitId_constence(RubyParser.Id_constenceContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link RubyParser#id_function}.
 	 * @param ctx the parse tree

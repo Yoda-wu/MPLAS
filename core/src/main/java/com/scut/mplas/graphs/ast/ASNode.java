@@ -165,14 +165,26 @@ public class ASNode {
         RUBY_GLOBAL_GET("GLOBAL_GET"),
         RUBY_GLOBAL_SET("GLOBAL_SET"),
         RUBY_GLOBAL_RESULT("GLOBAL_RESULT"),
+        RUBY_INSTANCE_GET("INSTANCE_GET"),
+        RUBY_INSTANCE_SET("INSTANCE_SET"),
+        RUBY_INSTANCE_RESULT("INSTANCE_RESULT"),
+        RUBY_CONST_RESULT("CONST_RESULT"),
         RUBY_RESULT("RESULT"),
         RUBY_RETRY("RETRY"),
         RUBY_ELSEIF("ELSIF"),
         RUBY_UNLESS("UNLESS"),
         RUBY_LOOP_EXPR("LOOP_EXPR"),
-        RUBY_GLOBAL_ID("GLOBAL_ID")
+        RUBY_GLOBAL_ID("GLOBAL_ID"),
 
-        ;
+        RUBY_SUPER("SUPER"),
+        RUBY_BEGIN("BEGIN"),
+        RUBY_BEGIN_RESCUE("BEGIN_RESCUE"),
+        RUBY_HASH_EXP("HASH_EXP"),
+        RUBY_RESCUE("RESCUE"),
+        RUBY_ENSURE("ENSURE"),
+        RUBY_RAISE("RAISE"),
+        RUBY_YIELD("YIELD"),
+        RUBY_MODULE("MODULE");;
         public final String label;
 
         private Type(String lbl) {

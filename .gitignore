@@ -11,3 +11,5 @@ out/
 generate/
 #忽略progex日志文件
 progex.log
+
+core/gen
