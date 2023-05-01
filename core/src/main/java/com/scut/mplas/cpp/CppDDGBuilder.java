@@ -966,27 +966,60 @@ public class CppDDGBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitStatement(CppParser.StatementContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitLabeledStatement(CppParser.LabeledStatementContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitExpressionStatement(CppParser.ExpressionStatementContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitCompoundStatement(CppParser.CompoundStatementContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitLabeledStatement(CppParser.LabeledStatementContext ctx) {
+            if(ctx.Case()!=null)
+            {
+                PDNode caseNode;
+                if(iteration==1)
+                {
+                    caseNode=new PDNode();
+                    caseNode.setLineOfCode(ctx.getStart().getLine());
+                    caseNode.setCode(getOriginalCodeText(ctx));
+                    ddg.addVertex(caseNode);
+                    pdNodes.put(ctx,caseNode);
+                }
+                else
+                    caseNode=(PDNode) pdNodes.get(ctx);
+                analyseDefUse(caseNode,ctx.constantExpression());
+            }
+            return visit(ctx.statement());
+        }
+
+        @Override public String visitExpressionStatement(CppParser.ExpressionStatementContext ctx) {
+            //expressionStatement: expression? Semi;
+            if(ctx.expression()!=null)
+            {
+                if(analysisVisit)
+                    return visit(ctx.expression());
+
+                PDNode expNode;
+                if(iteration==1)
+                {
+                    expNode=new PDNode();
+                    expNode.setLineOfCode(ctx.getStart().getLine());
+                    expNode.setCode(getOriginalCodeText(ctx));
+                    ddg.addVertex(expNode);
+                    pdNodes.put(ctx,expNode);
+                }
+                else
+                    expNode=(PDNode) pdNodes.get(ctx);
+                analyseDefUse(expNode,ctx.expression());
+            }
+            return "";
+        }
+
+        @Override public String visitCompoundStatement(CppParser.CompoundStatementContext ctx) {
+            //compoundStatement: LeftBrace statementSeq? RightBrace;
+            if(ctx.statementSeq()!=null)
+            {
+                int entrySize=localVars.size();
+                visit(ctx.statementSeq());
+                if (localVars.size() > entrySize)
+                    localVars.subList(entrySize, localVars.size()).clear();
+            }
+            return "";
+        }
         /**
          * {@inheritDoc}
          *
@@ -994,55 +1027,228 @@ public class CppDDGBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitStatementSeq(CppParser.StatementSeqContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitSelectionStatement(CppParser.SelectionStatementContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitCondition(CppParser.ConditionContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitIterationStatement(CppParser.IterationStatementContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitForInitStatement(CppParser.ForInitStatementContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitForRangeDeclaration(CppParser.ForRangeDeclarationContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitForRangeInitializer(CppParser.ForRangeInitializerContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitJumpStatement(CppParser.JumpStatementContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitSelectionStatement(CppParser.SelectionStatementContext ctx) {
+            //selectionStatement:
+            //	If LeftParen condition RightParen statement (Else statement)?
+            //	| Switch LeftParen condition RightParen statement;
+            PDNode selectNode;
+            if(iteration==1)
+            {
+                selectNode=new PDNode();
+                selectNode.setLineOfCode(ctx.getStart().getLine());
+                if(ctx.If()!=null)
+                    selectNode.setCode("if( "+getOriginalCodeText(ctx.condition())+" )");
+                else
+                    selectNode.setCode("switch " + getOriginalCodeText(ctx.condition()));
+                ddg.addVertex(selectNode);
+                pdNodes.put(ctx,selectNode);
+            }
+            else
+                selectNode=(PDNode) pdNodes.get(ctx);
+            analyseDefUse(selectNode,ctx.condition());
+            visit(ctx.statement(0));
+            if(ctx.statement(1)!=null)
+                visit(ctx.statement(1));
+            return "";
+        }
+
+        // TODO: 2023/5/1 待完善def-use分析
+        @Override public String visitCondition(CppParser.ConditionContext ctx) {
+            //condition:
+            //	expression
+            //	| attributeSpecifierSeq? declSpecifierSeq declarator (
+            //		Assign initializerClause
+            //		| bracedInitList
+            //	);
+            return "";
+        }
+
+        @Override public String visitIterationStatement(CppParser.IterationStatementContext ctx) {
+            //iterationStatement:
+            //	While LeftParen condition RightParen statement
+            //	| Do statement While LeftParen expression RightParen Semi
+            //	| For LeftParen (
+            //		forInitStatement condition? Semi expression?
+            //		| forRangeDeclaration Colon forRangeInitializer
+            //	) RightParen statement;
+            if(ctx.Do()!=null)// do Statement
+            {
+                PDNode doNode;
+                if(iteration==1)
+                {
+                    doNode=new PDNode();
+                    doNode.setLineOfCode(ctx.getStart().getLine());
+                    doNode.setCode("while (" + getOriginalCodeText(ctx.expression())+")");
+                    ddg.addVertex(doNode);
+                    pdNodes.put(ctx,doNode);
+                }
+                else
+                    doNode=(PDNode) pdNodes.get(ctx);
+                analyseDefUse(doNode,ctx.expression());
+                int entrySize=localVars.size();
+                visit(ctx.statement());
+                if (localVars.size() > entrySize)
+                    localVars.subList(entrySize, localVars.size()).clear();
+            }
+            else if(ctx.While()!=null)// while Statement
+            {
+                PDNode whileNode;
+                if(iteration==1)
+                {
+                    whileNode=new PDNode();
+                    whileNode.setLineOfCode(ctx.getStart().getLine());
+                    whileNode.setCode("while (" + getOriginalCodeText(ctx.condition())+")");
+                    ddg.addVertex(whileNode);
+                    pdNodes.put(ctx,whileNode);
+                }
+                else
+                    whileNode=(PDNode) pdNodes.get(ctx);
+                analyseDefUse(whileNode,ctx.condition());
+                int entrySize=localVars.size();
+                visit(ctx.statement());
+                if (localVars.size() > entrySize)
+                    localVars.subList(entrySize, localVars.size()).clear();
+
+            }
+            else// for Statement
+            {
+                //	| For LeftParen (
+                //		forInitStatement condition? Semi expression?
+                //		| forRangeDeclaration Colon forRangeInitializer
+                //	) RightParen statement;
+                if(ctx.forRangeDeclaration()!=null)
+                {
+                    PDNode forRangeNode;
+                    if(iteration==1)
+                    {
+                        forRangeNode=new PDNode();
+                        forRangeNode.setLineOfCode(ctx.getStart().getLine());
+                        forRangeNode.setCode("For (" + getOriginalCodeText(ctx.forRangeDeclaration())+":"+getOriginalCodeText(ctx.forRangeInitializer()) + ")");
+                        ddg.addVertex(forRangeNode);
+                        pdNodes.put(ctx,forRangeNode);
+                    }
+                    else
+                        forRangeNode=(PDNode) pdNodes.get(ctx);
+                    int entrySize=localVars.size();
+                    analyseDefUse(forRangeNode,ctx.forRangeDeclaration());
+                    analyseDefUse(forRangeNode,ctx.forRangeInitializer());
+                    visit(ctx.statement());
+                    if (localVars.size() > entrySize)
+                        localVars.subList(entrySize, localVars.size()).clear();
+                }
+                else
+                {
+                    //		forInitStatement condition? Semi expression?
+                    int entrySize=localVars.size();
+
+                    // for init
+                    PDNode initNode;
+                    if(iteration==1)
+                    {
+                        initNode=new PDNode();
+                        initNode.setLineOfCode(ctx.forInitStatement().getStart().getLine());
+                        initNode.setCode(getOriginalCodeText(ctx.forInitStatement()));
+                        ddg.addVertex(initNode);
+                        pdNodes.put(ctx.forInitStatement(),initNode);
+                    }
+                    else
+                        initNode=(PDNode) pdNodes.get(ctx.forInitStatement());
+                    analyseDefUse(initNode,ctx.forInitStatement());
+
+                    // for condition
+                    if(ctx.condition()!=null)
+                    {
+                        PDNode conNode;
+                        if(iteration==1)
+                        {
+                            conNode=new PDNode();
+                            conNode.setLineOfCode(ctx.condition().getStart().getLine());
+                            conNode.setCode("for (" + getOriginalCodeText(ctx.condition()) + ")");
+                            ddg.addVertex(conNode);
+                            pdNodes.put(ctx.condition(),conNode);
+                        }
+                        else
+                            conNode=(PDNode) pdNodes.get(ctx.condition());
+                        analyseDefUse(conNode,ctx.condition());
+                    }
+
+                    // for expression
+                    if(ctx.expression()!=null)
+                    {
+                        PDNode expNode;
+                        if(iteration==1)
+                        {
+                            expNode=new PDNode();
+                            expNode.setLineOfCode(ctx.expression().getStart().getLine());
+                            expNode.setCode(getOriginalCodeText(ctx.expression()));
+                            ddg.addVertex(expNode);
+                            pdNodes.put(ctx.expression(),expNode);
+                        }
+                        else
+                            expNode=(PDNode) pdNodes.get(ctx.expression());
+                        analyseDefUse(expNode,ctx.expression());
+                    }
+
+                    visit(ctx.statement());
+                    if (localVars.size() > entrySize)
+                        localVars.subList(entrySize, localVars.size()).clear();
+                }
+            }
+            return "";
+        }
+
+        @Override public String visitForInitStatement(CppParser.ForInitStatementContext ctx) {
+            //forInitStatement: expressionStatement | simpleDeclaration;
+            return visitChildren(ctx);
+        }
+
+        @Override public String visitForRangeDeclaration(CppParser.ForRangeDeclarationContext ctx) {
+            //forRangeDeclaration:
+            //	attributeSpecifierSeq? declSpecifierSeq declarator;
+            parseDeclSpecifierSeq(ctx.declSpecifierSeq());
+            String curSpec=specifier;
+            String curType=type;
+
+            parseDeclarator(ctx.declarator());
+            curType+=pointOp;
+            String curName=varName;
+
+            localVars.add(new CppField(curSpec,curType,curName));
+            defList.add(varName);
+            return "";
+        }
+
+        @Override public String visitForRangeInitializer(CppParser.ForRangeInitializerContext ctx) {
+            //forRangeInitializer: expression | bracedInitList;
+            return visitChildren(ctx);
+        }
+
+        @Override public String visitJumpStatement(CppParser.JumpStatementContext ctx) {
+            //jumpStatement:
+            //	(
+            //		Break
+            //		| Continue
+            //		| Return (expression | bracedInitList)?
+            //		| Goto Identifier
+            //	) Semi;
+            if(ctx.Return()!=null && ctx.children.size()>1)
+            {
+                PDNode returnNode;
+                if(iteration==1)
+                {
+                    returnNode=new PDNode();
+                    returnNode.setLineOfCode(ctx.getStart().getLine());
+                    returnNode.setCode(getOriginalCodeText(ctx));
+                    ddg.addVertex(returnNode);
+                    pdNodes.put(ctx,returnNode);
+                }
+                else
+                    returnNode=(PDNode) pdNodes.get(ctx);
+                analyseDefUse(returnNode,ctx.getChild(1));
+            }
+            return "";
+        }
         /**
          * {@inheritDoc}
          *
@@ -1064,13 +1270,29 @@ public class CppDDGBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitDeclaration(CppParser.DeclarationContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitBlockDeclaration(CppParser.BlockDeclarationContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitBlockDeclaration(CppParser.BlockDeclarationContext ctx) {
+            if(ctx.simpleDeclaration()!=null)
+                return visit(ctx.simpleDeclaration());
+            if(ctx.staticAssertDeclaration()!=null)
+            {
+                //staticAssertDeclaration:
+                //	Static_assert LeftParen constantExpression Comma StringLiteral RightParen Semi;
+                PDNode assertNode;
+                if(iteration==1)
+                {
+                    assertNode=new PDNode();
+                    assertNode.setLineOfCode(ctx.getStart().getLine());
+                    assertNode.setCode(getOriginalCodeText(ctx));
+                    ddg.addVertex(assertNode);
+                    pdNodes.put(ctx,assertNode);
+                }
+                else
+                    assertNode=(PDNode) pdNodes.get(ctx);
+                analyseDefUse(assertNode,ctx.staticAssertDeclaration().constantExpression());
+            }
+            return "";
+        }
         /**
          * {@inheritDoc}
          *
@@ -2010,13 +2232,12 @@ public class CppDDGBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitExplicitSpecialization(CppParser.ExplicitSpecializationContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitTryBlock(CppParser.TryBlockContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitTryBlock(CppParser.TryBlockContext ctx) {
+            //tryBlock: Try compoundStatement handlerSeq;
+            return visitChildren(ctx);
+        }
+
 
         @Override public String visitFunctionTryBlock(CppParser.FunctionTryBlockContext ctx) {
             //functionTryBlock:
@@ -2036,7 +2257,11 @@ public class CppDDGBuilder {
                     funcTryNode=(PDNode) pdNodes.get(ctx);
                 analyseDefUse(funcTryNode,ctx.constructorInitializer());
             }
-            return visitChildren(ctx);
+            visit(ctx.compoundStatement());
+            localVars.clear();
+            visit(ctx.handlerSeq());
+            localVars.clear();
+            return "";
         }
         /**
          * {@inheritDoc}
@@ -2045,20 +2270,67 @@ public class CppDDGBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitHandlerSeq(CppParser.HandlerSeqContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitHandler(CppParser.HandlerContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitExceptionDeclaration(CppParser.ExceptionDeclarationContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitHandler(CppParser.HandlerContext ctx) {
+            //handler:
+            //	Catch LeftParen exceptionDeclaration RightParen compoundStatement;
+            int entrySize=localVars.size();
+
+            PDNode catchNode;
+            if(iteration==1)
+            {
+                catchNode=new PDNode();
+                catchNode.setLineOfCode(ctx.getStart().getLine());
+                catchNode.setCode("catch("+getOriginalCodeText(ctx.exceptionDeclaration())+")");
+                ddg.addVertex(catchNode);
+                pdNodes.put(ctx,catchNode);
+            }
+            else
+                catchNode=(PDNode) pdNodes.get(ctx);
+            analyseDefUse(catchNode,ctx.exceptionDeclaration());
+            visit(ctx.compoundStatement());
+
+            if (localVars.size() > entrySize)
+                localVars.subList(entrySize, localVars.size()).clear();
+            return "";
+        }
+
+        @Override public String visitExceptionDeclaration(CppParser.ExceptionDeclarationContext ctx) {
+            //exceptionDeclaration:
+            //	attributeSpecifierSeq? typeSpecifierSeq (
+            //		declarator
+            //		| abstractDeclarator
+            //	)?
+            //	| Ellipsis;
+            if(ctx.declarator()!=null)
+            {
+                // 变量名在ctx.declarator()中
+                // ctx.typeSpecifierSeq()只有变量类型
+                String excepType=getOriginalCodeText(ctx.typeSpecifierSeq());
+                parseDeclarator(ctx.declarator());
+                excepType+=pointOp;
+                String excepName=varName;
+
+                localVars.add(new CppField(null,excepType,excepName));
+                defList.add(excepName);
+            }
+            else // 忽略ctx.abstractDeclarator()
+            {
+                // 变量类型和变量名都在ctx.typeSpecifierSeq()中
+                // typeSpecifierSeq: typeSpecifier+ attributeSpecifierSeq?;
+                // 其中最后一个typeSpecifier是变量名
+                String excepType="";
+                int size=ctx.typeSpecifierSeq().typeSpecifier().size();
+                for(int i=0;i<size-1;++i)
+                {
+                    excepType+=getOriginalCodeText(ctx.typeSpecifierSeq().typeSpecifier(i));
+                }
+                String excepName=getOriginalCodeText(ctx.typeSpecifierSeq().typeSpecifier(size-1));
+                localVars.add(new CppField(null,excepType,excepName));
+                defList.add(excepName);
+            }
+            return "";
+        }
         /**
          * {@inheritDoc}
          *

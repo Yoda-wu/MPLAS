@@ -1091,6 +1091,7 @@ public class CppCFGBuilder {
                     CFNode statNode=new CFNode();
                     statNode.setLineOfCode(ctx.getStart().getLine());
                     statNode.setCode(getOriginalCodeText(ctx));
+                    addContextualProperty(statNode,ctx);
                     addNodeAndPreEdge(statNode);
 
                     preNodes.push(statNode);
