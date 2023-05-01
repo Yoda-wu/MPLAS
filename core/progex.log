@@ -1,29 +1,1672 @@
-======= LOG CREATED on 周五 2023/4月/14 15:37:23:172 =======
+======= LOG CREATED on 周一 2023/5月/01 17:40:17:355 =======
 
 PROGEX (Program Graph Extractor)  [ v3.4.5 ]
 Visit project website @ https://github.com/ghaffarian/progex
 
 PROGEX execution config:
-  Language = Java
-  Output format = GML
-  Output directory = ../generate/java/basic/AST/\
+  Language = Ruby
+  Output format = DOT
+  Output directory = ../generate/ruby/basic/AST/\
   Analysis types = [AST]
   File name = 
   Input paths = 
-        src/test/resources/java/basic/
+        src/test/resources/ruby/basic
 
 
-# Java source files = 9
+# Ruby source files = 9
 
 
 Abstract Syntax Analysis
 ========================
-AST exported to: ../generate/java/basic/AST/\Test1-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test2-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test3-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test4-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test5-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test6-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test7-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test8-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test9-AST.gml
+expList -- puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+mas=[]
+mas=read_file("lab4.txt")
+
+length=len(mas)
+
+foriin[1...5]
+
+putsi
+
+end
+
+
+
+
+s="hello"
+l=len(s)
+putsl
+
+a=func(1,2)
+putsa
+
+deffunca,b
+returna+b
+end
+
+expList--puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+mas=[]
+mas=read_file("lab4.txt")
+
+length=len(mas)
+
+foriin[1...5]
+
+putsi
+
+end
+
+
+
+
+s="hello"
+l=len(s)
+putsl
+
+a=func(1,2)
+putsa
+
+
+expList -- puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+mas=[]
+mas=read_file("lab4.txt")
+
+length=len(mas)
+
+foriin[1...5]
+
+putsi
+
+end
+
+
+
+
+s="hello"
+l=len(s)
+putsl
+
+a=func(1,2)
+putsa
+
+
+expList--puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+mas=[]
+mas=read_file("lab4.txt")
+
+length=len(mas)
+
+foriin[1...5]
+
+putsi
+
+end
+
+
+
+
+s="hello"
+l=len(s)
+putsl
+
+a=func(1,2)
+
+expList -- puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+mas=[]
+mas=read_file("lab4.txt")
+
+length=len(mas)
+
+foriin[1...5]
+
+putsi
+
+end
+
+
+
+
+s="hello"
+l=len(s)
+putsl
+
+a=func(1,2)
+
+expList--puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+mas=[]
+mas=read_file("lab4.txt")
+
+length=len(mas)
+
+foriin[1...5]
+
+putsi
+
+end
+
+
+
+
+s="hello"
+l=len(s)
+putsl
+
+
+expList -- puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+mas=[]
+mas=read_file("lab4.txt")
+
+length=len(mas)
+
+foriin[1...5]
+
+putsi
+
+end
+
+
+
+
+s="hello"
+l=len(s)
+putsl
+
+
+expList--puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+mas=[]
+mas=read_file("lab4.txt")
+
+length=len(mas)
+
+foriin[1...5]
+
+putsi
+
+end
+
+
+
+
+s="hello"
+l=len(s)
+
+expList -- puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+mas=[]
+mas=read_file("lab4.txt")
+
+length=len(mas)
+
+foriin[1...5]
+
+putsi
+
+end
+
+
+
+
+s="hello"
+l=len(s)
+
+expList--puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+mas=[]
+mas=read_file("lab4.txt")
+
+length=len(mas)
+
+foriin[1...5]
+
+putsi
+
+end
+
+
+
+
+s="hello"
+
+expList -- puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+mas=[]
+mas=read_file("lab4.txt")
+
+length=len(mas)
+
+foriin[1...5]
+
+putsi
+
+end
+
+
+
+
+s="hello"
+
+expList--puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+mas=[]
+mas=read_file("lab4.txt")
+
+length=len(mas)
+
+foriin[1...5]
+
+putsi
+
+end
+
+
+
+
+
+expList -- puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+mas=[]
+mas=read_file("lab4.txt")
+
+length=len(mas)
+
+foriin[1...5]
+
+putsi
+
+end
+
+
+
+
+
+expList--puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+mas=[]
+mas=read_file("lab4.txt")
+
+length=len(mas)
+
+
+expList -- puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+mas=[]
+mas=read_file("lab4.txt")
+
+length=len(mas)
+
+
+expList--puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+mas=[]
+mas=read_file("lab4.txt")
+
+
+expList -- puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+mas=[]
+mas=read_file("lab4.txt")
+
+
+expList--puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+mas=[]
+
+expList -- puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+mas=[]
+
+expList--puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+
+expList -- puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+unless'a'<'b'
+puts"c > d"
+else
+puts"c < d"
+end
+
+
+expList--puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+
+expList -- puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+if'a'>'b'
+puts"a > b"
+elsif'c'>'d'
+puts"c > d"
+elsif'c'<'d'
+puts"c < d"
+end
+
+
+expList--puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+
+expList -- puts'hahaha!'
+putsa
+
+if'a'>'b'
+puts"a > b"
+elsif'a'<'b'
+puts"a < b"
+end
+
+
+expList--puts'hahaha!'
+putsa
+
+
+expList -- puts'hahaha!'
+putsa
+
+
+expList--puts'hahaha!'
+
+expList -- puts'hahaha!'
+
+exp--puts'hahaha!'
+visit function_inline_call
+visit function_inline_call
+visit statement
+visit function_inline_call
+visit function_inline_call
+visit statement
+visit function_inline_call
+visit function_inline_call
+visit function_inline_call
+visit statement
+visit function_inline_call
+visit function_inline_call
+visit rvalue
+visit rvalue -- mas=[]
+visit rvalue
+visit rvalue -- mas=read_file("lab4.txt")
+visit rvalue
+visit rvalue -- length=len(mas)
+visit statement
+visit function_inline_call
+visit rvalue
+visit rvalue -- s="hello"
+visit rvalue
+visit rvalue -- l=len(s)
+visit function_inline_call
+visit rvalue
+visit rvalue -- a=func(1,2)
+visit function_inline_call
+visit function_definition
+expList -- returna+b
+
+exp--returna+b
+visit statement
+AST exported to: ../generate/ruby/basic/AST/\test_all-AST.dot
+expList -- a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+d="abc"+"def"
+d="abc"*3
+d='abc'
+d='abc'+'def'
+d='abc'*3
+
+mas=[]
+mas[1]=5
+mas[2]="String"
+
+a=mas[2]
+
+a=2
+
+expList--a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+d="abc"+"def"
+d="abc"*3
+d='abc'
+d='abc'+'def'
+d='abc'*3
+
+mas=[]
+mas[1]=5
+mas[2]="String"
+
+a=mas[2]
+
+
+expList -- a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+d="abc"+"def"
+d="abc"*3
+d='abc'
+d='abc'+'def'
+d='abc'*3
+
+mas=[]
+mas[1]=5
+mas[2]="String"
+
+a=mas[2]
+
+
+expList--a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+d="abc"+"def"
+d="abc"*3
+d='abc'
+d='abc'+'def'
+d='abc'*3
+
+mas=[]
+mas[1]=5
+mas[2]="String"
+
+
+expList -- a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+d="abc"+"def"
+d="abc"*3
+d='abc'
+d='abc'+'def'
+d='abc'*3
+
+mas=[]
+mas[1]=5
+mas[2]="String"
+
+
+expList--a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+d="abc"+"def"
+d="abc"*3
+d='abc'
+d='abc'+'def'
+d='abc'*3
+
+mas=[]
+mas[1]=5
+
+expList -- a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+d="abc"+"def"
+d="abc"*3
+d='abc'
+d='abc'+'def'
+d='abc'*3
+
+mas=[]
+mas[1]=5
+
+expList--a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+d="abc"+"def"
+d="abc"*3
+d='abc'
+d='abc'+'def'
+d='abc'*3
+
+mas=[]
+
+expList -- a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+d="abc"+"def"
+d="abc"*3
+d='abc'
+d='abc'+'def'
+d='abc'*3
+
+mas=[]
+
+expList--a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+d="abc"+"def"
+d="abc"*3
+d='abc'
+d='abc'+'def'
+d='abc'*3
+
+
+expList -- a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+d="abc"+"def"
+d="abc"*3
+d='abc'
+d='abc'+'def'
+d='abc'*3
+
+
+expList--a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+d="abc"+"def"
+d="abc"*3
+d='abc'
+d='abc'+'def'
+
+expList -- a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+d="abc"+"def"
+d="abc"*3
+d='abc'
+d='abc'+'def'
+
+expList--a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+d="abc"+"def"
+d="abc"*3
+d='abc'
+
+expList -- a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+d="abc"+"def"
+d="abc"*3
+d='abc'
+
+expList--a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+d="abc"+"def"
+d="abc"*3
+
+expList -- a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+d="abc"+"def"
+d="abc"*3
+
+expList--a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+d="abc"+"def"
+
+expList -- a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+d="abc"+"def"
+
+expList--a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+
+expList -- a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+d="abc"
+
+expList--a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+
+expList -- a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+dyn+=5.2+c*(b+1)
+
+
+expList--a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+
+expList -- a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+dyn=a+4+2
+
+expList--a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+
+expList -- a=1.1+2.5*2
+b=1
+c=100+(100*3)
+a=1
+
+
+
+expList--a=1.1+2.5*2
+b=1
+c=100+(100*3)
+
+expList -- a=1.1+2.5*2
+b=1
+c=100+(100*3)
+
+expList--a=1.1+2.5*2
+b=1
+
+expList -- a=1.1+2.5*2
+b=1
+
+expList--a=1.1+2.5*2
+
+expList -- a=1.1+2.5*2
+
+exp--a=1.1+2.5*2
+visit rvalue
+visit rvalue -- a=1.1+2.5*2
+rvalue visit float_assignment
+float result 1.1+2.5*2 false
+float result 1.1+2.5*2
+finish visit float_assignment code== 1.1+2.5*2
+visit rvalue
+visit rvalue -- b=1
+visit rvalue
+visit rvalue -- c=100+(100*3)
+visit rvalue
+visit rvalue -- a=1
+visit rvalue
+visit rvalue -- dyn=a+4+2
+visit rvalue
+visit rvalue -- dyn+=5.2+c*(b+1)
+visit rvalue
+visit rvalue -- d="abc"
+visit rvalue
+visit rvalue -- d="abc"+"def"
+visit rvalue
+visit rvalue -- d="abc"*3
+visit rvalue
+visit rvalue -- d='abc'
+visit rvalue
+visit rvalue -- d='abc'+'def'
+visit rvalue
+visit rvalue -- d='abc'*3
+visit rvalue
+visit rvalue -- mas=[]
+visit rvalue
+visit rvalue -- mas[1]=5
+visit rvalue
+visit rvalue -- mas[2]="String"
+visit rvalue
+visit rvalue -- a=mas[2]
+visit rvalue
+visit rvalue -- a=2
+AST exported to: ../generate/ruby/basic/AST/\test_assign-AST.dot
+expList -- foriin[1..5]
+
+a+=i;
+
+end
+
+exp--foriin[1..5]
+
+a+=i;
+
+end
+visit statement
+visit rvalue
+visit rvalue -- a+=i
+AST exported to: ../generate/ruby/basic/AST/\test_for_statement-AST.dot
+expList -- i=10
+foriin[1..5]
+ifi==3
+break
+end
+a=10
+whilea>0
+puts"hahaha"
+ifa==2
+break
+end
+a-=1
+end
+end
+
+
+expList--i=10
+
+expList -- i=10
+
+exp--i=10
+visit rvalue
+visit rvalue -- i=10
+visit statement
+visit statement
+visit rvalue
+visit rvalue -- a=10
+visit statement
+visit function_inline_call
+visit statement
+visit rvalue
+visit rvalue -- a-=1
+AST exported to: ../generate/ruby/basic/AST/\test_for_while_stmt-AST.dot
+expList -- func0()
+func1(1)
+func2(2+3,3,"Hello "+"world!")
+func3(a+t,b,c)
+func4(a=4+3,b="Hello "+"world!")
+
+
+expList--func0()
+func1(1)
+func2(2+3,3,"Hello "+"world!")
+func3(a+t,b,c)
+
+expList -- func0()
+func1(1)
+func2(2+3,3,"Hello "+"world!")
+func3(a+t,b,c)
+
+expList--func0()
+func1(1)
+func2(2+3,3,"Hello "+"world!")
+
+expList -- func0()
+func1(1)
+func2(2+3,3,"Hello "+"world!")
+
+expList--func0()
+func1(1)
+
+expList -- func0()
+func1(1)
+
+expList--func0()
+
+expList -- func0()
+
+exp--func0()
+visit function_inline_call
+visit function_inline_call
+visit function_inline_call
+visit function_inline_call
+visit function_inline_call
+AST exported to: ../generate/ruby/basic/AST/\test_function_call-AST.dot
+expList -- deffunc1(a,b,c)
+a=1
+returna
+end
+
+deffunc2()
+a=[]
+a[1]=2
+a[2]=3
+b=a[2]
+returnb
+end
+
+
+deffunc3()
+a=3
+ifa>1
+a=1
+end
+foriin[1..2]
+a=2
+end
+a=4
+end
+
+
+expList--deffunc1(a,b,c)
+a=1
+returna
+end
+
+deffunc2()
+a=[]
+a[1]=2
+a[2]=3
+b=a[2]
+returnb
+end
+
+
+
+expList -- deffunc1(a,b,c)
+a=1
+returna
+end
+
+deffunc2()
+a=[]
+a[1]=2
+a[2]=3
+b=a[2]
+returnb
+end
+
+
+
+expList--deffunc1(a,b,c)
+a=1
+returna
+end
+
+
+expList -- deffunc1(a,b,c)
+a=1
+returna
+end
+
+
+exp--deffunc1(a,b,c)
+a=1
+returna
+end
+visit function_definition
+expList -- a=1
+returna
+
+expList--a=1
+
+expList -- a=1
+
+exp--a=1
+visit rvalue
+visit rvalue -- a=1
+visit statement
+visit function_definition
+expList -- a=[]
+a[1]=2
+a[2]=3
+b=a[2]
+returnb
+
+expList--a=[]
+a[1]=2
+a[2]=3
+b=a[2]
+
+expList -- a=[]
+a[1]=2
+a[2]=3
+b=a[2]
+
+expList--a=[]
+a[1]=2
+a[2]=3
+
+expList -- a=[]
+a[1]=2
+a[2]=3
+
+expList--a=[]
+a[1]=2
+
+expList -- a=[]
+a[1]=2
+
+expList--a=[]
+
+expList -- a=[]
+
+exp--a=[]
+visit rvalue
+visit rvalue -- a=[]
+visit rvalue
+visit rvalue -- a[1]=2
+visit rvalue
+visit rvalue -- a[2]=3
+visit rvalue
+visit rvalue -- b=a[2]
+visit statement
+visit function_definition
+expList -- a=3
+ifa>1
+a=1
+end
+foriin[1..2]
+a=2
+end
+a=4
+
+expList--a=3
+ifa>1
+a=1
+end
+foriin[1..2]
+a=2
+end
+
+expList -- a=3
+ifa>1
+a=1
+end
+foriin[1..2]
+a=2
+end
+
+expList--a=3
+ifa>1
+a=1
+end
+
+expList -- a=3
+ifa>1
+a=1
+end
+
+expList--a=3
+
+expList -- a=3
+
+exp--a=3
+visit rvalue
+visit rvalue -- a=3
+visit statement
+visit rvalue
+visit rvalue -- a=1
+visit statement
+visit rvalue
+visit rvalue -- a=2
+visit rvalue
+visit rvalue -- a=4
+AST exported to: ../generate/ruby/basic/AST/\test_function_def-AST.dot
+expList -- ifa==1
+a=2
+unlessb==2
+b=3
+end
+else
+a=3
+end
+
+
+exp--ifa==1
+a=2
+unlessb==2
+b=3
+end
+else
+a=3
+end
+visit statement
+visit rvalue
+visit rvalue -- a=2
+visit statement
+visit rvalue
+visit rvalue -- b=3
+visit rvalue
+visit rvalue -- a=3
+AST exported to: ../generate/ruby/basic/AST/\test_if_statement-AST.dot
+expList -- pir
+$P0="333444"
+$I0=19
+end
+
+
+exp--pir
+$P0="333444"
+$I0=19
+end
+visit pir_inline
+expList -- $P0="333444"
+$I0=19
+
+expList--$P0="333444"
+
+expList -- $P0="333444"
+
+exp--$P0="333444"
+visit rvalue
+visit rvalue -- $P0="333444"
+visit rvalue
+visit rvalue -- $I0=19
+AST exported to: ../generate/ruby/basic/AST/\test_pir-AST.dot
+expList -- a=10
+whilea>0
+a-=1
+end
+
+
+expList--a=10
+
+expList -- a=10
+
+exp--a=10
+visit rvalue
+visit rvalue -- a=10
+visit statement
+visit rvalue
+visit rvalue -- a-=1
+AST exported to: ../generate/ruby/basic/AST/\test_while_statement-AST.dot

@@ -187,7 +187,7 @@ all_assignment : ( int_assignment | float_assignment | string_assignment | dynam
 //               | all_assignment
 //               ;
 
-for_statement : FOR lvalue (COMMA lvalue)*  IN loop_expression DO? CRLF statement_body END
+for_statement : FOR lvalue (COMMA lvalue)*  IN loop_expression DO? CRLF* statement_body END
               | for_each_statement;
 
 for_each_statement:  array_definition DOT EACH LEFT_BBRACKET crlf? '|' id_ '|' crlf? statement_body RIGHT_BBRACKET;

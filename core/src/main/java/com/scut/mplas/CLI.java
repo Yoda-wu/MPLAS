@@ -1,9 +1,10 @@
 /*** In The Name of Allah ***/
 package com.scut.mplas;
 
+import ghaffarian.nanologger.Logger;
+
 import java.io.File;
 import java.io.IOException;
-import ghaffarian.nanologger.Logger;
 
 /**
  * Command Line Interface (CLI) for PROGEX.
@@ -101,6 +102,9 @@ public class CLI {
 										break;
 									case "cpp":
 										exec.setLanguage(Execution.Languages.CPP);
+										break;
+									case "ruby":
+										exec.setLanguage(Execution.Languages.RUBY);
 										break;
 									default:
 										printHelp("Unsupported language: " + args[i]);

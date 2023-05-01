@@ -674,7 +674,10 @@ public class RubyASTBuilder {
 
         @Override
         public String visitFunction_call_param_list(RubyParser.Function_call_param_listContext ctx) {
-            return visit(ctx.function_call_params());
+            if (ctx != null) {
+                return visit(ctx.function_call_params());
+            }
+            return "";
         }
 
         @Override
@@ -1002,16 +1005,20 @@ public class RubyASTBuilder {
                 AST.addVertex(forVar);
                 AST.addEdge(forNode, forVar);
             }
+            if (ctx.loop_expression() != null) {
+                ASNode loopExpression = new ASNode(ASNode.Type.RUBY_LOOP_EXPR);
+                loopExpression.setLineOfCode(ctx.loop_expression().getStart().getLine());
+                loopExpression.setCode(ctx.loop_expression().getText());
+                AST.addVertex(loopExpression);
+                AST.addEdge(forNode, loopExpression);
+            }
 
-            ASNode loopExpression = new ASNode(ASNode.Type.RUBY_LOOP_EXPR);
-            loopExpression.setLineOfCode(ctx.loop_expression().getStart().getLine());
-            loopExpression.setCode(ctx.loop_expression().getText());
-            AST.addVertex(loopExpression);
-            AST.addEdge(forNode, loopExpression);
+            if (ctx.statement_body() != null) {
+                parentStack.push(forNode);
+                visit(ctx.statement_body());
+                parentStack.pop();
+            }
 
-            parentStack.push(forNode);
-            visit(ctx.statement_body());
-            parentStack.pop();
             return "";
         }
 

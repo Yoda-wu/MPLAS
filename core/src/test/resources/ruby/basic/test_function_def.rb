@@ -13,12 +13,13 @@ end
 
 
 def func3()
-  a=3
+  a = 3
   if a > 1
     a = 1
   end
-  for i=0; i < 1; i=i+1
-  a = 2
+  for i in [1..2]
+    a = 2
   end
-  a=4
+  a = 4
 end
+

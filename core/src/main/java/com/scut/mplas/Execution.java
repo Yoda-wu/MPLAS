@@ -1,12 +1,6 @@
 /*** In The Name of Allah ***/
 package com.scut.mplas;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import com.scut.mplas.graphs.ast.ASTBuilder;
 import com.scut.mplas.graphs.ast.AbstractSyntaxTree;
 import com.scut.mplas.graphs.cfg.CFGBuilder;
@@ -14,11 +8,17 @@ import com.scut.mplas.graphs.cfg.ControlFlowGraph;
 import com.scut.mplas.graphs.cfg.ICFGBuilder;
 import com.scut.mplas.graphs.pdg.PDGBuilder;
 import com.scut.mplas.graphs.pdg.ProgramDependeceGraph;
+import com.scut.mplas.java.JavaClass;
+import com.scut.mplas.java.JavaClassExtractor;
 import com.scut.mplas.utils.FileUtils;
 import com.scut.mplas.utils.SystemUtils;
 import ghaffarian.nanologger.Logger;
-import com.scut.mplas.java.JavaClass;
-import com.scut.mplas.java.JavaClassExtractor;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -72,20 +72,22 @@ public class Execution {
 		}
 		public final String type;
 	}
-	
+
 	/**
 	 * Enumeration of different supported languages.
 	 */
 	public enum Languages {
-		CPP("Cpp",".cpp"),
-		C		("C", ".c"),
-		JAVA	    ("Java", ".java"),
-		PYTHON	("Python", ".py");
-		
+		CPP("Cpp", ".cpp"),
+		C("C", ".c"),
+		JAVA("Java", ".java"),
+		RUBY("Ruby", ".rb"),
+		PYTHON("Python", ".py");
+
 		private Languages(String str, String suffix) {
 			name = str;
 			this.suffix = suffix;
 		}
+
 		@Override
 		public String toString() {
 			return name;
@@ -269,7 +271,7 @@ public class Execution {
 		Logger.info("\n# " + lang.name + " source files = " + filePaths.length + "\n");
 		
 		// Check language
-		if (!(lang.equals(Languages.JAVA) || lang.equals(Languages.CPP))) {
+		if (!(lang.equals(Languages.JAVA) || lang.equals(Languages.CPP) || lang.equals(Languages.RUBY))) {
 			Logger.info("Analysis of " + lang.name + " programs is not yet supported!");
 			Logger.info("Abort.");
 			System.exit(0);

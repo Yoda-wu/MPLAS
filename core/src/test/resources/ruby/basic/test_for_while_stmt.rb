@@ -1,14 +1,15 @@
 i=10
-for i = 0; i<10; i+=1
-if i==3
-  break
-end
-a = 10
-while a > 0
-  puts "hahaha"
-  if a==2
+for i in [1..5]
+  if i == 3
     break
   end
-  a -= 1
+  a = 10
+  while a > 0
+    puts "hahaha"
+    if a == 2
+      break
+    end
+    a -= 1
+  end
 end
-end
+

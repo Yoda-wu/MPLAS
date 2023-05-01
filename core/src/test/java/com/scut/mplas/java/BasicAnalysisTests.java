@@ -1,15 +1,15 @@
 /*** In The Name of Allah ***/
 package com.scut.mplas.java;
 
-import java.io.File;
-
 import com.scut.mplas.Execution;
 import com.scut.mplas.Main;
 import com.scut.mplas.utils.FileUtils;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-import static org.junit.Assert.*;
+import java.io.File;
 
-import org.junit.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for different types of analyses using basic test-cases.
@@ -173,4 +173,15 @@ public class BasicAnalysisTests {
     }
 
 
+    @Test
+    public void rubyASTreeJsonTest() {
+        String outDir = RUBY_OUTPUT_DIR + "AST/";
+        String[] args = {"-ast", "-outdir", outDir, "-format", "dot", "-lang", "ruby", RUBY_SRC_DIR};
+        Main.main(args);
+        //
+
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[]{RUBY_SRC_DIR}, Execution.Languages.RUBY.suffix);
+        String[] outFiles = FileUtils.listFilesWithSuffix(new String[]{outDir}, "-AST.json");
+        assertEquals(testFiles.length, outFiles.length);
+    }
 }
