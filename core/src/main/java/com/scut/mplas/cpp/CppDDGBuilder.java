@@ -1922,13 +1922,18 @@ public class CppDDGBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitInitializerList(CppParser.InitializerListContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+        @Override public String visitInitializerList(CppParser.InitializerListContext ctx)
+//        initializerList:
+//        initializerClause Ellipsis? (
+//        Comma initializerClause Ellipsis?
+//                )*;
+        {
+            StringBuilder InitList = new StringBuilder(visit(ctx.initializerClause(0)));
+            InitList.append(ctx.Ellipsis());
+            for (int i = 1; i < ctx.initializerClause().size(); ++i)
+                InitList.append(ctx.Comma()).append(visit(ctx.initializerClause(i))).append(ctx.Ellipsis());
+            return InitList.toString();
+        }
         @Override public String visitBracedInitList(CppParser.BracedInitListContext ctx) { return visitChildren(ctx); }
         /**
          * {@inheritDoc}
