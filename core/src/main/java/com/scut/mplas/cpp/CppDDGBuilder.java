@@ -6,6 +6,7 @@ import com.scut.mplas.cpp.parser.CppBaseVisitor;
 import com.scut.mplas.cpp.parser.CppLexer;
 import com.scut.mplas.cpp.parser.CppParser;
 import com.scut.mplas.cpp.parser.CppVisitor;
+import com.scut.mplas.graphs.cfg.CFEdge;
 import com.scut.mplas.graphs.cfg.CFNode;
 import com.scut.mplas.graphs.cfg.CFPathTraversal;
 import com.scut.mplas.graphs.cfg.ControlFlowGraph;
@@ -262,6 +263,10 @@ public class CppDDGBuilder {
         private String nestedName;
         private String varName;
 
+        private boolean isGlobal;
+        private boolean isOnlyPointerDecl;
+        private boolean isHasParameters;
+
         public DefUseVisitor(int iter, CppClass[] classInfos,
                              DataDependenceGraph ddg, Map<ParserRuleContext, Object> pdNodes) {
             Logger.debug("FILE IS: " + currentFile);
@@ -282,13 +287,23 @@ public class CppDDGBuilder {
             // 全局命名空间
             namespaces.push("");
             currentScope=new Scope();
+            clearAllFlags();
+        }
+
+        private void clearAllFlags()
+        {
+            isGlobal=false;
+            isOnlyPointerDecl=false;
+            isHasParameters=false;
         }
 
         private void analyseDefUse(PDNode node, ParseTree expression) {
             Logger.debug("--- ANALYSIS ---");
             Logger.debug(node.toString());
             analysisVisit = true;
-            String expr = visit(expression);
+            String expr="";
+            if(expression!=null)
+                expr=visit(expression);
             Logger.debug(expr);
             //
             StringBuilder locVarsStr = new StringBuilder(256);
@@ -644,13 +659,31 @@ public class CppDDGBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitPrimaryExpression(CppParser.PrimaryExpressionContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitIdExpression(CppParser.IdExpressionContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitIdExpression(CppParser.IdExpressionContext ctx) {
+            if(analysisVisit)
+            {
+                //idExpression: unqualifiedId | qualifiedId;
+                //
+                //unqualifiedId:
+                //	Identifier
+                //	| operatorFunctionId
+                //	| conversionFunctionId
+                //	| literalOperatorId
+                //	| Tilde (className | decltypeSpecifier)
+                //	| templateId;
+                //
+                //qualifiedId: nestedNameSpecifier Template? unqualifiedId;
+                String curName;
+                if(ctx.unqualifiedId()!=null)
+                    curName=getOriginalCodeText(ctx.unqualifiedId());
+                else
+                    curName=getOriginalCodeText(ctx.qualifiedId().unqualifiedId());
+                useList.add(curName);
+                return "";
+            }
+            return visitChildren(ctx);
+        }
         /**
          * {@inheritDoc}
          *
@@ -1053,7 +1086,6 @@ public class CppDDGBuilder {
             return "";
         }
 
-        // TODO: 2023/5/1 待完善def-use分析
         @Override public String visitCondition(CppParser.ConditionContext ctx) {
             //condition:
             //	expression
@@ -1061,7 +1093,7 @@ public class CppDDGBuilder {
             //		Assign initializerClause
             //		| bracedInitList
             //	);
-            return "";
+            return visitChildren(ctx);
         }
 
         @Override public String visitIterationStatement(CppParser.IterationStatementContext ctx) {
@@ -1300,13 +1332,142 @@ public class CppDDGBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitAliasDeclaration(CppParser.AliasDeclarationContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitSimpleDeclaration(CppParser.SimpleDeclarationContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitSimpleDeclaration(CppParser.SimpleDeclarationContext ctx) {
+            //simpleDeclaration:
+            //	declSpecifierSeq? initDeclaratorList? Semi
+            //	| attributeSpecifierSeq declSpecifierSeq? initDeclaratorList Semi;
+            if(ctx.declSpecifierSeq()!=null)
+            {
+                if(ctx.initDeclaratorList()==null)
+                {
+                    // 可能类定义
+                    visit(ctx.declSpecifierSeq());
+                    return "";
+                }
+                // 变量或函数声明
+                // 还有可能是函数调用(是有用命名空间指定的函数调用，如std::min())，这个和变量声明无法区分
+                //initDeclaratorList: initDeclarator (Comma initDeclarator)*;
+                //
+                //initDeclarator: declarator initializer?;
+                parseDeclSpecifierSeq(ctx.declSpecifierSeq());
+                String spec=specifier;
+                String curType=type; // 可能不是类型，是函数调用的命名空间声明,也有可能是完整的函数调用名
+
+                for(int i=0;i<ctx.initDeclaratorList().initDeclarator().size();++i)
+                {
+                    CppParser.InitDeclaratorContext initCtx=ctx.initDeclaratorList().initDeclarator(i);
+                    //initDeclarator: declarator initializer?;
+                    parseDeclarator(initCtx.declarator());
+                    if(isGlobal)
+                    {
+                        // 函数调用(是有用命名空间指定的函数调用，如std::min())
+                        // 目前不支持有用命名空间指定的变量
+                        if(initCtx.initializer()!=null)
+                        {
+                            // 有调用参数
+                            PDNode entryNode;
+                            if(iteration==1)
+                            {
+                                entryNode=new PDNode();
+                                entryNode.setLineOfCode(ctx.getStart().getLine());
+                                entryNode.setCode(getOriginalCodeText(ctx));
+                                ddg.addVertex(entryNode);
+                                pdNodes.put(ctx,entryNode);
+                            }
+                            else
+                                entryNode=(PDNode) pdNodes.get(ctx);
+                            analyseDefUse(entryNode, initCtx.initializer());
+                        }
+                        else if(initCtx.declarator().pointerDeclarator().noPointerDeclarator().parametersAndQualifiers()!=null)
+                        {
+                            // 有调用参数
+                            PDNode entryNode;
+                            if(iteration==1)
+                            {
+                                entryNode=new PDNode();
+                                entryNode.setLineOfCode(ctx.getStart().getLine());
+                                entryNode.setCode(getOriginalCodeText(ctx));
+                                ddg.addVertex(entryNode);
+                                pdNodes.put(ctx,entryNode);
+                            }
+                            else
+                                entryNode=(PDNode) pdNodes.get(ctx);
+                            analyseDefUse(entryNode, initCtx.declarator().pointerDeclarator().noPointerDeclarator().parametersAndQualifiers());
+                        }
+                        return "";
+                    }
+                    else if(isOnlyPointerDecl)
+                    {
+                        // 单一参数的函数调用
+                        PDNode entryNode;
+                        if(iteration==1)
+                        {
+                            entryNode=new PDNode();
+                            entryNode.setLineOfCode(ctx.getStart().getLine());
+                            entryNode.setCode(getOriginalCodeText(ctx));
+                            ddg.addVertex(entryNode);
+                            pdNodes.put(ctx,entryNode);
+                        }
+                        else
+                            entryNode=(PDNode) pdNodes.get(ctx);
+                        analyseDefUse(entryNode, initCtx.declarator().pointerDeclarator().noPointerDeclarator().pointerDeclarator().noPointerDeclarator().declaratorid());
+                        return "";
+                    }
+                    else if(isHasParameters)
+                    {
+                        // 函数声明或者是有参构造，难以区分，暂时不支持区分
+                    }
+                    else
+                    {
+                        String tmpType=curType+pointOp;
+                        String tmpName=varName;
+                        // 变量声明
+                        if(methodDefInfo!=null)
+                        {
+                            PDNode entryNode;
+                            if(iteration==1 && i==0)
+                            {
+                                entryNode=new PDNode();
+                                entryNode.setLineOfCode(ctx.getStart().getLine());
+                                entryNode.setCode(getOriginalCodeText(ctx));
+                                ddg.addVertex(entryNode);
+                                pdNodes.put(ctx,entryNode);
+                            }
+                            else
+                                entryNode=(PDNode) pdNodes.get(ctx);
+                            localVars.add(new CppField(spec,tmpType,tmpName));
+                            defList.add(tmpName);
+                            analyseDefUse(entryNode,initCtx.initializer());
+                        }
+                        else
+                        {
+                            currentScope.vars.add(new CppField(spec,tmpType,tmpName));
+                        }
+                    }
+
+                }
+
+            }
+            else if(ctx.initDeclaratorList()!=null && methodDefInfo!=null)
+            {
+                //变量赋值或者函数调用
+                //initDeclaratorList: initDeclarator (Comma initDeclarator)*;
+                PDNode entryNode;
+                if(iteration==1)
+                {
+                    entryNode=new PDNode();
+                    entryNode.setLineOfCode(ctx.getStart().getLine());
+                    entryNode.setCode(getOriginalCodeText(ctx));
+                    ddg.addVertex(entryNode);
+                    pdNodes.put(ctx,entryNode);
+                }
+                else
+                    entryNode=(PDNode) pdNodes.get(ctx);
+                analyseDefUse(entryNode,ctx.initDeclaratorList());
+            }
+            return "";
+        }
         /**
          * {@inheritDoc}
          *
@@ -1637,13 +1798,53 @@ public class CppDDGBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitBalancedtoken(CppParser.BalancedtokenContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitInitDeclaratorList(CppParser.InitDeclaratorListContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitInitDeclaratorList(CppParser.InitDeclaratorListContext ctx) {
+            if(analysisVisit)
+            {
+                //变量赋值或者函数调用
+                //initDeclaratorList: initDeclarator (Comma initDeclarator)*;
+                for(CppParser.InitDeclaratorContext initCtx:ctx.initDeclarator())
+                {
+                    //initDeclarator: declarator initializer?;
+                    parseDeclarator(initCtx.declarator());
+                    if(initCtx.initializer()!=null)
+                    {
+                        // 函数调用或者有进行赋值操作的变量变量（ var=1 ）
+                        //initializer:
+                        //	braceOrEqualInitializer
+                        //	| LeftParen expressionList RightParen;
+                        if(initCtx.initializer().expressionList()!=null)
+                        {
+                            // 函数调用
+                            visit(initCtx.initializer().expressionList());
+                        }
+                        else
+                        {
+                            // 有进行赋值操作的变量变量（ var=1 ）
+                            defList.add(varName);
+                            visit(initCtx.initializer().braceOrEqualInitializer());
+                        }
+                    }
+                    else
+                    {
+                        // 函数调用或者没有进行赋值操作的变量变量（ var ）
+                        if(isHasParameters)
+                        {
+                            // 参函数调用
+                            visit(initCtx.declarator().pointerDeclarator().noPointerDeclarator().parametersAndQualifiers());
+                        }
+                        else
+                        {
+                            // 没有进行赋值操作的变量变量（ var ）
+                            useList.add(varName);
+                        }
+                    }
+                }
+                return "";
+            }
+            return visitChildren(ctx);
+        }
         /**
          * {@inheritDoc}
          *
@@ -1672,13 +1873,37 @@ public class CppDDGBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitNoPointerDeclarator(CppParser.NoPointerDeclaratorContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitParametersAndQualifiers(CppParser.ParametersAndQualifiersContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitParametersAndQualifiers(CppParser.ParametersAndQualifiersContext ctx) {
+            //parametersAndQualifiers:
+            //	LeftParen parameterDeclarationClause? RightParen cvqualifierseq? refqualifier?
+            //		exceptionSpecification? attributeSpecifierSeq?;
+            if(analysisVisit)
+            {
+                if(ctx.parameterDeclarationClause()!=null)
+                {
+                    //parameterDeclarationClause:
+                    //	parameterDeclarationList (Comma? Ellipsis)?;
+                    //
+                    //parameterDeclarationList:
+                    //	parameterDeclaration (Comma parameterDeclaration)*;
+                    //
+                    //parameterDeclaration:
+                    //	attributeSpecifierSeq? declSpecifierSeq (
+                    //		(declarator | abstractDeclarator?) (
+                    //			Assign initializerClause
+                    //		)?
+                    //	);
+                    for(CppParser.ParameterDeclarationContext paramCtx:ctx.parameterDeclarationClause().parameterDeclarationList().parameterDeclaration())
+                    {
+                        String curName=getOriginalCodeText(paramCtx);
+                        useList.add(curName);
+                    }
+                }
+                return "";
+            }
+            return visitChildren(ctx);
+        }
         /**
          * {@inheritDoc}
          *
@@ -2413,12 +2638,12 @@ public class CppDDGBuilder {
          */
         private void parseDeclarator(CppParser.DeclaratorContext ctx)
         {
-
             //declarator:
             //	pointerDeclarator
             //	| noPointerDeclarator parametersAndQualifiers trailingReturnType;
             //
             //pointerDeclarator: (pointerOperator Const?)* noPointerDeclarator;
+            clearAllFlags();
             CppParser.PointerDeclaratorContext pdCtx=ctx.pointerDeclarator();
             pointOp="";
             if(pdCtx.pointerOperator()!=null)
@@ -2430,8 +2655,31 @@ public class CppDDGBuilder {
                         pointOp+=pdCtx.Const(i).getText();
                 }
             }
+            //noPointerDeclarator:
+            //	declaratorid attributeSpecifierSeq?
+            //	| noPointerDeclarator (
+            //		parametersAndQualifiers
+            //		| LeftBracket constantExpression? RightBracket attributeSpecifierSeq?
+            //	)
+            //	| LeftParen pointerDeclarator RightParen;
+            if(pdCtx.noPointerDeclarator().LeftParen()!=null)
+            {
+                //	| LeftParen pointerDeclarator RightParen;
+                nestedName="";
+                varName="";
+                isOnlyPointerDecl=true;
+                return;
+            }
 
-            CppParser.DeclaratoridContext decIdCtx=pdCtx.noPointerDeclarator().noPointerDeclarator().declaratorid();
+            CppParser.DeclaratoridContext decIdCtx;
+            if(pdCtx.noPointerDeclarator().parametersAndQualifiers()!=null)
+            {
+                isHasParameters=true;
+                decIdCtx=pdCtx.noPointerDeclarator().noPointerDeclarator().declaratorid();
+            }
+            else
+                decIdCtx=pdCtx.noPointerDeclarator().declaratorid();
+
             //declaratorid: Ellipsis? idExpression;
             //
             //idExpression: unqualifiedId | qualifiedId;
@@ -2442,6 +2690,9 @@ public class CppDDGBuilder {
                 // 存在嵌套名，当前只允许有一个
                 varName=getOriginalCodeText(decIdCtx.idExpression().qualifiedId().unqualifiedId());
                 nestedName=getOriginalCodeText(decIdCtx.idExpression().qualifiedId().nestedNameSpecifier().theTypeName());
+                // 这个用于判断这个嵌套名是否只有::,目前这个的作用主要是为了区分出存在作用域声明的函数调用和变量声明
+                if(nestedName=="")
+                    isGlobal=true;
             }
             else
                 varName=getOriginalCodeText(decIdCtx.idExpression().qualifiedId().unqualifiedId());
