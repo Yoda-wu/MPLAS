@@ -88,7 +88,7 @@ public class JavaScriptDDGBuilder {
         Logger.info("Done.");
 
         // Analyze method DEF information for imported libraries
-        analyzeImportsDEF(filesClasses);
+//        analyzeImportsDEF(filesClasses);
 
         // Iteratively, extract USE-DEF info for all program statements ...
         DataDependenceGraph[] ddgs = new DataDependenceGraph[files.length];
@@ -657,35 +657,116 @@ public class JavaScriptDDGBuilder {
          **************************************
          **************************************/
 
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitClassDeclaration(JavaScriptParser.ClassDeclarationContext ctx) { return visitChildren(ctx); }
+        @Override public String visitClassDeclaration(JavaScriptParser.ClassDeclarationContext ctx) {
+            //classDeclaration
+            //    : Class identifier classTail
+            //    ;
+            for (JavaScriptClass cls: classInfos) {
+                if (cls.NAME.equals(ctx.identifier().Identifier().getText())) {
+                    activeClasses.push(cls);
+                    visit(ctx.classTail());
+                    activeClasses.pop();
+                    break;
+                }
+            }
+            return null;
+        }
 
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitClassTail(JavaScriptParser.ClassTailContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitClassElement(JavaScriptParser.ClassElementContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitMethodDefinition(JavaScriptParser.MethodDefinitionContext ctx) { return visitChildren(ctx); }
+       //TODO
+        @Override public String visitClassTail(JavaScriptParser.ClassTailContext ctx) {
+            //    : (Extends singleExpression)? '{' classElement* '}'
+            //classElement
+            //    : (Static | {this.n("static")}? identifier | Async)* (methodDefinition | assignable '=' objectLiteral ';')
+            //    | emptyStatement_
+            //    | '#'? propertyName '=' singleExpression
+            //    ;
+            localVars.clear();
+            for (JavaScriptParser.ClassElementContext classElement : ctx.classElement()) {
+                if (classElement.methodDefinition()!=null){
+                    methodParams=new JavaScriptField[0];
+                    methodDefInfo=new MethodDefInfo(null,"block","",activeClasses.peek().NAME,null);
+                    return null;
+                }
+            }
+           return null;
+        }
+
+
+        @Override public String visitMethodDefinition(JavaScriptParser.MethodDefinitionContext ctx) {
+            //methodDefinition
+            //    : '*'? '#'? propertyName '(' formalParameterList? ')' functionBody
+            //    | '*'? '#'? getter '(' ')' functionBody
+            //    | '*'? '#'? setter '(' formalParameterList? ')' functionBody
+            //    ;
+            PDNode entry;
+            if (iteration == 1) {
+                entry = new PDNode();
+                entry.setLineOfCode(ctx.getStart().getLine());
+                String args = "";
+                if (ctx.propertyName()!=null){
+                    args=getOriginalCodeText(ctx.formalParameterList());
+                    entry.setCode(ctx.propertyName().getText()+args);
+                    entry.setProperty("name",ctx.propertyName().getText());
+                }else if(ctx.getter()!=null){
+                    entry.setCode(ctx.getter().getText());
+                    entry.setProperty("name",ctx.getter().getText());
+                }else{
+                    args=getOriginalCodeText(ctx.formalParameterList());
+                    entry.setCode(ctx.setter().getText()+args);
+                    entry.setProperty("name", ctx.setter().getText());
+                }
+                ddg.addVertex(entry);
+                pdNodes.put(ctx, entry);
+                //
+                // Extract all parameter types and IDs
+                List<String> paramIDs = new ArrayList<>();
+                List<String> paramTypes = new ArrayList<>();
+                if (ctx.formalParameterList() != null) {
+                    for (JavaScriptParser.FormalParameterArgContext prm : ctx.formalParameterList().formalParameterArg()) {
+                        paramIDs.add(prm.assignable().getText());
+                    }
+                    JavaScriptParser.LastFormalParameterArgContext lastParam = ctx.formalParameterList().lastFormalParameterArg();
+                    if (lastParam != null) {
+                        paramIDs.add(lastParam.singleExpression().getText());
+                    }
+                }
+                methodParams = new JavaScriptField[paramIDs.size()];
+                for (int i = 0; i < methodParams.length; ++i)
+                    methodParams[i] = new JavaScriptField(null, false, "", paramIDs.get(i));
+                entry.setProperty("params", methodParams);
+                //
+                // Add initial DEF info: method entry nodes define the input-parameters
+                for (String pid: paramIDs)
+                    changed |= entry.addDEF(pid);
+            } else {
+                entry = (PDNode) pdNodes.get(ctx);
+                methodParams = (JavaScriptField[]) entry.getProperty("params");
+            }
+
+            methodDefInfo = findDefInfo((String) entry.getProperty("name"),
+                    (String) entry.getProperty("type"),	methodParams);
+            if (methodDefInfo == null) {
+                Logger.error("Method NOT FOUND!");
+                Logger.error("NAME = " + (String) entry.getProperty("name"));
+                Logger.error("TYPE = " + (String) entry.getProperty("type"));
+                Logger.error("PARAMS = " + Arrays.toString(methodParams));
+                Logger.error("CLASS = " + activeClasses.peek().NAME);
+                Logger.error("PACKAGE = " + activeClasses.peek().PACKAGE);
+                List list = methodDEFs.get((String) entry.getProperty("name"));
+                for (int i = 0; i < list.size(); ++i)
+                    Logger.error(list.get(i).toString());
+            }
+
+            // Now visit method body ...
+            localVars.clear();
+            if (ctx.functionBody() != null)
+                visit(ctx.functionBody());
+            //
+            localVars.clear();
+            methodParams = new JavaScriptField[0];
+            return null;
+        }
+
         /**
          * {@inheritDoc}
          *
