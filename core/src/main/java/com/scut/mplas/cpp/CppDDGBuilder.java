@@ -107,6 +107,7 @@ public class CppDDGBuilder {
         Logger.info("\nExtracting class-infos and nonClass-Func-infos ... ");
         allClassInfos = new HashMap<>();
         allNonClassFunctionInfos =new HashMap<>();
+        methodDEFs =new HashMap<>();
         List<CppClass> classesList=new LinkedList<>();
         List<CppMethod> functiopnsList=new LinkedList<>();
 
@@ -400,13 +401,17 @@ public class CppDDGBuilder {
                     return GLOBAL;
             if (id.startsWith("this->"))
                 id = id.substring(6);
-            for (CppField field: activeClasses.peek().getAllFields())
-                if (field.NAME.equals(id))
-                    return FIELD;
-            for (CppClass cls: activeClasses)
-                for (CppField field: cls.getAllFields())
+            if(!activeClasses.isEmpty())
+            {
+                for (CppField field: activeClasses.peek().getAllFields())
                     if (field.NAME.equals(id))
-                        return OUTER;
+                        return FIELD;
+                for (CppClass cls: activeClasses)
+                    for (CppField field: cls.getAllFields())
+                        if (field.NAME.equals(id))
+                            return OUTER;
+            }
+
             return -1;
         }
 
@@ -581,6 +586,8 @@ public class CppDDGBuilder {
          */
         private MethodDefInfo findDefInfo(String name, String type, CppField[] params) {
             List<MethodDefInfo> infoList = methodDEFs.get(name);
+            if(infoList==null)
+                return null;
             if (infoList.size() > 1) {
                 forEachInfo:
                 for (MethodDefInfo info: infoList) {
@@ -620,6 +627,8 @@ public class CppDDGBuilder {
          */
         private boolean isUsableExpression(String expr) {
             // must not be a literal or of type 'class'.
+            if(expr==null || expr=="")
+                return false;
             if (expr.startsWith("$"))
                 return false;
             // must not be a method-call or parenthesized expression
@@ -2099,10 +2108,10 @@ public class CppDDGBuilder {
                 Logger.error("NAME = " + (String) entry.getProperty("name"));
                 Logger.error("TYPE = " + (String) entry.getProperty("type"));
                 Logger.error("PARAMS = " + Arrays.toString(methodParams));
-                Logger.error("CLASS = " + activeClasses.peek().NAME);
                 List list = methodDEFs.get((String) entry.getProperty("name"));
-                for (int i = 0; i < list.size(); ++i)
-                    Logger.error(list.get(i).toString());
+                if(list!=null)
+                    for (int i = 0; i < list.size(); ++i)
+                        Logger.error(list.get(i).toString());
             }
             // 表示这个函数是否某个类的定义式的话
             boolean isInClass=false;
@@ -2672,7 +2681,7 @@ public class CppDDGBuilder {
             }
 
             CppParser.DeclaratoridContext decIdCtx;
-            if(pdCtx.noPointerDeclarator().parametersAndQualifiers()!=null)
+            if(pdCtx.noPointerDeclarator().parametersAndQualifiers()!=null || pdCtx.noPointerDeclarator().LeftBracket()!=null)
             {
                 isHasParameters=true;
                 decIdCtx=pdCtx.noPointerDeclarator().noPointerDeclarator().declaratorid();
@@ -2695,7 +2704,7 @@ public class CppDDGBuilder {
                     isGlobal=true;
             }
             else
-                varName=getOriginalCodeText(decIdCtx.idExpression().qualifiedId().unqualifiedId());
+                varName=getOriginalCodeText(decIdCtx.idExpression().unqualifiedId());
         }
 
         private String getOriginalCodeText(ParserRuleContext ctx) {
