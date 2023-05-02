@@ -1,29 +1,174 @@
-======= LOG CREATED on 周四 2023/4月/27 17:45:48:458 =======
+======= LOG CREATED on 周二 2023/5月/02 18:06:39:536 =======
 
 PROGEX (Program Graph Extractor)  [ v3.4.5 ]
 Visit project website @ https://github.com/ghaffarian/progex
 
 PROGEX execution config:
-  Language = Java
-  Output format = GML
-  Output directory = ../generate/java/basic/AST/\
-  Analysis types = [AST]
+  Language = Cpp
+  Output format = JSON
+  Output directory = ../generate/cpp/basic/DDG/\
+  Analysis types = [DDG]
   File name = 
   Input paths = 
-        src/test/resources/java/basic/
+        src/test/resources/cpp/basic/
 
 
-# Java source files = 9
+# Cpp source files = 11
 
 
-Abstract Syntax Analysis
-========================
-AST exported to: ../generate/java/basic/AST/\Test1-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test2-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test3-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test4-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test5-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test6-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test7-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test8-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test9-AST.gml
+Data-Dependence Analysis
+=====================
+Parsing all source files ... 
+Done.
+
+begin ddg build for each file ... 
+
+Extracting class-infos and nonClass-Func-infos ... 
+Done.
+
+Initializing method-DEF infos ... 
+Done.
+
+Iterative DEF-USE analysis ... 
+Done.
+
+Extracting class-infos and nonClass-Func-infos ... 
+Done.
+
+Initializing method-DEF infos ... 
+Done.
+
+Iterative DEF-USE analysis ... 
+Method NOT FOUND!
+NAME = CMyString
+TYPE = CMyString 
+PARAMS = [{ SPECIFIER : "null", TYPE : "const char *", NAME : "pData" }]
+{ TYPE : "CMyString ", NAME : "CMyString", NAMESPACE : "::", ARGS : [const char *], CLASS : "" }
+{ TYPE : "CMyString ", NAME : "CMyString", NAMESPACE : "::", ARGS : [const CMyString &], CLASS : "" }
+Method NOT FOUND!
+NAME = CMyString
+TYPE = CMyString 
+PARAMS = [{ SPECIFIER : "null", TYPE : "const CMyString &", NAME : "str" }]
+{ TYPE : "CMyString ", NAME : "CMyString", NAMESPACE : "::", ARGS : [const char *], CLASS : "" }
+{ TYPE : "CMyString ", NAME : "CMyString", NAMESPACE : "::", ARGS : [const CMyString &], CLASS : "" }
+Method NOT FOUND!
+NAME = operator =
+TYPE = CMyString &
+PARAMS = [{ SPECIFIER : "null", TYPE : "const CMyString &", NAME : "str" }]
+Method NOT FOUND!
+NAME = CMyString
+TYPE = CMyString 
+PARAMS = [{ SPECIFIER : "null", TYPE : "const char *", NAME : "pData" }]
+{ TYPE : "CMyString ", NAME : "CMyString", NAMESPACE : "::", ARGS : [const char *], CLASS : "" }
+{ TYPE : "CMyString ", NAME : "CMyString", NAMESPACE : "::", ARGS : [const CMyString &], CLASS : "" }
+Method NOT FOUND!
+NAME = CMyString
+TYPE = CMyString 
+PARAMS = [{ SPECIFIER : "null", TYPE : "const CMyString &", NAME : "str" }]
+{ TYPE : "CMyString ", NAME : "CMyString", NAMESPACE : "::", ARGS : [const char *], CLASS : "" }
+{ TYPE : "CMyString ", NAME : "CMyString", NAMESPACE : "::", ARGS : [const CMyString &], CLASS : "" }
+Method NOT FOUND!
+NAME = operator =
+TYPE = CMyString &
+PARAMS = [{ SPECIFIER : "null", TYPE : "const CMyString &", NAME : "str" }]
+Done.
+
+Extracting class-infos and nonClass-Func-infos ... 
+Done.
+
+Initializing method-DEF infos ... 
+Done.
+
+Iterative DEF-USE analysis ... 
+Done.
+
+Extracting class-infos and nonClass-Func-infos ... 
+Done.
+
+Initializing method-DEF infos ... 
+Done.
+
+Iterative DEF-USE analysis ... 
+Done.
+
+Extracting class-infos and nonClass-Func-infos ... 
+Done.
+
+Initializing method-DEF infos ... 
+Done.
+
+Iterative DEF-USE analysis ... 
+Done.
+
+Extracting class-infos and nonClass-Func-infos ... 
+Done.
+
+Initializing method-DEF infos ... 
+Done.
+
+Iterative DEF-USE analysis ... 
+Done.
+
+Extracting class-infos and nonClass-Func-infos ... 
+Done.
+
+Initializing method-DEF infos ... 
+Done.
+
+Iterative DEF-USE analysis ... 
+Done.
+
+Extracting class-infos and nonClass-Func-infos ... 
+Done.
+
+Initializing method-DEF infos ... 
+Done.
+
+Iterative DEF-USE analysis ... 
+Done.
+
+Extracting class-infos and nonClass-Func-infos ... 
+Done.
+
+Initializing method-DEF infos ... 
+Done.
+
+Iterative DEF-USE analysis ... 
+Done.
+
+Extracting class-infos and nonClass-Func-infos ... 
+Done.
+
+Initializing method-DEF infos ... 
+Done.
+
+Iterative DEF-USE analysis ... 
+Done.
+
+Extracting class-infos and nonClass-Func-infos ... 
+Done.
+
+Initializing method-DEF infos ... 
+Done.
+
+Iterative DEF-USE analysis ... 
+Done.
+Done.
+
+Extracting CFGs ... 
+Done.
+
+Adding data-flow edges ... 
+Done.
+
+DDS of PDG exported to: ../generate/cpp/basic/DDG/\and_keyword-PDG-DATA.json
+DDS of PDG exported to: ../generate/cpp/basic/DDG/\class_test-PDG-DATA.json
+DDS of PDG exported to: ../generate/cpp/basic/DDG/\exception_test-PDG-DATA.json
+DDS of PDG exported to: ../generate/cpp/basic/DDG/\for_if_test-PDG-DATA.json
+DDS of PDG exported to: ../generate/cpp/basic/DDG/\function_and_struct_definations_test-PDG-DATA.json
+DDS of PDG exported to: ../generate/cpp/basic/DDG/\function_Declarations_and_integers-PDG-DATA.json
+DDS of PDG exported to: ../generate/cpp/basic/DDG/\goto_test-PDG-DATA.json
+DDS of PDG exported to: ../generate/cpp/basic/DDG/\iteration_test-PDG-DATA.json
+DDS of PDG exported to: ../generate/cpp/basic/DDG/\switch_test-PDG-DATA.json
+DDS of PDG exported to: ../generate/cpp/basic/DDG/\template_args_test-PDG-DATA.json
+DDS of PDG exported to: ../generate/cpp/basic/DDG/\test1-PDG-DATA.json

@@ -60,6 +60,7 @@ public class Execution {
 		CFG			("CFG"),
 		PDG			("PDG"),
 		AST			("AST"),
+		DDG			("DDG"),
 		ICFG		("ICFG"),
 		SRC_INFO 	("INFO");
 		
@@ -311,6 +312,19 @@ public class Execution {
 						} catch (IOException ex) {
 							Logger.error(ex);
 						}
+					}
+					break;
+				//
+				case "DDG":
+					Logger.info("\nData-Dependence Analysis");
+					Logger.info("=====================");
+					Logger.debug("START: " + Logger.time() + '\n');
+					try {
+						for (ProgramDependeceGraph pdg: PDGBuilder.buildForAll(lang.name, filePaths)) {
+							pdg.DDS.export(format.toString(), outputDir);
+						}
+					} catch (IOException ex) {
+						Logger.error(ex);
 					}
 					break;
 				//

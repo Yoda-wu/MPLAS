@@ -40,6 +40,10 @@ public class CLI {
 							exec.addAnalysisOption(Execution.Analysis.CFG);
 							break;
 						//
+						case "ddg":
+							exec.addAnalysisOption(Execution.Analysis.DDG);
+							break;
+						//
 						case "pdg":
 							exec.addAnalysisOption(Execution.Analysis.PDG);
 							break;

@@ -3,6 +3,7 @@ package com.scut.mplas.graphs.pdg;
 
 import java.io.IOException;
 
+import com.scut.mplas.cpp.CppPDGBuilder;
 import com.scut.mplas.java.JavaPDGBuilder;
 
 /**
@@ -15,6 +16,9 @@ public class PDGBuilder {
 	
 	public static ProgramDependeceGraph[] buildForAll(String lang, String[] srcFilePaths) throws IOException {
 		switch (lang) {
+			case "Cpp":
+				return CppPDGBuilder.buildForAll(srcFilePaths);
+			//
 			case "C":
 				return null;
 			//

@@ -1599,7 +1599,22 @@ public class CppExtractor {
                 }
             }
 
-            CppParser.DeclaratoridContext decIdCtx=pdCtx.noPointerDeclarator().noPointerDeclarator().declaratorid();
+            //noPointerDeclarator:
+            //	declaratorid attributeSpecifierSeq?
+            //	| noPointerDeclarator (
+            //		parametersAndQualifiers
+            //		| LeftBracket constantExpression? RightBracket attributeSpecifierSeq?
+            //	)
+            //	| LeftParen pointerDeclarator RightParen;
+
+            CppParser.DeclaratoridContext decIdCtx;
+            if(pdCtx.noPointerDeclarator().parametersAndQualifiers()!=null || pdCtx.noPointerDeclarator().LeftBracket()!=null)
+            {
+                decIdCtx=pdCtx.noPointerDeclarator().noPointerDeclarator().declaratorid();
+            }
+            else
+                decIdCtx=pdCtx.noPointerDeclarator().declaratorid();
+
             //declaratorid: Ellipsis? idExpression;
             //
             //idExpression: unqualifiedId | qualifiedId;
@@ -1612,7 +1627,7 @@ public class CppExtractor {
                 nestedName=getOriginalCodeText(decIdCtx.idExpression().qualifiedId().nestedNameSpecifier().theTypeName());
             }
             else
-                varName=getOriginalCodeText(decIdCtx.idExpression().qualifiedId().unqualifiedId());
+                varName=getOriginalCodeText(decIdCtx.idExpression().unqualifiedId());
         }
 
         private String getOriginalCodeText(ParserRuleContext ctx) {

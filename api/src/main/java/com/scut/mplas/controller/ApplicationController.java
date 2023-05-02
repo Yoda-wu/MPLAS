@@ -34,9 +34,12 @@ public class ApplicationController {
         return successResponse;
     }
     @RequestMapping(value = "/cfg", method = RequestMethod.POST)
-    public BaseResponse GenerateCFG(){
+    public BaseResponse GenerateCFG(@RequestParam String lang,  @RequestBody MultipartFile data){
         // Your Code here
+        log.info(lang);
         BaseResponse successResponse =responseBuilder.getSuccessResponse();
+        Object res = codeAnalysisServiceFactory.getService(lang).analysis(Execution.Analysis.CFG, data);
+        successResponse.setData(res);
         return successResponse;
     }
 
