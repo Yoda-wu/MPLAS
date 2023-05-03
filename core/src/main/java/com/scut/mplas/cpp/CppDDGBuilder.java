@@ -584,7 +584,7 @@ public class CppDDGBuilder {
          * Find and return matching method-definition-info.
          * Returns null if not found.
          */
-        private MethodDefInfo findDefInfo(String name, String type, CppField[] params) {
+        private MethodDefInfo findDefInfo(String name, String type, CppField[] params,String className) {
             List<MethodDefInfo> infoList = methodDEFs.get(name);
             if(infoList==null)
                 return null;
@@ -593,7 +593,7 @@ public class CppDDGBuilder {
                 for (MethodDefInfo info: infoList) {
                     if(!info.NAMESPACE.equals(namespaces.peek()))
                         continue;
-                    if (!info.CLASS_NAME.equals(activeClasses.peek().NAME))
+                    if (!info.CLASS_NAME.equals(className))
                         continue;
                     if ((info.RET_TYPE == null && type != null) ||
                             (info.RET_TYPE != null && type == null))
@@ -714,13 +714,15 @@ public class CppDDGBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitNestedNameSpecifier(CppParser.NestedNameSpecifierContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitLambdaExpression(CppParser.LambdaExpressionContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitLambdaExpression(CppParser.LambdaExpressionContext ctx) {
+            if(analysisVisit)
+            {
+                visit(ctx.lambdaIntroducer());
+                return "";
+            }
+            return visitChildren(ctx);
+        }
         /**
          * {@inheritDoc}
          *
@@ -777,13 +779,45 @@ public class CppDDGBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitLambdaDeclarator(CppParser.LambdaDeclaratorContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitPostfixExpression(CppParser.PostfixExpressionContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitPostfixExpression(CppParser.PostfixExpressionContext ctx) {
+            //postfixExpression:
+            //	primaryExpression
+            //	| postfixExpression LeftBracket (expression | bracedInitList) RightBracket
+            //	| postfixExpression LeftParen expressionList? RightParen
+            //	| (simpleTypeSpecifier | typeNameSpecifier) (
+            //		LeftParen expressionList? RightParen
+            //		| bracedInitList
+            //	)
+            //	| postfixExpression (Dot | Arrow) (
+            //		Template? idExpression
+            //		| pseudoDestructorName
+            //	)
+            //	| postfixExpression (PlusPlus | MinusMinus)
+            //	| (
+            //		Dynamic_cast
+            //		| Static_cast
+            //		| Reinterpret_cast
+            //		| Const_cast
+            //	) Less theTypeId Greater LeftParen expression RightParen
+            //	| typeIdOfTheTypeId LeftParen (expression | theTypeId) RightParen;
+            if(analysisVisit && (ctx.Dot()!=null || ctx.Arrow()!=null))
+            {
+                List<String> idList=new ArrayList<>();
+                CppParser.PostfixExpressionContext posCtx=ctx;
+                while(posCtx.postfixExpression().Dot()!=null || posCtx.postfixExpression().Arrow()!=null)
+                {
+                    posCtx=posCtx.postfixExpression();
+                }
+                String var=getOriginalCodeText(posCtx.postfixExpression());
+                if(var.equals("this"))
+                    useList.add(getOriginalCodeText(posCtx));
+                else
+                    useList.add(var);
+                return "";
+            }
+            return visitChildren(ctx);
+        }
         /**
          * {@inheritDoc}
          *
@@ -2043,6 +2077,12 @@ public class CppDDGBuilder {
                 // 应该是类名
                 String nested=nestedName;
                 String funcName=varName;
+                if(isGlobal)
+                {
+                    // 构造函数或析构函数
+                    nested=type;
+                    funcRet="";
+                }
 
                 entry.setProperty("name",funcName);
                 entry.setProperty("type",funcRet);
@@ -2099,9 +2139,19 @@ public class CppDDGBuilder {
                 entry=(PDNode) pdNodes.get(ctx);
                 methodParams=(CppField[]) entry.getProperty("params");
             }
-
+            String className;
+            if(activeClasses.isEmpty())
+            {
+                CppClass cls=(CppClass) entry.getProperty("class");
+                if(cls!=null)
+                    className=cls.NAME;
+                else
+                    className=null;
+            }
+            else
+                className=activeClasses.peek().NAME;
             methodDefInfo=findDefInfo((String)entry.getProperty("name"),
-                                      (String) entry.getProperty("type"),methodParams);
+                                      (String) entry.getProperty("type"),methodParams,className);
 
             if (methodDefInfo == null) {
                 Logger.error("Method NOT FOUND!");
@@ -2189,7 +2239,7 @@ public class CppDDGBuilder {
             //	| Union attributeSpecifierSeq? (
             //		classHeadName classVirtSpecifier?
             //	)?;
-            String className=getOriginalCodeText(ctx.classHead());
+            String className=getOriginalCodeText(ctx.classHead().classHeadName());
             CppClass cls=findClass(className);
             if(cls!=null)
             {
@@ -2340,13 +2390,32 @@ public class CppDDGBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitConversionDeclarator(CppParser.ConversionDeclaratorContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitConstructorInitializer(CppParser.ConstructorInitializerContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitConstructorInitializer(CppParser.ConstructorInitializerContext ctx) {
+            //constructorInitializer: Colon memInitializerList;
+            //
+            //memInitializerList:
+            //	memInitializer Ellipsis? (Comma memInitializer Ellipsis?)*;
+            //
+            //memInitializer:
+            //	meminitializerid (
+            //		LeftParen expressionList? RightParen
+            //		| bracedInitList
+            //	);
+            PDNode entry;
+            if(iteration==1)
+            {
+                entry=new PDNode();
+                entry.setLineOfCode(ctx.getStart().getLine());
+                entry.setCode(getOriginalCodeText(ctx));
+                ddg.addVertex(entry);
+                pdNodes.put(ctx,entry);
+            }
+            else
+                entry=(PDNode) pdNodes.get(ctx);
+            analyseDefUse(entry,ctx.memInitializerList());
+            return "";
+        }
         /**
          * {@inheritDoc}
          *
@@ -2354,13 +2423,26 @@ public class CppDDGBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override public String visitMemInitializerList(CppParser.MemInitializerListContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public String visitMemInitializer(CppParser.MemInitializerContext ctx) { return visitChildren(ctx); }
+
+        @Override public String visitMemInitializer(CppParser.MemInitializerContext ctx) {
+            //memInitializer:
+            //	meminitializerid (
+            //		LeftParen expressionList? RightParen
+            //		| bracedInitList
+            //	);
+            //
+            //meminitializerid: classOrDeclType | Identifier;
+            if(analysisVisit)
+            {
+                defList.add(getOriginalCodeText(ctx.meminitializerid()));
+                if(ctx.bracedInitList()!=null)
+                    visit(ctx.bracedInitList());
+                else if(ctx.expressionList()!=null)
+                    visit(ctx.expressionList());
+                return "";
+            }
+            return visitChildren(ctx);
+        }
         /**
          * {@inheritDoc}
          *
@@ -2639,6 +2721,8 @@ public class CppDDGBuilder {
                     else
                         specifier+=getOriginalCodeText(decCtx)+" ";
                 }
+                if(!type.equals(""))
+                    type=type.substring(0,type.length()-1);
             }
         }
 
@@ -2684,7 +2768,14 @@ public class CppDDGBuilder {
             if(pdCtx.noPointerDeclarator().parametersAndQualifiers()!=null || pdCtx.noPointerDeclarator().LeftBracket()!=null)
             {
                 isHasParameters=true;
-                decIdCtx=pdCtx.noPointerDeclarator().noPointerDeclarator().declaratorid();
+                CppParser.NoPointerDeclaratorContext npdCtx=pdCtx.noPointerDeclarator().noPointerDeclarator();
+                while(npdCtx.LeftParen()!=null)
+                {
+                    //noPointerDeclarator:
+                    //	| LeftParen pointerDeclarator RightParen;
+                    npdCtx=npdCtx.pointerDeclarator().noPointerDeclarator();
+                }
+                decIdCtx=npdCtx.declaratorid();
             }
             else
                 decIdCtx=pdCtx.noPointerDeclarator().declaratorid();
