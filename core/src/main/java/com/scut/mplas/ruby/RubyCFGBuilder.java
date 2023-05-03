@@ -18,10 +18,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 
 public class RubyCFGBuilder {
 
@@ -79,6 +76,8 @@ public class RubyCFGBuilder {
         private Deque<CFEdge.Type> preEdges;
         private Queue<CFNode> casesQueue;
         private Deque<Block> loopBlocks;
+        private List<Block> labeledBlocks;
+        private Deque<Block> tryBlocks;
         private boolean dontPop;
         private String propKey;
         private Map<ParserRuleContext, Object> contexutalProperties;
@@ -104,8 +103,8 @@ public class RubyCFGBuilder {
             preNodes.clear();
             preEdges.clear();
             loopBlocks.clear();
-//            labeledBlocks.clear();
-//            tryBlocks.clear();
+            labeledBlocks.clear();
+            tryBlocks.clear();
             dontPop = false;
         }
 
