@@ -181,6 +181,7 @@ public class BasicAnalysisTests {
     @Test
     public void cppDDGJsonTest() {
         String outDir = CPP_OUTPUT_DIR + "DDG/";
+        //String CPP_SRC_DIR="src/test/resources/cpp/test/";
         String[] args = {"-ddg", "-outdir", outDir, "-format", "json", "-lang","cpp",CPP_SRC_DIR};
         Main.main(args);
         //

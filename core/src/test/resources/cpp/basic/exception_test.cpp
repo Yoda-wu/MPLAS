@@ -13,6 +13,9 @@ struct MyException : public exception
 struct test
 {
     int i;
+    test(int iii)
+    :i(iii){}
+
     test(int ii)
     try:i(ii)
     {

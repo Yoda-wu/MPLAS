@@ -457,6 +457,7 @@ public class CppCFGBuilder {
                 CFNode statNode=new CFNode();
                 statNode.setLineOfCode(ctx.getStart().getLine());
                 statNode.setCode(getOriginalCodeText(ctx));
+                addContextualProperty(statNode,ctx);
                 addNodeAndPreEdge(statNode);
 
                 preNodes.push(statNode);
@@ -911,7 +912,10 @@ public class CppCFGBuilder {
                             forInit = new CFNode();
                             forInit.setLineOfCode(ctx.forInitStatement().getStart().getLine());
                             forInit.setCode(getOriginalCodeText(ctx.forInitStatement()));
-                            addContextualProperty(forInit, ctx.forInitStatement());
+                            if(ctx.forInitStatement().simpleDeclaration()!=null)
+                                addContextualProperty(forInit, ctx.forInitStatement().simpleDeclaration());
+                            else
+                                addContextualProperty(forInit, ctx.forInitStatement());
                             addNodeAndPreEdge(forInit);
                         }
                         // for-condition
@@ -1874,13 +1878,28 @@ public class CppCFGBuilder {
              * {@link #visitChildren} on {@code ctx}.</p>
              */
             @Override public Void visitConversionDeclarator(CppParser.ConversionDeclaratorContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitConstructorInitializer(CppParser.ConstructorInitializerContext ctx) { return visitChildren(ctx); }
+
+            @Override public Void visitConstructorInitializer(CppParser.ConstructorInitializerContext ctx) {
+                //constructorInitializer: Colon memInitializerList;
+                //
+                //memInitializerList:
+                //	memInitializer Ellipsis? (Comma memInitializer Ellipsis?)*;
+                //
+                //memInitializer:
+                //	meminitializerid (
+                //		LeftParen expressionList? RightParen
+                //		| bracedInitList
+                //	);
+                CFNode constructNode=new CFNode();
+                constructNode.setLineOfCode(ctx.getStart().getLine());
+                constructNode.setCode(getOriginalCodeText(ctx));
+                addContextualProperty(constructNode,ctx);
+                addNodeAndPreEdge(constructNode);
+
+                preNodes.push(constructNode);
+                preEdges.push(CFEdge.Type.EPSILON);
+                return null;
+            }
             /**
              * {@inheritDoc}
              *
