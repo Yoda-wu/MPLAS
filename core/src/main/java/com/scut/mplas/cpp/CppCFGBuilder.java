@@ -415,31 +415,43 @@ public class CppCFGBuilder {
              * <p>The default implementation returns the result of calling
              * {@link #visitChildren} on {@code ctx}.</p>
              */
-            @Override public Void visitLogicalAndExpression(CppParser.LogicalAndExpressionContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitLogicalOrExpression(CppParser.LogicalOrExpressionContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitConditionalExpression(CppParser.ConditionalExpressionContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
             @Override
-            public Void visitAssignmentExpression(CppParser.AssignmentExpressionContext ctx) {
+            public Void visitLogicalAndExpression(CppParser.LogicalAndExpressionContext ctx) {
                 return visitChildren(ctx);
             }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitLogicalOrExpression(CppParser.LogicalOrExpressionContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitConditionalExpression(CppParser.ConditionalExpressionContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitAssignmentExpression(CppParser.AssignmentExpressionContext ctx) {
+            return visitChildren(ctx);
+        }
 
         /**
          * {@inheritDoc}
@@ -465,6 +477,7 @@ public class CppCFGBuilder {
             CFNode statNode = new CFNode();
             statNode.setLineOfCode(ctx.getStart().getLine());
             statNode.setCode(getOriginalCodeText(ctx));
+            addContextualProperty(statNode, ctx);
             addNodeAndPreEdge(statNode);
 
             preNodes.push(statNode);
@@ -486,7 +499,7 @@ public class CppCFGBuilder {
         /**
          * {@inheritDoc}
          *
-             * <p>The default implementation returns the result of calling
+         * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override
@@ -626,77 +639,144 @@ public class CppCFGBuilder {
          * {@inheritDoc}
          *
          * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitSelectionStatement(CppParser.SelectionStatementContext ctx)
-            //	If LeftParen condition RightParen statement (Else statement)?
-            //	| Switch LeftParen condition RightParen statement;
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitSelectionStatement(CppParser.SelectionStatementContext ctx)
+        //	If LeftParen condition RightParen statement (Else statement)?
+        //	| Switch LeftParen condition RightParen statement;
+        {
             {
-                {
-                    //If LeftParen condition RightParen statement (Else statement)?
-                    if (ctx.If() != null) {
-                        CFNode IfNode = new CFNode();
-                        IfNode.setLineOfCode(ctx.getStart().getLine());
-                        IfNode.setCode(ctx.If().getText() + ctx.LeftParen().getText() + getOriginalCodeText(ctx.condition()) + ctx.RightParen().getText());
-                        addContextualProperty(IfNode, ctx);
-                        addNodeAndPreEdge(IfNode);
-                        //
-                        preEdges.push(CFEdge.Type.TRUE);
+                //If LeftParen condition RightParen statement (Else statement)?
+                if (ctx.If() != null) {
+                    CFNode IfNode = new CFNode();
+                    IfNode.setLineOfCode(ctx.getStart().getLine());
+                    IfNode.setCode(ctx.If().getText() + ctx.LeftParen().getText() + getOriginalCodeText(ctx.condition()) + ctx.RightParen().getText());
+                    addContextualProperty(IfNode, ctx);
+                    addNodeAndPreEdge(IfNode);
+                    //
+                    preEdges.push(CFEdge.Type.TRUE);
+                    preNodes.push(IfNode);
+                    //
+                    visit(ctx.statement(0));
+                    //
+                    CFNode endIf = new CFNode();
+                    endIf.setLineOfCode(0);
+                    endIf.setCode("endif");
+                    addNodeAndPreEdge(endIf);
+                    //
+                    if (ctx.statement().size() == 1) { // if without else
+                        cfg.addEdge(new Edge<>(IfNode, new CFEdge(CFEdge.Type.FALSE), endIf));
+                    } else {  //  if with else
+                        preEdges.push(CFEdge.Type.FALSE);
                         preNodes.push(IfNode);
-                        //
-                        visit(ctx.statement(0));
-                        //
-                        CFNode endIf = new CFNode();
-                        endIf.setLineOfCode(0);
-                        endIf.setCode("endif");
-                        addNodeAndPreEdge(endIf);
-                        //
-                        if (ctx.statement().size() == 1) { // if without else
-                            cfg.addEdge(new Edge<>(IfNode, new CFEdge(CFEdge.Type.FALSE), endIf));
-                        } else {  //  if with else
-                            preEdges.push(CFEdge.Type.FALSE);
-                            preNodes.push(IfNode);
-                            visit(ctx.statement(1));
-                            popAddPreEdgeTo(endIf);
-                        }
-                        preEdges.push(CFEdge.Type.EPSILON);
-                        preNodes.push(endIf);
-                        return null;
+                        visit(ctx.statement(1));
+                        popAddPreEdgeTo(endIf);
                     }
-                }
-                if (ctx.Switch() != null) {
-                    //
-                    //Switch LeftParen condition RightParen statement;
-                    CFNode switchNode = new CFNode();
-                    switchNode.setLineOfCode(ctx.getStart().getLine());
-                    switchNode.setCode("switch " + getOriginalCodeText(ctx.condition()));
-                    addContextualProperty(switchNode, ctx);
-                    addNodeAndPreEdge(switchNode);
-                    //
-                    CFNode endSwitch = new CFNode();
-                    endSwitch.setLineOfCode(0);
-                    endSwitch.setCode("end-switch");
-                    cfg.addVertex(endSwitch);
-                    //
                     preEdges.push(CFEdge.Type.EPSILON);
-                    preNodes.push(switchNode);
-                    loopBlocks.push(new ControlFlowVisitor.Block(switchNode, endSwitch));
-                    //
-                    CFNode preCase = null;
-                    List<CFNode> nullCase = new LinkedList<>();
-                    boolean lastIsCase = false;
-                    if (ctx.statement(0).compoundStatement() == null)
-                        visit(ctx.statement(0));
-                    else {
-                        // 只能支持case语句要么空要么存在break的CFG分析
-                        for (CppParser.StatementContext Selec : ctx.statement(0).compoundStatement().statementSeq().statement()) {
-                            if (Selec.labeledStatement() != null && Selec.labeledStatement().Default() != null) {
-                                //labeledStatement:
-                                //	attributeSpecifierSeq? (
-                                //		| Default
-                                //	) Colon statement;
+                    preNodes.push(endIf);
+                    return null;
+                }
+            }
+            if (ctx.Switch() != null) {
+                //
+                //Switch LeftParen condition RightParen statement;
+                CFNode switchNode = new CFNode();
+                switchNode.setLineOfCode(ctx.getStart().getLine());
+                switchNode.setCode("switch " + getOriginalCodeText(ctx.condition()));
+                addContextualProperty(switchNode, ctx);
+                addNodeAndPreEdge(switchNode);
+                //
+                CFNode endSwitch = new CFNode();
+                endSwitch.setLineOfCode(0);
+                endSwitch.setCode("end-switch");
+                cfg.addVertex(endSwitch);
+                //
+                preEdges.push(CFEdge.Type.EPSILON);
+                preNodes.push(switchNode);
+                loopBlocks.push(new ControlFlowVisitor.Block(switchNode, endSwitch));
+                //
+                CFNode preCase = null;
+                List<CFNode> nullCase = new LinkedList<>();
+                boolean lastIsCase = false;
+                if (ctx.statement(0).compoundStatement() == null)
+                    visit(ctx.statement(0));
+                else {
+                    // 只能支持case语句要么空要么存在break的CFG分析
+                    for (CppParser.StatementContext Selec : ctx.statement(0).compoundStatement().statementSeq().statement()) {
+                        if (Selec.labeledStatement() != null && Selec.labeledStatement().Default() != null) {
+                            //labeledStatement:
+                            //	attributeSpecifierSeq? (
+                            //		| Default
+                            //	) Colon statement;
+                            CFNode defNode = new CFNode();
+                            defNode.setLineOfCode(Selec.getStart().getLine());
+                            defNode.setCode("default");
+                            if (preCase == null)
+                                addNodeAndPreEdge(defNode);
+                            else {
+                                cfg.addVertex(defNode);
+                                cfg.addEdge(new Edge<>(preCase, new CFEdge(CFEdge.Type.FALSE), defNode));
+                            }
+                            preNodes.push(defNode);
+                            preEdges.push(CFEdge.Type.EPSILON);
+                            visit(Selec.labeledStatement().statement());
+                            lastIsCase = false;
+                        } else if (Selec.labeledStatement() != null && Selec.labeledStatement().Case() != null) {
+                            //labeledStatement:
+                            //	attributeSpecifierSeq? (
+                            //		| Case constantExpression
+                            //	) Colon statement;
+                            CppParser.LabeledStatementContext caseCtx = Selec.labeledStatement();
+                            Selec = null;
+                            while (caseCtx.Case() != null) {
+                                CFNode caseNode = new CFNode();
+                                caseNode.setLineOfCode(caseCtx.getStart().getLine());
+                                caseNode.setCode("case " + getOriginalCodeText(caseCtx.constantExpression()));
+                                if (preCase == null)
+                                    addNodeAndPreEdge(caseNode);
+                                else {
+                                    cfg.addVertex(caseNode);
+                                    cfg.addEdge(new Edge<>(preCase, new CFEdge(CFEdge.Type.FALSE), caseNode));
+                                }
+
+                                preCase = caseNode;
+                                lastIsCase = true;
+
+                                if (caseCtx.statement().labeledStatement() != null && caseCtx.statement().labeledStatement().Case() != null) {
+                                    // case的下一个语句还是case
+                                    preNodes.push(caseNode);
+                                    preEdges.push(CFEdge.Type.FALSE);
+                                    nullCase.add(caseNode);
+                                    caseCtx = caseCtx.statement().labeledStatement();
+                                } else if (caseCtx.statement().labeledStatement() != null && caseCtx.statement().labeledStatement().Default() != null) {
+                                    // case的下一个语句是default
+                                    preNodes.push(caseNode);
+                                    preEdges.push(CFEdge.Type.FALSE);
+                                    nullCase.add(caseNode);
+                                    caseCtx = caseCtx.statement().labeledStatement();
+                                } else {
+                                    // case的下一个语句是非case,default语句
+                                    preNodes.push(caseNode);
+                                    preEdges.push(CFEdge.Type.TRUE);
+                                    nullCase.add(caseNode);
+                                    Selec = caseCtx.statement();
+                                    break;
+                                }
+                            }
+
+                            if (Selec != null) {
+                                // 非case,default语句
+                                if (!nullCase.isEmpty()) {
+                                    pushNodeToCaseList(nullCase);
+                                    nullCase.clear();
+                                    dontPop = true;
+                                }
+                                visit(Selec);
+                            } else {
+                                // default语句
                                 CFNode defNode = new CFNode();
-                                defNode.setLineOfCode(Selec.getStart().getLine());
+                                defNode.setLineOfCode(caseCtx.getStart().getLine());
                                 defNode.setCode("default");
                                 if (preCase == null)
                                     addNodeAndPreEdge(defNode);
@@ -706,98 +786,32 @@ public class CppCFGBuilder {
                                 }
                                 preNodes.push(defNode);
                                 preEdges.push(CFEdge.Type.EPSILON);
-                                visit(Selec.labeledStatement().statement());
-                                lastIsCase = false;
-                            } else if (Selec.labeledStatement() != null && Selec.labeledStatement().Case() != null) {
-                                //labeledStatement:
-                                //	attributeSpecifierSeq? (
-                                //		| Case constantExpression
-                                //	) Colon statement;
-                                CppParser.LabeledStatementContext caseCtx = Selec.labeledStatement();
-                                Selec = null;
-                                while (caseCtx.Case() != null) {
-                                    CFNode caseNode = new CFNode();
-                                    caseNode.setLineOfCode(caseCtx.getStart().getLine());
-                                    caseNode.setCode("case " + getOriginalCodeText(caseCtx.constantExpression()));
-                                    if (preCase == null)
-                                        addNodeAndPreEdge(caseNode);
-                                    else {
-                                        cfg.addVertex(caseNode);
-                                        cfg.addEdge(new Edge<>(preCase, new CFEdge(CFEdge.Type.FALSE), caseNode));
-                                    }
-
-                                    preCase = caseNode;
-                                    lastIsCase = true;
-
-                                    if (caseCtx.statement().labeledStatement() != null && caseCtx.statement().labeledStatement().Case() != null) {
-                                        // case的下一个语句还是case
-                                        preNodes.push(caseNode);
-                                        preEdges.push(CFEdge.Type.FALSE);
-                                        nullCase.add(caseNode);
-                                        caseCtx = caseCtx.statement().labeledStatement();
-                                    } else if (caseCtx.statement().labeledStatement() != null && caseCtx.statement().labeledStatement().Default() != null) {
-                                        // case的下一个语句是default
-                                        preNodes.push(caseNode);
-                                        preEdges.push(CFEdge.Type.FALSE);
-                                        nullCase.add(caseNode);
-                                        caseCtx = caseCtx.statement().labeledStatement();
-                                    } else {
-                                        // case的下一个语句是非case,default语句
-                                        preNodes.push(caseNode);
-                                        preEdges.push(CFEdge.Type.TRUE);
-                                        nullCase.add(caseNode);
-                                        Selec = caseCtx.statement();
-                                        break;
-                                    }
-                                }
-
-                                if (Selec != null) {
-                                    // 非case,default语句
-                                    if (!nullCase.isEmpty()) {
-                                        pushNodeToCaseList(nullCase);
-                                        nullCase.clear();
-                                        dontPop = true;
-                                    }
-                                    visit(Selec);
-                                } else {
-                                    // default语句
-                                    CFNode defNode = new CFNode();
-                                    defNode.setLineOfCode(caseCtx.getStart().getLine());
-                                    defNode.setCode("default");
-                                    if (preCase == null)
-                                        addNodeAndPreEdge(defNode);
-                                    else {
-                                        cfg.addVertex(defNode);
-                                        cfg.addEdge(new Edge<>(preCase, new CFEdge(CFEdge.Type.FALSE), defNode));
-                                    }
-                                    preNodes.push(defNode);
-                                    preEdges.push(CFEdge.Type.EPSILON);
-                                    visit(caseCtx.statement());
-                                }
-                                lastIsCase = false;
-                            } else {
-                                //非case,default语句
-                                if (!nullCase.isEmpty()) {
-                                    pushNodeToCaseList(nullCase);
-                                    nullCase.clear();
-                                    dontPop = true;
-                                }
-                                visit(Selec);
-                                lastIsCase = false;
+                                visit(caseCtx.statement());
                             }
-
+                            lastIsCase = false;
+                        } else {
+                            //非case,default语句
+                            if (!nullCase.isEmpty()) {
+                                pushNodeToCaseList(nullCase);
+                                nullCase.clear();
+                                dontPop = true;
+                            }
+                            visit(Selec);
+                            lastIsCase = false;
                         }
-                    }
 
-                    loopBlocks.pop();
-                    popAddPreEdgeTo(endSwitch);
-                    //
-                    preEdges.push(CFEdge.Type.EPSILON);
-                    preNodes.push(endSwitch);
-                    return null;
+                    }
                 }
+
+                loopBlocks.pop();
+                popAddPreEdgeTo(endSwitch);
+                //
+                preEdges.push(CFEdge.Type.EPSILON);
+                preNodes.push(endSwitch);
                 return null;
             }
+            return null;
+        }
 
 
         @Override
@@ -919,7 +933,10 @@ public class CppCFGBuilder {
                         forInit = new CFNode();
                         forInit.setLineOfCode(ctx.forInitStatement().getStart().getLine());
                         forInit.setCode(getOriginalCodeText(ctx.forInitStatement()));
-                        addContextualProperty(forInit, ctx.forInitStatement());
+                        if (ctx.forInitStatement().simpleDeclaration() != null)
+                            addContextualProperty(forInit, ctx.forInitStatement().simpleDeclaration());
+                        else
+                            addContextualProperty(forInit, ctx.forInitStatement());
                         addNodeAndPreEdge(forInit);
                     }
                     // for-condition
@@ -972,37 +989,50 @@ public class CppCFGBuilder {
         }
 
         @Override
-        public Void visitForInitStatement(CppParser.ForInitStatementContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitForRangeDeclaration(CppParser.ForRangeDeclarationContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitForRangeInitializer(CppParser.ForRangeInitializerContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitJumpStatement(CppParser.JumpStatementContext ctx)
-            //jumpStatement:
-            //	(
-            //		Break
-            //		| Continue
-            //		| Return (expression | bracedInitList)?
-            //		| Goto Identifier
-            //	) Semi;
-            //
-            {if (ctx.Break() != null) {
+        public Void visitForInitStatement(CppParser.ForInitStatementContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitForRangeDeclaration(CppParser.ForRangeDeclarationContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitForRangeInitializer(CppParser.ForRangeInitializerContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitJumpStatement(CppParser.JumpStatementContext ctx)
+        //jumpStatement:
+        //	(
+        //		Break
+        //		| Continue
+        //		| Return (expression | bracedInitList)?
+        //		| Goto Identifier
+        //	) Semi;
+        //
+        {
+            if (ctx.Break() != null) {
                 // if a label is specified, search for the corresponding block in the labels-list,
                 // and create an epsilon edge to the end of the labeled-block; else
                 // create an epsilon edge to the end of the loop-block on top of the loopBlocks stack.
@@ -1073,19 +1103,24 @@ public class CppCFGBuilder {
                 dontPop = true;
                 return null;
             }
-                return null;
-    }
+            return null;
+        }
 
-            @Override public Void visitDeclarationStatement(CppParser.DeclarationStatementContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitDeclarationseq(CppParser.DeclarationseqContext ctx) {
-                return visitChildren(ctx);
-            }
+        @Override
+        public Void visitDeclarationStatement(CppParser.DeclarationStatementContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitDeclarationseq(CppParser.DeclarationseqContext ctx) {
+            return visitChildren(ctx);
+        }
 
         /**
          * {@inheritDoc}
@@ -1169,17 +1204,22 @@ public class CppCFGBuilder {
          *
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitEmptyDeclaration(CppParser.EmptyDeclarationContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitAttributeDeclaration(CppParser.AttributeDeclarationContext ctx) {
-                return visitChildren(ctx);
-            }
+         */
+        @Override
+        public Void visitEmptyDeclaration(CppParser.EmptyDeclarationContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitAttributeDeclaration(CppParser.AttributeDeclarationContext ctx) {
+            return visitChildren(ctx);
+        }
 
         /**
          * {@inheritDoc}
@@ -1217,44 +1257,68 @@ public class CppCFGBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public Void visitFunctionSpecifier(CppParser.FunctionSpecifierContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitTypedefName(CppParser.TypedefNameContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitTypeSpecifier(CppParser.TypeSpecifierContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitTrailingTypeSpecifier(CppParser.TrailingTypeSpecifierContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitTypeSpecifierSeq(CppParser.TypeSpecifierSeqContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitTrailingTypeSpecifierSeq(CppParser.TrailingTypeSpecifierSeqContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
+        @Override
+        public Void visitFunctionSpecifier(CppParser.FunctionSpecifierContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitTypedefName(CppParser.TypedefNameContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitTypeSpecifier(CppParser.TypeSpecifierContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitTrailingTypeSpecifier(CppParser.TrailingTypeSpecifierContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitTypeSpecifierSeq(CppParser.TypeSpecifierSeqContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitTrailingTypeSpecifierSeq(CppParser.TrailingTypeSpecifierSeqContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
              *
              * <p>The default implementation returns the result of calling
              * {@link #visitChildren} on {@code ctx}.</p>
@@ -1410,52 +1474,79 @@ public class CppCFGBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override
-        public Void visitNamespaceAliasDefinition(CppParser.NamespaceAliasDefinitionContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitQualifiednamespacespecifier(CppParser.QualifiednamespacespecifierContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitUsingDeclaration(CppParser.UsingDeclarationContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitUsingDirective(CppParser.UsingDirectiveContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitAsmDefinition(CppParser.AsmDefinitionContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitLinkageSpecification(CppParser.LinkageSpecificationContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitAttributeSpecifierSeq(CppParser.AttributeSpecifierSeqContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
+        public Void visitNamespaceAliasDefinition(CppParser.NamespaceAliasDefinitionContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitQualifiednamespacespecifier(CppParser.QualifiednamespacespecifierContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitUsingDeclaration(CppParser.UsingDeclarationContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitUsingDirective(CppParser.UsingDirectiveContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitAsmDefinition(CppParser.AsmDefinitionContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitLinkageSpecification(CppParser.LinkageSpecificationContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitAttributeSpecifierSeq(CppParser.AttributeSpecifierSeqContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
              * <p>The default implementation returns the result of calling
              * {@link #visitChildren} on {@code ctx}.</p>
              */
@@ -1753,31 +1844,42 @@ public class CppCFGBuilder {
          * {@link #visitChildren} on {@code ctx}.</p>
          */
         @Override
-        public Void visitInitializerClause(CppParser.InitializerClauseContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitInitializerList(CppParser.InitializerListContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitBracedInitList(CppParser.BracedInitListContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override
-            public Void visitClassName(CppParser.ClassNameContext ctx) {
-                return visitChildren(ctx);
-            }
+        public Void visitInitializerClause(CppParser.InitializerClauseContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitInitializerList(CppParser.InitializerListContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitBracedInitList(CppParser.BracedInitListContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitClassName(CppParser.ClassNameContext ctx) {
+            return visitChildren(ctx);
+        }
 
         @Override
         public Void visitClassSpecifier(CppParser.ClassSpecifierContext ctx) {
@@ -1817,57 +1919,85 @@ public class CppCFGBuilder {
 
         /**
          * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitClassVirtSpecifier(CppParser.ClassVirtSpecifierContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitClassKey(CppParser.ClassKeyContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitMemberSpecification(CppParser.MemberSpecificationContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitMemberdeclaration(CppParser.MemberdeclarationContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitMemberDeclaratorList(CppParser.MemberDeclaratorListContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitMemberDeclarator(CppParser.MemberDeclaratorContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitVirtualSpecifierSeq(CppParser.VirtualSpecifierSeqContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitClassVirtSpecifier(CppParser.ClassVirtSpecifierContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitClassKey(CppParser.ClassKeyContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitMemberSpecification(CppParser.MemberSpecificationContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitMemberdeclaration(CppParser.MemberdeclarationContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitMemberDeclaratorList(CppParser.MemberDeclaratorListContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitMemberDeclarator(CppParser.MemberDeclaratorContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitVirtualSpecifierSeq(CppParser.VirtualSpecifierSeqContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
              * {@link #visitChildren} on {@code ctx}.</p>
              */
             @Override public Void visitVirtualSpecifier(CppParser.VirtualSpecifierContext ctx) { return visitChildren(ctx); }
@@ -1926,75 +2056,127 @@ public class CppCFGBuilder {
              * <p>The default implementation returns the result of calling
              * {@link #visitChildren} on {@code ctx}.</p>
              */
-            @Override public Void visitConversionFunctionId(CppParser.ConversionFunctionIdContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitConversionTypeId(CppParser.ConversionTypeIdContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitConversionDeclarator(CppParser.ConversionDeclaratorContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitConstructorInitializer(CppParser.ConstructorInitializerContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitMemInitializerList(CppParser.MemInitializerListContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitMemInitializer(CppParser.MemInitializerContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitMeminitializerid(CppParser.MeminitializeridContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitOperatorFunctionId(CppParser.OperatorFunctionIdContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitLiteralOperatorId(CppParser.LiteralOperatorIdContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitTemplateDeclaration(CppParser.TemplateDeclarationContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
+            @Override
+            public Void visitConversionFunctionId(CppParser.ConversionFunctionIdContext ctx) {
+                return visitChildren(ctx);
+            }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitConversionTypeId(CppParser.ConversionTypeIdContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitConversionDeclarator(CppParser.ConversionDeclaratorContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        @Override
+        public Void visitConstructorInitializer(CppParser.ConstructorInitializerContext ctx) {
+            //constructorInitializer: Colon memInitializerList;
+            //
+            //memInitializerList:
+            //	memInitializer Ellipsis? (Comma memInitializer Ellipsis?)*;
+            //
+            //memInitializer:
+            //	meminitializerid (
+            //		LeftParen expressionList? RightParen
+            //		| bracedInitList
+            //	);
+            CFNode constructNode = new CFNode();
+            constructNode.setLineOfCode(ctx.getStart().getLine());
+            constructNode.setCode(getOriginalCodeText(ctx));
+            addContextualProperty(constructNode, ctx);
+            addNodeAndPreEdge(constructNode);
+
+            preNodes.push(constructNode);
+            preEdges.push(CFEdge.Type.EPSILON);
+            return null;
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitMemInitializerList(CppParser.MemInitializerListContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitMemInitializer(CppParser.MemInitializerContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitMeminitializerid(CppParser.MeminitializeridContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitOperatorFunctionId(CppParser.OperatorFunctionIdContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitLiteralOperatorId(CppParser.LiteralOperatorIdContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitTemplateDeclaration(CppParser.TemplateDeclarationContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
              */
             @Override public Void visitTemplateparameterList(CppParser.TemplateparameterListContext ctx) { return visitChildren(ctx); }
             /**
@@ -2084,14 +2266,14 @@ public class CppCFGBuilder {
                 endTry.setCode("end-try");
                 cfg.addVertex(endTry);
 
-                tryBlocks.push(new Block(tryNode, endTry));
+                tryBlocks.push(new Block(tryNode,endTry));
                 preNodes.push(tryNode);
                 preEdges.push(CFEdge.Type.EPSILON);
                 visit(ctx.compoundStatement());
                 popAddPreEdgeTo(endTry);
                 tryBlocks.pop();
 
-                endCatchNode = new CFNode();
+                endCatchNode=new CFNode();
                 endCatchNode.setLineOfCode(0);
                 endCatchNode.setCode("end-catch");
                 cfg.addVertex(endCatchNode);
@@ -2199,49 +2381,69 @@ public class CppCFGBuilder {
             throwNode.setLineOfCode(ctx.getStart().getLine());
             throwNode.setCode(ctx.Throw() + " " + getOriginalCodeText(ctx.assignmentExpression()));
             addContextualProperty(throwNode, ctx);
-                addNodeAndPreEdge(throwNode);
-                //
-                if (!tryBlocks.isEmpty()) {
-                    ControlFlowVisitor.Block tryBlock = tryBlocks.peek();
-                    cfg.addEdge(new Edge<>(throwNode, new CFEdge(CFEdge.Type.THROWS), tryBlock.end));
-                } else {
-                    // do something when it's a throw not in a try-catch block ...
-                    // in such a situation, the method declaration has a throws clause;
-                    // so we should create a special node for the method-throws,
-                    // and create an edge from this throw-statement to that throws-node.
-                }
-                dontPop = true;
-                return null;}
+            addNodeAndPreEdge(throwNode);
+            //
+            if (!tryBlocks.isEmpty()) {
+                ControlFlowVisitor.Block tryBlock = tryBlocks.peek();
+                cfg.addEdge(new Edge<>(throwNode, new CFEdge(CFEdge.Type.THROWS), tryBlock.end));
+            } else {
+                // do something when it's a throw not in a try-catch block ...
+                // in such a situation, the method declaration has a throws clause;
+                // so we should create a special node for the method-throws,
+                // and create an edge from this throw-statement to that throws-node.
+            }
+            dontPop = true;
+            return null;
+        }
 
-            @Override public Void visitExceptionSpecification(CppParser.ExceptionSpecificationContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitDynamicExceptionSpecification(CppParser.DynamicExceptionSpecificationContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitTypeIdList(CppParser.TypeIdListContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitNoeExceptSpecification(CppParser.NoeExceptSpecificationContext ctx) { return visitChildren(ctx); }
-            /**
-             * {@inheritDoc}
-             *
-             * <p>The default implementation returns the result of calling
-             * {@link #visitChildren} on {@code ctx}.</p>
-             */
-            @Override public Void visitTheOperator(CppParser.TheOperatorContext ctx) { return visitChildren(ctx); }
+        @Override
+        public Void visitExceptionSpecification(CppParser.ExceptionSpecificationContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitDynamicExceptionSpecification(CppParser.DynamicExceptionSpecificationContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitTypeIdList(CppParser.TypeIdListContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitNoeExceptSpecification(CppParser.NoeExceptSpecificationContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitTheOperator(CppParser.TheOperatorContext ctx) {
+            return visitChildren(ctx);
+        }
 
         /**
          * {@inheritDoc}

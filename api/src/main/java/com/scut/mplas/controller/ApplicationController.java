@@ -47,9 +47,12 @@ public class ApplicationController {
     }
 
     @RequestMapping(value = "/ddg", method = RequestMethod.POST)
-    public BaseResponse GenerateDDG(){
+    public BaseResponse GenerateDDG(@RequestParam String lang, @RequestBody MultipartFile data) {
         // Your Code here
-        BaseResponse successResponse =responseBuilder.getSuccessResponse();
+        log.info(lang);
+        BaseResponse successResponse = responseBuilder.getSuccessResponse();
+        Object res = codeAnalysisServiceFactory.getService(lang).analysis(Execution.Analysis.DDG, data);
+        successResponse.setData(res);
         return successResponse;
     }
 }

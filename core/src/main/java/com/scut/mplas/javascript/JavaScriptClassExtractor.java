@@ -39,6 +39,12 @@ public class JavaScriptClassExtractor {
         return visitor.build(tree);
     }
 
+    public static void extractInfo(String jsFilePath, ParseTree tree, List<JavaScriptClass> classs, List<JavaScriptMethod> functions) {
+        JavaScriptClassVisitor visitor = new JavaScriptClassVisitor(jsFilePath);
+        visitor.build(tree, classs, functions);
+    }
+
+
     public static List<JavaScriptClass> extractJavaScriptLangInfo() throws IOException {
         ZipFile zip = new ZipFile("lib/src.zip");
         ArrayList<JavaScriptClass> jsLangClasses = new ArrayList<>();
@@ -94,7 +100,6 @@ public class JavaScriptClassExtractor {
                 ++slashCount;
         return slashCount;
     }
-
     private static class JavaScriptClassVisitor extends JavaScriptBaseVisitor<String> {
 
         private String filePath;
@@ -104,7 +109,14 @@ public class JavaScriptClassExtractor {
         private String lastModifier;
         private List<String> importsList;
         private List<JavaScriptClass> jsClasses;
+        private List<JavaScriptMethod> jsFunctions;
         private Deque<JavaScriptClass> activeClasses;
+        private Deque<String> namespaces;
+        private String specifier;
+        private String type;
+        private String pointOp;
+        private String nestedName;
+        private String varName;
 
         public JavaScriptClassVisitor(String path) {
             filePath = path;
@@ -119,6 +131,24 @@ public class JavaScriptClassExtractor {
             activeClasses = new ArrayDeque<>();
             visit(tree);
             return jsClasses;
+        }
+
+        public void build(ParseTree tree, List<JavaScriptClass> classs, List<JavaScriptMethod> functions) {
+            jsClasses = classs;
+            jsFunctions = functions;
+            activeClasses = new ArrayDeque<>();
+            namespaces = new ArrayDeque<>();
+            namespaces.push("");
+            specifier = "";
+            type = "";
+            pointOp = "";
+            nestedName = "";
+            varName = "";
+            clearFlags();
+            visit(tree);
+        }
+
+        private void clearFlags() {
         }
 
         /**
@@ -143,15 +173,24 @@ public class JavaScriptClassExtractor {
             return visitChildren(ctx);
         }
 
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
         @Override
         public String visitClassDeclaration(JavaScriptParser.ClassDeclarationContext ctx) {
-            return visitChildren(ctx);
+            // classDeclaration
+            //    : Class identifier classTail
+            //    ;
+            String extend = null;
+            if (ctx.classTail() != null && ctx.classTail().singleExpression() != null) {
+                extend = visit(ctx.classTail().singleExpression());
+            }
+            String[] imports = importsList.toArray(new String[importsList.size()]);
+
+            JavaScriptClass cls = new JavaScriptClass(ctx.identifier().getText(), packageName, extend, filePath, imports);
+
+            activeClasses.push(cls);
+
+            visit(ctx.classTail());
+            jsClasses.add(activeClasses.pop());
+            return null;
         }
 
         /**
@@ -162,62 +201,67 @@ public class JavaScriptClassExtractor {
          */
         @Override
         public String visitClassTail(JavaScriptParser.ClassTailContext ctx) {
-            return visitChildren(ctx);
+            //classTail
+            //    : (Extends singleExpression)? '{' classElement* '}'
+            //    ;
+            //classElement
+            //    : (Static | {this.n("static")}? identifier | Async)* (methodDefinition | assignable '=' objectLiteral ';')
+            //    | emptyStatement_
+            //    | '#'? propertyName '=' singleExpression
+            //    ;
+
+            return null;
         }
 
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override
-        public String visitClassElement(JavaScriptParser.ClassElementContext ctx) {
-            return visitChildren(ctx);
-        }
 
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
         @Override
         public String visitMethodDefinition(JavaScriptParser.MethodDefinitionContext ctx) {
-            return visitChildren(ctx);
+            //methodDefinition
+            //    : '*'? '#'? propertyName '(' formalParameterList? ')' functionBody
+            //    | '*'? '#'? getter '(' ')' functionBody
+            //    | '*'? '#'? setter '(' formalParameterList? ')' functionBody
+            //    ;
+            //
+            //formalParameterList
+            //    : formalParameterArg (',' formalParameterArg)* (',' lastFormalParameterArg)?
+            //    | lastFormalParameterArg
+            //    ;
+            //
+            //formalParameterArg
+            //    : assignable ('=' singleExpression)?      // ECMAScript 6: Initialization
+            //    ;
+            //
+            //lastFormalParameterArg                        // ECMAScript 6: Rest Parameter
+            //    : Ellipsis singleExpression
+            //    ;
+            String name = null;
+            if (ctx.propertyName() != null) {
+                name = ctx.propertyName().getText();
+            } else if (ctx.setter() != null) {
+                name = ctx.setter().getText();
+            } else {
+                name = ctx.getter().getText();
+            }
+            String[] args = null;
+            List<String> argsList = new ArrayList<>();
+            if (ctx.formalParameterList() != null) {
+                for (JavaScriptParser.FormalParameterArgContext param : ctx.formalParameterList().formalParameterArg()) {
+                    argsList.add(visit(param.assignable()));
+                }
+                if (ctx.formalParameterList().lastFormalParameterArg() != null) {
+                    argsList.add(visit(ctx.formalParameterList().lastFormalParameterArg().singleExpression()));
+                }
+            }
+            if (argsList.size() > 0)
+                args = argsList.toArray(new String[argsList.size()]);
+            int line = ctx.getStart().getLine();
+            activeClasses.peek().addMethod(new JavaScriptMethod(lastModifier, isStatic, isAbstract, type, name, args, line));
+            return null;
         }
 
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override
-        public String visitFormalParameterList(JavaScriptParser.FormalParameterListContext ctx) {
-            return visitChildren(ctx);
-        }
-
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override
-        public String visitFormalParameterArg(JavaScriptParser.FormalParameterArgContext ctx) {
-            return visitChildren(ctx);
-        }
-
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
         @Override
         public String visitLastFormalParameterArg(JavaScriptParser.LastFormalParameterArgContext ctx) {
-            return visitChildren(ctx);
+            return ctx.getText();
         }
 
         /**
@@ -230,11 +274,6 @@ public class JavaScriptClassExtractor {
         public String visitFunctionBody(JavaScriptParser.FunctionBodyContext ctx) {
             return visitChildren(ctx);
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
+
     }
 }

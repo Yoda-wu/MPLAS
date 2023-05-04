@@ -24,11 +24,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-
 /**
  * Data Dependence Graph (DDG) builder for Cpp programs.
  * The DDG is actually a subgraph of the Program Dependence Graph (PDG).
  * This implementation is based on ANTLRv4's Visitor pattern.
+ *
  */
 public class CppDDGBuilder {
 
@@ -92,6 +92,39 @@ public class CppDDGBuilder {
         return ddgs;
     }
 
+    public static DataDependenceGraph buildForOne(String fileName, InputStream inputStream) throws IOException {
+        // Parse all Java source files
+        Logger.info("Parsing one source file ... ");
+        InputStream inFile = inputStream;
+        ANTLRInputStream input = new ANTLRInputStream(inFile);
+        CppLexer lexer = new CppLexer(input);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        CppParser parser = new CppParser(tokens);
+        ParseTree parseTree = parser.translationUnit();
+        Logger.info("Done.");
+
+        DataDependenceGraph ddg = new DataDependenceGraph(fileName);
+        Map<ParserRuleContext, Object> pdNodes = new IdentityHashMap<>();
+
+        // Build ddg for each Cpp file
+        Logger.info("\nbegin ddg build for one file ... ");
+        build(fileName, parseTree, ddg, pdNodes);
+        Logger.info("Done.");
+
+        // Build control-flow graphs for all Cpp files including the extracted DEF-USE info ...
+        Logger.info("\nExtracting CFG ... ");
+        ControlFlowGraph cfg = CppCFGBuilder.build(fileName, parseTree, "pdnode", pdNodes);
+        Logger.info("Done.");
+
+        // Finally, traverse all control-flow paths and draw data-flow dependency edges ...
+        Logger.info("\nAdding data-flow edge ... ");
+        addDataFlowEdges(cfg, ddg);
+        ddg.attachCFG(cfg);
+        Logger.info("Done.\n");
+
+        return ddg;
+    }
+
     // 为每一个源代码文件都进行DDG分析
     private static void build(File file, ParseTree parseTree,
                               DataDependenceGraph ddg,
@@ -142,6 +175,66 @@ public class CppDDGBuilder {
             changed = false;
 
             currentFile = file.getName();
+            DefUseVisitor defUse = new DefUseVisitor(iteration, classesList.toArray(new CppClass[classesList.size()]), ddg, pdNodes);
+            defUse.visit(parseTree);
+            changed |= defUse.changed;
+
+            Logger.debug("Iteration #" + iteration + ": " + (changed ? "CHANGED" : "NO-CHANGE"));
+            Logger.debug("\n========================================\n");
+        } while (changed);
+        Logger.info("Done.");
+
+    }
+
+    private static void build(String fileName, ParseTree parseTree,
+                              DataDependenceGraph ddg,
+                              Map<ParserRuleContext, Object> pdNodes) throws IOException {
+        // Extract the information of all given Cpp classes and NonClass Function
+        Logger.info("\nExtracting class-infos and nonClass-Func-infos ... ");
+        allClassInfos = new HashMap<>();
+        allNonClassFunctionInfos = new HashMap<>();
+        methodDEFs = new HashMap<>();
+        List<CppClass> classesList = new LinkedList<>();
+        List<CppMethod> functiopnsList = new LinkedList<>();
+
+        CppExtractor.extractInfo(fileName, parseTree, classesList, functiopnsList);
+        for (CppClass cls : classesList)
+            allClassInfos.put(cls.NAME, cls);
+        Logger.info("Done.");
+
+        // Initialize method DEF information
+        Logger.info("\nInitializing method-DEF infos ... ");
+        // 增加非class函数信息
+        for (CppMethod func : functiopnsList) {
+            List<MethodDefInfo> list = methodDEFs.get(func.NAME);
+            if (list == null) {
+                list = new ArrayList<>();
+                list.add(new MethodDefInfo(func.RET_TYPE, func.NAME, func.NAMESPACE, null, func.ARG_TYPES));
+                methodDEFs.put(func.NAME, list);
+            } else
+                list.add(new MethodDefInfo(func.RET_TYPE, func.NAME, func.NAMESPACE, null, func.ARG_TYPES));
+        }
+        // 增加class 成员函数信息
+        for (CppClass cls : classesList)
+            for (CppMethod func : cls.getAllMethods()) {
+                List<MethodDefInfo> list = methodDEFs.get(func.NAME);
+                if (list == null) {
+                    list = new ArrayList<>();
+                    list.add(new MethodDefInfo(func.RET_TYPE, func.NAME, func.NAMESPACE, cls.NAME, func.ARG_TYPES));
+                    methodDEFs.put(func.NAME, list);
+                } else
+                    list.add(new MethodDefInfo(func.RET_TYPE, func.NAME, func.NAMESPACE, cls.NAME, func.ARG_TYPES));
+            }
+        Logger.info("Done.");
+
+        Logger.info("\nIterative DEF-USE analysis ... ");
+        boolean changed;
+        int iteration = 0;
+        do {
+            ++iteration;
+            changed = false;
+
+            currentFile = fileName;
             DefUseVisitor defUse = new DefUseVisitor(iteration, classesList.toArray(new CppClass[classesList.size()]), ddg, pdNodes);
             defUse.visit(parseTree);
             changed |= defUse.changed;
@@ -204,8 +297,6 @@ public class CppDDGBuilder {
             }
         }
     }
-    // TODO: 2023/4/23 待完成Def-Use分析
-
     /**
      * Visitor class which performs iterative DEF-USE analysis for all program statements.
      */
@@ -567,7 +658,7 @@ public class CppDDGBuilder {
          * Find and return matching method-definition-info.
          * Returns null if not found.
          */
-        private MethodDefInfo findDefInfo(String name, String type, CppField[] params) {
+        private MethodDefInfo findDefInfo(String name, String type, CppField[] params, String className) {
             List<MethodDefInfo> infoList = methodDEFs.get(name);
             if (infoList == null)
                 return null;
@@ -576,7 +667,7 @@ public class CppDDGBuilder {
                 for (MethodDefInfo info : infoList) {
                     if (!info.NAMESPACE.equals(namespaces.peek()))
                         continue;
-                    if (!info.CLASS_NAME.equals(activeClasses.peek().NAME))
+                    if (!info.CLASS_NAME.equals(className))
                         continue;
                     if ((info.RET_TYPE == null && type != null) ||
                             (info.RET_TYPE != null && type == null))
@@ -716,14 +807,12 @@ public class CppDDGBuilder {
             return visitChildren(ctx);
         }
 
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
         @Override
         public String visitLambdaExpression(CppParser.LambdaExpressionContext ctx) {
+            if (analysisVisit) {
+                visit(ctx.lambdaIntroducer());
+                return "";
+            }
             return visitChildren(ctx);
         }
 
@@ -815,14 +904,41 @@ public class CppDDGBuilder {
             return visitChildren(ctx);
         }
 
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
         @Override
         public String visitPostfixExpression(CppParser.PostfixExpressionContext ctx) {
+            //postfixExpression:
+            //	primaryExpression
+            //	| postfixExpression LeftBracket (expression | bracedInitList) RightBracket
+            //	| postfixExpression LeftParen expressionList? RightParen
+            //	| (simpleTypeSpecifier | typeNameSpecifier) (
+            //		LeftParen expressionList? RightParen
+            //		| bracedInitList
+            //	)
+            //	| postfixExpression (Dot | Arrow) (
+            //		Template? idExpression
+            //		| pseudoDestructorName
+            //	)
+            //	| postfixExpression (PlusPlus | MinusMinus)
+            //	| (
+            //		Dynamic_cast
+            //		| Static_cast
+            //		| Reinterpret_cast
+            //		| Const_cast
+            //	) Less theTypeId Greater LeftParen expression RightParen
+            //	| typeIdOfTheTypeId LeftParen (expression | theTypeId) RightParen;
+            if (analysisVisit && (ctx.Dot() != null || ctx.Arrow() != null)) {
+                List<String> idList = new ArrayList<>();
+                CppParser.PostfixExpressionContext posCtx = ctx;
+                while (posCtx.postfixExpression().Dot() != null || posCtx.postfixExpression().Arrow() != null) {
+                    posCtx = posCtx.postfixExpression();
+                }
+                String var = getOriginalCodeText(posCtx.postfixExpression());
+                if (var.equals("this"))
+                    useList.add(getOriginalCodeText(posCtx));
+                else
+                    useList.add(var);
+                return "";
+            }
             return visitChildren(ctx);
         }
 
@@ -2427,6 +2543,11 @@ public class CppDDGBuilder {
                 // 应该是类名
                 String nested = nestedName;
                 String funcName = varName;
+                if (isGlobal) {
+                    // 构造函数或析构函数
+                    nested = type;
+                    funcRet = "";
+                }
 
                 entry.setProperty("name", funcName);
                 entry.setProperty("type", funcRet);
@@ -2479,9 +2600,17 @@ public class CppDDGBuilder {
                 entry = (PDNode) pdNodes.get(ctx);
                 methodParams = (CppField[]) entry.getProperty("params");
             }
-
+            String className;
+            if (activeClasses.isEmpty()) {
+                CppClass cls = (CppClass) entry.getProperty("class");
+                if (cls != null)
+                    className = cls.NAME;
+                else
+                    className = null;
+            } else
+                className = activeClasses.peek().NAME;
             methodDefInfo = findDefInfo((String) entry.getProperty("name"),
-                    (String) entry.getProperty("type"), methodParams);
+                    (String) entry.getProperty("type"), methodParams, className);
 
             if (methodDefInfo == null) {
                 Logger.error("Method NOT FOUND!");
@@ -2597,7 +2726,7 @@ public class CppDDGBuilder {
             //	| Union attributeSpecifierSeq? (
             //		classHeadName classVirtSpecifier?
             //	)?;
-            String className = getOriginalCodeText(ctx.classHead());
+            String className = getOriginalCodeText(ctx.classHead().classHeadName());
             CppClass cls = findClass(className);
             if (cls != null) {
                 activeClasses.push(cls);
@@ -2828,15 +2957,29 @@ public class CppDDGBuilder {
             return visitChildren(ctx);
         }
 
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
         @Override
         public String visitConstructorInitializer(CppParser.ConstructorInitializerContext ctx) {
-            return visitChildren(ctx);
+            //constructorInitializer: Colon memInitializerList;
+            //
+            //memInitializerList:
+            //	memInitializer Ellipsis? (Comma memInitializer Ellipsis?)*;
+            //
+            //memInitializer:
+            //	meminitializerid (
+            //		LeftParen expressionList? RightParen
+            //		| bracedInitList
+            //	);
+            PDNode entry;
+            if (iteration == 1) {
+                entry = new PDNode();
+                entry.setLineOfCode(ctx.getStart().getLine());
+                entry.setCode(getOriginalCodeText(ctx));
+                ddg.addVertex(entry);
+                pdNodes.put(ctx, entry);
+            } else
+                entry = (PDNode) pdNodes.get(ctx);
+            analyseDefUse(entry, ctx.memInitializerList());
+            return "";
         }
 
         /**
@@ -2850,14 +2993,23 @@ public class CppDDGBuilder {
             return visitChildren(ctx);
         }
 
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
         @Override
         public String visitMemInitializer(CppParser.MemInitializerContext ctx) {
+            //memInitializer:
+            //	meminitializerid (
+            //		LeftParen expressionList? RightParen
+            //		| bracedInitList
+            //	);
+            //
+            //meminitializerid: classOrDeclType | Identifier;
+            if (analysisVisit) {
+                defList.add(getOriginalCodeText(ctx.meminitializerid()));
+                if (ctx.bracedInitList() != null)
+                    visit(ctx.bracedInitList());
+                else if (ctx.expressionList() != null)
+                    visit(ctx.expressionList());
+                return "";
+            }
             return visitChildren(ctx);
         }
 
@@ -3223,6 +3375,8 @@ public class CppDDGBuilder {
                     else
                         specifier += getOriginalCodeText(decCtx) + " ";
                 }
+                if (!type.equals(""))
+                    type = type.substring(0, type.length() - 1);
             }
         }
 
@@ -3263,7 +3417,13 @@ public class CppDDGBuilder {
             CppParser.DeclaratoridContext decIdCtx;
             if (pdCtx.noPointerDeclarator().parametersAndQualifiers() != null || pdCtx.noPointerDeclarator().LeftBracket() != null) {
                 isHasParameters = true;
-                decIdCtx = pdCtx.noPointerDeclarator().noPointerDeclarator().declaratorid();
+                CppParser.NoPointerDeclaratorContext npdCtx = pdCtx.noPointerDeclarator().noPointerDeclarator();
+                while (npdCtx.LeftParen() != null) {
+                    //noPointerDeclarator:
+                    //	| LeftParen pointerDeclarator RightParen;
+                    npdCtx = npdCtx.pointerDeclarator().noPointerDeclarator();
+                }
+                decIdCtx = npdCtx.declaratorid();
             } else
                 decIdCtx = pdCtx.noPointerDeclarator().declaratorid();
 

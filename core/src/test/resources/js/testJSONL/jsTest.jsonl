@@ -1,0 +1,36 @@
+{
+  "code": "for(var i=0;i<10;i++){\r\n    if(i%5==0){\r\n        break;\r\n    }\r\n}\r\nfor(var i=0;i<10;i++){\r\n    if(i%2==0){\r\n        continue;\r\n    }\r\n}",
+  "text": "breakContinue.js"
+}
+{
+  "code": "class Runoob {\r\n    constructor(name) {\r\n        this.sitename = name;\r\n    }\r\n    get s_name() {\r\n        return this.sitename;\r\n    }\r\n    set s_name(x) {\r\n        this.sitename = x;\r\n    }\r\n}\r\n\r\nlet noob = new Runoob(\"菜鸟教程\");\r\n\r\ndocument.getElementById(\"demo\").innerHTML = noob.s_name;",
+  "text": "classDefination.js"
+}
+{
+  "code": "function myFunction()\r\n{\r\n    var x=5;\r\n    return x;\r\n}",
+  "text": "functionDefinition.js"
+}
+{
+  "code": "var i=10\r\nif(i%2==0){\r\n    console.log('hello world')\r\n}else{\r\n    console.log('world hello')\r\n}",
+  "text": "ifelse.js"
+}
+{
+  "code": "import $ from 'jquery'\r\n\r\nexport default {\r\n    created() {\r\n        console.log($)\r\n    }\r\n}",
+  "text": "import.js"
+}
+{
+  "code": "for (var i=0;i<cars.length;i++)\r\n{\r\n    document.write(cars[i] + \"<br>\");\r\n}\r\nwhile (i<5)\r\n{\r\n    x=x + \"The number is \" + i + \"<br>\";\r\n    i++;\r\n}",
+  "text": "iteration.js"
+}
+{
+  "code": "new Promise(function (resolve, reject) {\r\n    setTimeout(function () {\r\n        console.log(\"First\");\r\n        resolve();\r\n    }, 1000);\r\n}).then(function () {\r\n    return new Promise(function (resolve, reject) {\r\n        setTimeout(function () {\r\n            console.log(\"Second\");\r\n            resolve();\r\n        }, 4000);\r\n    });\r\n}).then(function () {\r\n    setTimeout(function () {\r\n        console.log(\"Third\");\r\n    }, 3000);\r\n});",
+  "text": "promise.js"
+}
+{
+  "code": "var d=new Date().getDay();\r\nswitch (d)\r\n{\r\n    case 0:x=\"今天是星期日\";\r\n        break;\r\n    case 1:x=\"今天是星期一\";\r\n        break;\r\n    case 2:x=\"今天是星期二\";\r\n        break;\r\n    case 3:x=\"今天是星期三\";\r\n        break;\r\n    case 4:x=\"今天是星期四\";\r\n        break;\r\n    case 5:x=\"今天是星期五\";\r\n        break;\r\n    case 6:x=\"今天是星期六\";\r\n        break;\r\n}",
+  "text": "switch.js"
+}
+{
+  "code": "var x=1\r\nlet len=10",
+  "text": "varDefination.js"
+}

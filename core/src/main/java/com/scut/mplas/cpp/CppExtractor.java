@@ -57,6 +57,7 @@ public class CppExtractor {
         private String pointOp;
         private String nestedName;
         private String varName;
+        private boolean isGlobal;
 
         public CppVisitor(String path) {
             filePath = path;
@@ -73,7 +74,12 @@ public class CppExtractor {
             pointOp = "";
             nestedName = "";
             varName = "";
+            clearFlags();
             visit(tree);
+        }
+
+        private void clearFlags() {
+            isGlobal = false;
         }
 
         /**
@@ -1545,6 +1551,11 @@ public class CppExtractor {
             funcRet += pointOp;
             String nested = nestedName;
             String funcName = varName;
+            if (isGlobal) {
+                // 构造函数或析构函数
+                nested = type;
+                funcRet = "";
+            }
 
 
             CppParser.NoPointerDeclaratorContext npdCtx = ctx.declarator().pointerDeclarator().noPointerDeclarator();
@@ -1583,7 +1594,7 @@ public class CppExtractor {
 
             if (activeClasses.isEmpty() && nested == "") {
                 // 不在class定义式里面的函数定义
-                cppFunctions.add(new CppMethod(funcSpec, funcName, namespaces.peek() + "::", funcRet, args, line));
+                cppFunctions.add(new CppMethod(funcSpec, funcName, namespaces.peek(), funcRet, args, line));
             } else {
                 // 在class定义式里面的函数定义
                 CppClass cls = null;
@@ -1591,7 +1602,7 @@ public class CppExtractor {
                     cls = activeClasses.peek();
                 else {
                     for (CppClass c : cppClasses)
-                        if (c.NAME == nested) {
+                        if (c.NAME.equals(nested)) {
                             cls = c;
                             break;
                         }
@@ -1691,8 +1702,8 @@ public class CppExtractor {
             //	| Union attributeSpecifierSeq? (
             //		classHeadName classVirtSpecifier?
             //	)?;
-            String className = getOriginalCodeText(ctx.classHead());
-            CppClass cls = new CppClass(className, namespaces.peek() + "::");
+            String className = getOriginalCodeText(ctx.classHead().classHeadName());
+            CppClass cls = new CppClass(className, namespaces.peek());
             activeClasses.push(cls);
             if (ctx.memberSpecification() != null)
                 visit(ctx.memberSpecification());
@@ -2300,6 +2311,8 @@ public class CppExtractor {
                     else
                         specifier += getOriginalCodeText(decCtx) + " ";
                 }
+                if (!type.equals(""))
+                    type = type.substring(0, type.length() - 1);
             }
         }
 
@@ -2313,6 +2326,7 @@ public class CppExtractor {
             //	| noPointerDeclarator parametersAndQualifiers trailingReturnType;
             //
             //pointerDeclarator: (pointerOperator Const?)* noPointerDeclarator;
+            clearFlags();
             CppParser.PointerDeclaratorContext pdCtx = ctx.pointerDeclarator();
             pointOp = "";
             if (pdCtx.pointerOperator() != null) {
@@ -2346,6 +2360,8 @@ public class CppExtractor {
                 // 存在嵌套名，当前只允许有一个
                 varName = getOriginalCodeText(decIdCtx.idExpression().qualifiedId().unqualifiedId());
                 nestedName = getOriginalCodeText(decIdCtx.idExpression().qualifiedId().nestedNameSpecifier().theTypeName());
+                if (nestedName == "")
+                    isGlobal = true;
             } else
                 varName = getOriginalCodeText(decIdCtx.idExpression().unqualifiedId());
         }

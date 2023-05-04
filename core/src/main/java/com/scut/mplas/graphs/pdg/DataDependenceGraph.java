@@ -7,18 +7,13 @@ import com.scut.mplas.graphs.cfg.CFNode;
 import com.scut.mplas.graphs.cfg.ControlFlowGraph;
 import com.scut.mplas.utils.StringUtils;
 import ghaffarian.graphs.Edge;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-import java.util.Map;
-
 import ghaffarian.nanologger.Logger;
 
-import java.io.IOException;
+import java.io.*;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Data Dependence Graph.
@@ -188,38 +183,109 @@ public class DataDependenceGraph extends AbstractProgramGraph<PDNode, DDEdge> {
 			Logger.error(ex);
 		}
 		Logger.info("DDS of PDG exported to: " + filepath);
-    }
-
-	@Override
-	public String exportJSON() throws IOException {
-		return null;
 	}
 
 	@Override
+	public String exportJSON() throws IOException {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("{\n  \"directed\": true,");
+		sb.append("  \"multigraph\": true,");
+		for (Map.Entry<String, String> property : properties.entrySet()) {
+			switch (property.getKey()) {
+				case "directed":
+					continue;
+				default:
+					sb.append("  \"" + property.getKey() + "\": \"" + property.getValue() + "\",");
+			}
+		}
+		sb.append("  \"file\": \"" + fileName + "\",\n");
+		//
+		sb.append("  \"nodes\": [");
+		Map<CFNode, Integer> ctrlNodes = new LinkedHashMap<>();
+		Map<PDNode, Integer> dataNodes = new LinkedHashMap<>();
+		Iterator<CFNode> cfNodes = cfg.allVerticesIterator();
+		int nodeCounter = 0;
+		while (cfNodes.hasNext()) {
+			CFNode node = cfNodes.next();
+			sb.append("    {");
+			sb.append("      \"id\": " + nodeCounter + ",");
+			sb.append("      \"line\": " + node.getLineOfCode() + ",");
+			PDNode pdNode = (PDNode) node.getProperty("pdnode");
+			if (pdNode != null) {
+				sb.append("      \"label\": \"" + StringUtils.escape(node.getCode()) + "\",");
+				dataNodes.put(pdNode, nodeCounter);
+				sb.append("      \"defs\": " + StringUtils.toJsonArray(pdNode.getAllDEFs()) + ",");
+				sb.append("      \"uses\": " + StringUtils.toJsonArray(pdNode.getAllUSEs()));
+			} else
+				sb.append("      \"label\": \"" + StringUtils.escape(node.getCode()) + "\"");
+			ctrlNodes.put(node, nodeCounter);
+			++nodeCounter;
+			if (nodeCounter == cfg.vertexCount())
+				sb.append("    }");
+			else
+				sb.append("    },");
+		}
+		//
+		sb.append("  ],\n\n  \"edges\": [");
+		int edgeCounter = 0;
+		Iterator<Edge<CFNode, CFEdge>> cfEdges = cfg.allEdgesIterator();
+		while (cfEdges.hasNext()) {
+			Edge<CFNode, CFEdge> ctrlEdge = cfEdges.next();
+			sb.append("    {");
+			sb.append("      \"id\": " + edgeCounter + ",");
+			sb.append("      \"source\": " + ctrlNodes.get(ctrlEdge.source) + ",");
+			sb.append("      \"target\": " + ctrlNodes.get(ctrlEdge.target) + ",");
+			sb.append("      \"type\": \"Control\",");
+			sb.append("      \"label\": \"" + ctrlEdge.label.type + "\"");
+			sb.append("    },");
+			++edgeCounter;
+		}
+		for (Edge<PDNode, DDEdge> dataEdge : allEdges) {
+			sb.append("    {");
+			sb.append("      \"id\": " + edgeCounter + ",");
+			sb.append("      \"source\": " + dataNodes.get(dataEdge.source) + ",");
+			sb.append("      \"target\": " + dataNodes.get(dataEdge.target) + ",");
+			sb.append("      \"type\": \"" + dataEdge.label.type + "\",");
+			sb.append("      \"label\": \"" + dataEdge.label.var + "\"");
+			++edgeCounter;
+			if (edgeCounter == cfg.edgeCount() + allEdges.size())
+				sb.append("    }");
+			else
+				sb.append("    },");
+		}
+		sb.append("  ]\n}");
+
+		Logger.info("DDS of PDG exported to: " + fileName);
+		return sb.toString();
+	}
+
+
+	@Override
 	public void exportJSON(String outDir) throws FileNotFoundException {
-        if (!outDir.endsWith(File.separator))
-            outDir += File.separator;
-        File outDirFile = new File(outDir);
-        outDirFile.mkdirs();
+		if (!outDir.endsWith(File.separator))
+			outDir += File.separator;
+		File outDirFile = new File(outDir);
+		outDirFile.mkdirs();
 		String filename = fileName.substring(0, fileName.indexOf('.'));
 		String filepath = outDir + filename + "-PDG-DATA.json";
 		try (PrintWriter json = new PrintWriter(filepath, "UTF-8")) {
 			json.println("{\n  \"directed\": true,");
 			json.println("  \"multigraph\": true,");
-			for (Map.Entry<String, String> property: properties.entrySet()) {
-                switch (property.getKey()) {
-                    case "directed":
-                        continue;
-                    default:
-                        json.println("  \"" + property.getKey() + "\": \"" + property.getValue() + "\",");
-                }
-            }
+			for (Map.Entry<String, String> property : properties.entrySet()) {
+				switch (property.getKey()) {
+					case "directed":
+						continue;
+					default:
+						json.println("  \"" + property.getKey() + "\": \"" + property.getValue() + "\",");
+				}
+			}
 			json.println("  \"file\": \"" + fileName + "\",\n");
-            //
+			//
 			json.println("  \"nodes\": [");
 			Map<CFNode, Integer> ctrlNodes = new LinkedHashMap<>();
 			Map<PDNode, Integer> dataNodes = new LinkedHashMap<>();
-            Iterator<CFNode> cfNodes = cfg.allVerticesIterator();
+			Iterator<CFNode> cfNodes = cfg.allVerticesIterator();
 			int nodeCounter = 0;
 			while (cfNodes.hasNext()) {
                 CFNode node = cfNodes.next();

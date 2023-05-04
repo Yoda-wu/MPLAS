@@ -183,8 +183,8 @@ public class Execution {
 					Logger.debug("START: " + Logger.time() + '\n');
 
 					try {
-						AbstractSyntaxTree ast = ASTBuilder.build(lang.name, fileName,inputStream);
-						return  ast.exportJson();
+						AbstractSyntaxTree ast = ASTBuilder.build(lang.name, fileName, inputStream);
+						return ast.exportJson();
 					} catch (IOException ex) {
 						Logger.error(ex);
 					}
@@ -195,8 +195,20 @@ public class Execution {
 					Logger.info("=====================");
 					Logger.debug("START: " + Logger.time() + '\n');
 					try {
-						ControlFlowGraph cfg = CFGBuilder.build(lang.name, fileName,inputStream);
+						ControlFlowGraph cfg = CFGBuilder.build(lang.name, fileName, inputStream);
 						return cfg.exportJson();
+					} catch (IOException ex) {
+						Logger.error(ex);
+					}
+					break;
+				//
+				case "DDG":
+					Logger.info("\nData-Dependence Analysis");
+					Logger.info("=====================");
+					Logger.debug("START: " + Logger.time() + '\n');
+					try {
+						ProgramDependeceGraph pdg = PDGBuilder.buildForOne(lang.name, fileName, inputStream);
+						return pdg.DDS.exportJSON();
 					} catch (IOException ex) {
 						Logger.error(ex);
 					}
