@@ -297,4 +297,15 @@ public class BasicAnalysisTests {
         assertEquals(testFiles.length, outFiles.length);
     }
 
+    @Test
+    public void jsDDGJsonTest() {
+        String outDir = JS_OUTPUT_DIR + "DDG/";
+        String[] args = {"-ddg", "-outdir", outDir, "-format", "json", "-lang","js",JS_SRC_DIR};
+        Main.main(args);
+        //
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {JS_SRC_DIR}, Execution.Languages.JAVASCRIPT.suffix);
+        String[] outFiles = FileUtils.listFilesWithSuffix(new String[] {outDir}, "-PDG-DATA.json");
+        assertEquals(testFiles.length, outFiles.length);
+    }
+
 }
