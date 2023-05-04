@@ -1,5 +1,9 @@
 package com.scut.mplas.javascript;
 
+import com.scut.mplas.cpp.CppClass;
+import com.scut.mplas.cpp.CppDDGBuilder;
+import com.scut.mplas.cpp.CppExtractor;
+import com.scut.mplas.cpp.CppMethod;
 import com.scut.mplas.graphs.cfg.CFNode;
 import com.scut.mplas.graphs.cfg.CFPathTraversal;
 import com.scut.mplas.graphs.cfg.ControlFlowGraph;
@@ -38,6 +42,9 @@ public class JavaScriptDDGBuilder {
     //       yet assuming no duplicate class names is fair enough.
     //       To handle that, we should use 'Map<String, List<JavaClass>>'
     private static Map<String, JavaScriptClass> allClassInfos;
+
+    //记录所有非class成员函数的函数信息
+    private static Map<String,List<MethodDefInfo>>allNonClassFunctionInfos;
 
     private static Map<String, List<MethodDefInfo>> methodDEFs;
 
@@ -132,6 +139,74 @@ public class JavaScriptDDGBuilder {
         Logger.info("Done.\n");
 
         return ddgs;
+    }
+
+    // 为每一个源代码文件都进行DDG分析
+    private static void build(File file,ParseTree parseTree,
+                              DataDependenceGraph ddg,
+                              Map<ParserRuleContext, Object> pdNodes) throws IOException
+    {
+        // Extract the information of all given Cpp classes and NonClass Function
+        Logger.info("\nExtracting class-infos and nonClass-Func-infos ... ");
+        allClassInfos = new HashMap<>();
+        allNonClassFunctionInfos =new HashMap<>();
+        methodDEFs =new HashMap<>();
+        List<JavaScriptClass> classesList=new LinkedList<>();
+        List<JavaScriptMethod> functiopnsList=new LinkedList<>();
+
+        JavaScriptClassExtractor.extractInfo(file.getPath(),parseTree,classesList,functiopnsList);
+        for(JavaScriptClass cls:classesList)
+            allClassInfos.put(cls.NAME,cls);
+        Logger.info("Done.");
+
+        // Initialize method DEF information
+        Logger.info("\nInitializing method-DEF infos ... ");
+        // 增加非class函数信息
+        for(JavaScriptMethod func:functiopnsList)
+        {
+            List<MethodDefInfo> list=methodDEFs.get(func.NAME);
+            if(list==null)
+            {
+                list=new ArrayList<>();
+                list.add(new MethodDefInfo(func.RET_TYPE,func.NAME,null,null,func.ARG_TYPES));
+                methodDEFs.put(func.NAME, list);
+            }
+            else
+                list.add(new MethodDefInfo(func.RET_TYPE,func.NAME,null,null,func.ARG_TYPES));
+        }
+        // 增加class 成员函数信息
+        for(JavaScriptClass cls:classesList)
+            for(JavaScriptMethod func:cls.getAllMethods())
+            {
+                List<MethodDefInfo> list=methodDEFs.get(func.NAME);
+                if(list==null)
+                {
+                    list=new ArrayList<>();
+                    list.add(new MethodDefInfo(func.RET_TYPE,func.NAME,cls.PACKAGE,cls.NAME,func.ARG_TYPES));
+                    methodDEFs.put(func.NAME, list);
+                }
+                else
+                    list.add(new MethodDefInfo(func.RET_TYPE,func.NAME,cls.PACKAGE,cls.NAME,func.ARG_TYPES));
+            }
+        Logger.info("Done.");
+
+        Logger.info("\nIterative DEF-USE analysis ... ");
+        boolean changed;
+        int iteration = 0;
+        do {
+            ++iteration;
+            changed = false;
+
+            currentFile = file.getName();
+            DefUseVisitor defUse = new DefUseVisitor(iteration, classesList.toArray(new JavaScriptClass[classesList.size()]), ddg, pdNodes);
+            defUse.visit(parseTree);
+            changed |= defUse.changed;
+
+            Logger.debug("Iteration #" + iteration + ": " + (changed ? "CHANGED" : "NO-CHANGE"));
+            Logger.debug("\n========================================\n");
+        } while (changed);
+        Logger.info("Done.");
+
     }
 
     /**
@@ -1221,6 +1296,9 @@ public class JavaScriptDDGBuilder {
          */
         private boolean isUsableExpression(String expr) {
             // must not be a literal or of type 'class'.
+            if(expr==null||expr==""){
+                return false;
+            }
             if (expr.startsWith("$"))
                 return false;
             // must not be a method-call or parenthesized expression

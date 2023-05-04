@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import com.scut.mplas.cpp.CppPDGBuilder;
 import com.scut.mplas.java.JavaPDGBuilder;
+import com.scut.mplas.javascript.JavaScriptPDBGuilder;
 
 /**
  * Program Dependence Graph (PDG) Builder.
@@ -24,6 +25,8 @@ public class PDGBuilder {
 			//
 			case "Java":
 				return JavaPDGBuilder.buildForAll(srcFilePaths);
+			case "JavaScript":
+				return JavaScriptPDBGuilder.buildForAll(srcFilePaths);
 			//
 			case "Python":
 				return null;
