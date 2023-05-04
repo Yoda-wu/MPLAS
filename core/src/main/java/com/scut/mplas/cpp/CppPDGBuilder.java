@@ -6,6 +6,7 @@ import com.scut.mplas.graphs.pdg.ProgramDependeceGraph;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class CppPDGBuilder {
     /**
@@ -37,6 +38,16 @@ public class CppPDGBuilder {
             pdgArray[i] = new ProgramDependeceGraph(cppFiles[i].getName(),
                     null, dataSubgraphs[i]);
         }
+
+        return pdgArray;
+    }
+
+    public static ProgramDependeceGraph buildForOne(String fileName, InputStream inputStream) throws IOException {
+        DataDependenceGraph dataSubgraphs;
+        dataSubgraphs = CppDDGBuilder.buildForOne(fileName,inputStream);
+        //
+        // Join the subgraphs into PDGs
+        ProgramDependeceGraph pdgArray = new ProgramDependeceGraph(fileName, null, dataSubgraphs);
 
         return pdgArray;
     }

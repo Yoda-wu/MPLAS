@@ -98,6 +98,39 @@ public class CppDDGBuilder {
         return ddgs;
     }
 
+    public static DataDependenceGraph buildForOne(String fileName,InputStream inputStream) throws IOException {
+        // Parse all Java source files
+        Logger.info("Parsing one source file ... ");
+        InputStream inFile = inputStream;
+        ANTLRInputStream input = new ANTLRInputStream(inFile);
+        CppLexer lexer = new CppLexer(input);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        CppParser parser = new CppParser(tokens);
+        ParseTree parseTree = parser.translationUnit();
+        Logger.info("Done.");
+
+        DataDependenceGraph ddg=new DataDependenceGraph(fileName);
+        Map<ParserRuleContext, Object> pdNodes = new IdentityHashMap<>();
+
+        // Build ddg for each Cpp file
+        Logger.info("\nbegin ddg build for one file ... ");
+        build(fileName,parseTree,ddg,pdNodes);
+        Logger.info("Done.");
+
+        // Build control-flow graphs for all Cpp files including the extracted DEF-USE info ...
+        Logger.info("\nExtracting CFG ... ");
+        ControlFlowGraph cfg = CppCFGBuilder.build(fileName, parseTree, "pdnode", pdNodes);
+        Logger.info("Done.");
+
+        // Finally, traverse all control-flow paths and draw data-flow dependency edges ...
+        Logger.info("\nAdding data-flow edge ... ");
+        addDataFlowEdges(cfg, ddg);
+        ddg.attachCFG(cfg);
+        Logger.info("Done.\n");
+
+        return ddg;
+    }
+
     // 为每一个源代码文件都进行DDG分析
     private static void build(File file,ParseTree parseTree,
                               DataDependenceGraph ddg,
@@ -166,6 +199,73 @@ public class CppDDGBuilder {
 
     }
 
+    private static void build(String fileName,ParseTree parseTree,
+                              DataDependenceGraph ddg,
+                              Map<ParserRuleContext, Object> pdNodes) throws IOException
+    {
+        // Extract the information of all given Cpp classes and NonClass Function
+        Logger.info("\nExtracting class-infos and nonClass-Func-infos ... ");
+        allClassInfos = new HashMap<>();
+        allNonClassFunctionInfos =new HashMap<>();
+        methodDEFs =new HashMap<>();
+        List<CppClass> classesList=new LinkedList<>();
+        List<CppMethod> functiopnsList=new LinkedList<>();
+
+        CppExtractor.extractInfo(fileName,parseTree,classesList,functiopnsList);
+        for(CppClass cls:classesList)
+            allClassInfos.put(cls.NAME,cls);
+        Logger.info("Done.");
+
+        // Initialize method DEF information
+        Logger.info("\nInitializing method-DEF infos ... ");
+        // 增加非class函数信息
+        for(CppMethod func:functiopnsList)
+        {
+            List<MethodDefInfo> list=methodDEFs.get(func.NAME);
+            if(list==null)
+            {
+                list=new ArrayList<>();
+                list.add(new MethodDefInfo(func.RET_TYPE,func.NAME,func.NAMESPACE,null,func.ARG_TYPES));
+                methodDEFs.put(func.NAME, list);
+            }
+            else
+                list.add(new MethodDefInfo(func.RET_TYPE,func.NAME,func.NAMESPACE,null,func.ARG_TYPES));
+        }
+        // 增加class 成员函数信息
+        for(CppClass cls:classesList)
+            for(CppMethod func:cls.getAllMethods())
+            {
+                List<MethodDefInfo> list=methodDEFs.get(func.NAME);
+                if(list==null)
+                {
+                    list=new ArrayList<>();
+                    list.add(new MethodDefInfo(func.RET_TYPE,func.NAME,func.NAMESPACE,cls.NAME,func.ARG_TYPES));
+                    methodDEFs.put(func.NAME, list);
+                }
+                else
+                    list.add(new MethodDefInfo(func.RET_TYPE,func.NAME,func.NAMESPACE,cls.NAME,func.ARG_TYPES));
+            }
+        Logger.info("Done.");
+
+        Logger.info("\nIterative DEF-USE analysis ... ");
+        boolean changed;
+        int iteration = 0;
+        do {
+            ++iteration;
+            changed = false;
+
+            currentFile = fileName;
+            DefUseVisitor defUse = new DefUseVisitor(iteration, classesList.toArray(new CppClass[classesList.size()]), ddg, pdNodes);
+            defUse.visit(parseTree);
+            changed |= defUse.changed;
+
+            Logger.debug("Iteration #" + iteration + ": " + (changed ? "CHANGED" : "NO-CHANGE"));
+            Logger.debug("\n========================================\n");
+        } while (changed);
+        Logger.info("Done.");
+
+    }
+
     /**
      * Traverses each CFG and uses the extracted DEF-USE info
      * to add Flow-dependence edges to the corresponding DDG.
@@ -218,7 +318,6 @@ public class CppDDGBuilder {
             }
         }
     }
-    // TODO: 2023/4/23 待完成Def-Use分析
     /**
      * Visitor class which performs iterative DEF-USE analysis for all program statements.
      */

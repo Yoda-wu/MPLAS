@@ -2,6 +2,7 @@
 package com.scut.mplas.graphs.pdg;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import com.scut.mplas.cpp.CppPDGBuilder;
 import com.scut.mplas.java.JavaPDGBuilder;
@@ -14,6 +15,24 @@ import com.scut.mplas.javascript.JavaScriptPDBGuilder;
  * @author Seyed Mohammad Ghaffarian
  */
 public class PDGBuilder {
+	public static ProgramDependeceGraph buildForOne(String lang, String fileName, InputStream inputStream) throws IOException {
+		switch (lang) {
+			case "Cpp":
+				return CppPDGBuilder.buildForOne(fileName,inputStream);
+			//
+			case "C":
+				return null;
+			//
+			case "Java":
+				return null;
+			//
+			case "Python":
+				return null;
+			//
+			default:
+				return null;
+		}
+	}
 	
 	public static ProgramDependeceGraph[] buildForAll(String lang, String[] srcFilePaths) throws IOException {
 		switch (lang) {
