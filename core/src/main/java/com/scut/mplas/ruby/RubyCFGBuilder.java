@@ -3,9 +3,9 @@ package com.scut.mplas.ruby;
 import com.scut.mplas.graphs.cfg.CFEdge;
 import com.scut.mplas.graphs.cfg.CFNode;
 import com.scut.mplas.graphs.cfg.ControlFlowGraph;
-import com.scut.mplas.ruby.parser.old.RubyBaseVisitor;
-import com.scut.mplas.ruby.parser.old.RubyLexer;
-import com.scut.mplas.ruby.parser.old.RubyParser;
+import com.scut.mplas.ruby.parser.RubyBaseVisitor;
+import com.scut.mplas.ruby.parser.RubyLexer;
+import com.scut.mplas.ruby.parser.RubyParser;
 import ghaffarian.graphs.Edge;
 import ghaffarian.nanologger.Logger;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -33,8 +33,8 @@ public class RubyCFGBuilder {
      * ‌Build and return the Control Flow Graph (CFG) for the given ruby source file.
      */
     public static ControlFlowGraph build(File javaFile) throws IOException {
-        if (!javaFile.getName().endsWith(".java"))
-            throw new IOException("Not a Java File!");
+        if (!javaFile.getName().endsWith(".rb"))
+            throw new IOException("Not a ruby File!");
         InputStream inFile = new FileInputStream(javaFile);
         ANTLRInputStream input = new ANTLRInputStream(inFile);
         RubyLexer lexer = new RubyLexer(input);
@@ -89,6 +89,8 @@ public class RubyCFGBuilder {
             loopBlocks = new ArrayDeque<>();
             casesQueue = new ArrayDeque<>();
             classNames = new ArrayDeque<>();
+            labeledBlocks = new ArrayList<>();
+            tryBlocks = new ArrayDeque<>();
             dontPop = false;
             this.cfg = cfg;
             //
@@ -131,6 +133,14 @@ public class RubyCFGBuilder {
          */
         @Override
         public Void visitProg(RubyParser.ProgContext ctx) {
+            init();
+            CFNode prog = new CFNode();
+            prog.setLineOfCode(1);
+            prog.setCode("rb-program");
+            addContextualProperty(prog, ctx);
+            cfg.addVertex(prog);
+            preNodes.push(prog);
+            preEdges.push(CFEdge.Type.EPSILON);
             return visitChildren(ctx);
         }
 
@@ -158,6 +168,202 @@ public class RubyCFGBuilder {
         @Override
         public Void visitExpression(RubyParser.ExpressionContext ctx) {
             return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public Void visitClass_definition(RubyParser.Class_definitionContext ctx) {
+            // class_definition : 'class' lvalue  ( '<'superclass_id = lvalue )? CRLF statement_expression_list? CRLF END;
+            classNames.push(ctx.lvalue(0).getText());
+            if (ctx.statement_expression_list() != null) {
+                CFNode classBody = new CFNode();
+                classBody.setLineOfCode(ctx.statement_expression_list().getStart().getLine());
+                classBody.setCode("class-body");
+                visit(ctx.statement_expression_list());
+
+                classBody.setProperty("class", classNames.peek());
+                preNodes.push(classBody);
+                preEdges.push(CFEdge.Type.EPSILON);
+            }
+
+            classNames.pop();
+            return null;
+        }
+
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public Void visitBegin_expression(RubyParser.Begin_expressionContext ctx) {
+            CFNode begin = new CFNode();
+            begin.setLineOfCode(ctx.getStart().getLine());
+            addContextualProperty(begin, ctx);
+            addNodeAndPreEdge(begin);
+            preEdges.push(CFEdge.Type.EPSILON);
+            preNodes.push(begin);
+            visit(ctx.statement_body());
+
+
+            CFNode endBegin = new CFNode();
+            endBegin.setLineOfCode(0);
+            endBegin.setCode("end-beigin");
+            addNodeAndPreEdge(endBegin);
+            preEdges.push(CFEdge.Type.EPSILON);
+            preNodes.push(endBegin);
+            return null;
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public Void visitEnd_expression(RubyParser.End_expressionContext ctx) {
+            CFNode end = new CFNode();
+            end.setLineOfCode(ctx.getStart().getLine());
+            addContextualProperty(end, ctx);
+            addNodeAndPreEdge(end);
+            preEdges.push(CFEdge.Type.EPSILON);
+            preNodes.push(end);
+            visit(ctx.statement_body());
+
+
+            CFNode endEnd = new CFNode();
+            endEnd.setLineOfCode(0);
+            endEnd.setCode("end-endExpr");
+            addNodeAndPreEdge(endEnd);
+            preEdges.push(CFEdge.Type.EPSILON);
+            preNodes.push(endEnd);
+            return null;
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public Void visitBegin_rescue_expression(RubyParser.Begin_rescue_expressionContext ctx) {
+            // begin_rescue_expression : BEGIN crlf* statement_body
+            // (rescue_expression error_type? crlf* statement_body )*
+            // (else_token crlf statement_body )?
+            // (ensure_expression crlf* statement_body )?
+            // END ;
+            CFNode beginNode = new CFNode();
+            beginNode.setLineOfCode(ctx.getStart().getLine());
+            beginNode.setCode("begin");
+            addContextualProperty(beginNode, ctx);
+            addNodeAndPreEdge(beginNode);
+
+            CFNode endBegin = new CFNode();
+            endBegin.setLineOfCode(0);
+            endBegin.setCode("end-begin-rescue");
+            cfg.addVertex(endBegin);
+
+            preEdges.push(CFEdge.Type.EPSILON);
+            preNodes.push(beginNode);
+            tryBlocks.push(new Block(beginNode, endBegin));
+            int stmtCnt = 0;
+            visit(ctx.statement_body(stmtCnt++));
+            popAddPreEdgeTo(endBegin);
+
+            CFNode ensureNode = null;
+            CFNode endEnsure = null;
+            if (ctx.ensure_expression() != null) {
+                ensureNode = new CFNode();
+                ensureNode.setLineOfCode(ctx.ensure_expression().getStart().getLine());
+                ensureNode.setCode("ensure");
+                addContextualProperty(ensureNode, ctx.ensure_expression());
+                cfg.addVertex(ensureNode);
+                cfg.addEdge(new Edge<>(endBegin, new CFEdge(CFEdge.Type.EPSILON), ensureNode));
+
+                preNodes.push(ensureNode);
+                preEdges.push(CFEdge.Type.EPSILON);
+                visit(ctx.statement_body(ctx.statement_body().size() - 1));
+
+                endEnsure = new CFNode();
+                endEnsure.setLineOfCode(0);
+                endEnsure.setCode("end-ensure");
+                addNodeAndPreEdge(endEnsure);
+            }
+
+            CFNode elseNode = null;
+            CFNode endElse = null;
+
+            if (ctx.rescue_expression() != null && ctx.rescue_expression().size() > 0) {
+                CFNode rescueNode;
+                CFNode endRescue = new CFNode();
+                endRescue.setLineOfCode(0);
+                endRescue.setCode("end-rescue");
+                cfg.addVertex(endRescue);
+                for (int i = 0; i < ctx.rescue_expression().size(); i++) {
+                    stmtCnt += i;
+                    rescueNode = new CFNode();
+                    rescueNode.setLineOfCode(ctx.rescue_expression(i).getStart().getLine());
+                    rescueNode.setCode("rescue (" + ctx.rescue_expression(i).getText() + ")");
+                    addContextualProperty(rescueNode, ctx.rescue_expression(i));
+
+                    preEdges.push(CFEdge.Type.EPSILON);
+                    preNodes.push(rescueNode);
+                    visit(ctx.statement_body(stmtCnt));
+                    popAddPreEdgeTo(endRescue);
+                }
+                if (ctx.else_token() != null) {
+                    elseNode = new CFNode();
+                    elseNode.setLineOfCode(ctx.else_token().getStart().getLine());
+                    elseNode.setCode("else");
+                    addContextualProperty(elseNode, ctx.else_token());
+                    cfg.addVertex(elseNode);
+                    cfg.addEdge(new Edge<>(endRescue, new CFEdge(CFEdge.Type.EPSILON), elseNode));
+
+                    preNodes.push(elseNode);
+                    preEdges.push(CFEdge.Type.EPSILON);
+                    visit(ctx.statement_body(ctx.statement_body().size() - 2));
+
+                    endEnsure = new CFNode();
+                    endEnsure.setLineOfCode(0);
+                    endEnsure.setCode("end-else");
+                    addNodeAndPreEdge(endEnsure);
+                }
+
+                if (elseNode != null && ensureNode != null) {
+                    cfg.addEdge(new Edge<>(elseNode, new CFEdge(CFEdge.Type.EPSILON), ensureNode));
+                    preEdges.push(CFEdge.Type.EPSILON);
+                    preNodes.push(endEnsure);
+                } else if (ensureNode != null) {
+                    cfg.addEdge(new Edge<>(endRescue, new CFEdge(CFEdge.Type.EPSILON), ensureNode));
+                    preEdges.push(CFEdge.Type.EPSILON);
+                    preNodes.push(endEnsure);
+                } else {
+                    cfg.addEdge(new Edge<>(endRescue, new CFEdge(CFEdge.Type.EPSILON), endBegin));
+                    preEdges.push(CFEdge.Type.EPSILON);
+                    preNodes.push(endBegin);
+                }
+            } else {
+                preEdges.push(CFEdge.Type.EPSILON);
+                preNodes.push(endEnsure);
+            }
+            return null;
         }
 
         /**
@@ -201,11 +407,26 @@ public class RubyCFGBuilder {
          */
         @Override
         public Void visitFunction_inline_call(RubyParser.Function_inline_callContext ctx) {
+            // function_inline_call : function_call;
+
+            // function_call : name=function_name LEFT_RBRACKET params=function_call_param_list RIGHT_RBRACKET
+            //              | name=function_name params=function_call_param_list
+            //              | name=function_name LEFT_RBRACKET RIGHT_RBRACKET
+            //              | id_ '.' name=function_name LEFT_RBRACKET (params=function_call_param_list) ? RIGHT_RBRACKET
+            //              | id_ '.' name=function_name (params=function_call_param_list)?
+            //              | id_ '::' name=function_name LEFT_RBRACKET (params=function_call_param_list) ? RIGHT_RBRACKET
+            //              | id_ '::' name=function_name (params=function_call_param_list)?
+            //              ;
             CFNode func = new CFNode();
             func.setLineOfCode(ctx.getStart().getLine());
-            String parameters = getOriginalCodeText(ctx.function_call().function_call_param_list());
+            String parameters = ctx.function_call().function_call_param_list() != null ? getOriginalCodeText(ctx.function_call().function_call_param_list()) : "";
             String funcName = getOriginalCodeText(ctx.function_call().function_name());
             func.setCode(funcName + " " + parameters);
+            if (ctx.function_call().id_() != null) {
+                String caller = getOriginalCodeText(ctx.function_call().id_());
+                func.setCode(caller + "." + funcName + " " + parameters);
+                func.setProperty("caller", caller);
+            }
             addContextualProperty(func, ctx);
             cfg.addVertex(func);
 
@@ -237,7 +458,7 @@ public class RubyCFGBuilder {
             //
             preEdges.push(CFEdge.Type.EPSILON);
             preNodes.push(requireBlock);
-            return null ;
+            return null;
         }
 
 
@@ -355,6 +576,70 @@ public class RubyCFGBuilder {
          * @param ctx
          */
         @Override
+        public Void visitCase_expression(RubyParser.Case_expressionContext ctx) {
+            // // case_expression : CASE case_exp  crlf* (WHEN when_cond crlf* statement_body )*(else_token crlf statement_body)?    END;
+            //            //
+            //            // case_exp : rvalue;
+            //            //
+            //            // when_cond: cond_expression | array_definition;
+            CFNode caseNode = new CFNode();
+            caseNode.setLineOfCode(ctx.getStart().getLine());
+            caseNode.setCode("case " + getOriginalCodeText(ctx.case_exp()));
+            addContextualProperty(caseNode, ctx);
+            addNodeAndPreEdge(caseNode);
+
+            CFNode endCase = new CFNode();
+            endCase.setLineOfCode(0);
+            endCase.setCode("end-case");
+            cfg.addVertex(endCase);
+
+            preEdges.push(CFEdge.Type.EPSILON);
+            preNodes.push(caseNode);
+            loopBlocks.push(new Block(caseNode, endCase));
+
+            CFNode preCase = null;
+            for (int i = 0; i < ctx.WHEN().size(); i++) {
+                preCase = visitWhenLabels(ctx, preCase, i);
+                visit(ctx.statement_body(i));
+            }
+            preCase = visitWhenLabels(ctx, preCase, -1);
+            loopBlocks.pop();
+            popAddPreEdgeTo(endCase);
+            if (preCase != null)
+                cfg.addEdge(new Edge<>(preCase, new CFEdge(CFEdge.Type.FALSE), endCase));
+            //
+            preEdges.push(CFEdge.Type.EPSILON);
+            preNodes.push(endCase);
+            return null;
+        }
+
+        private CFNode visitWhenLabels(RubyParser.Case_expressionContext ctx, CFNode preCase, int idx) {
+            //  switchLabel :  'case' constantExpression ':'  |  'case' enumConstantName ':'  |  'default' ':'
+            CFNode whenStmt = preCase;
+            whenStmt.setLineOfCode(ctx.when_cond(idx).getStart().getLine());
+            whenStmt.setCode(getOriginalCodeText(ctx.when_cond(idx)));
+            if (idx == -1) {
+                whenStmt.setLineOfCode(ctx.else_token().getStart().getLine());
+                whenStmt.setCode("else");
+            }
+            cfg.addVertex(whenStmt);
+            if (dontPop) dontPop = false;
+            else cfg.addEdge(new Edge<>(preNodes.pop(), new CFEdge(preEdges.pop()), whenStmt));
+            if (preCase != null) {
+                cfg.addEdge(new Edge<>(preCase, new CFEdge(CFEdge.Type.FALSE), whenStmt));
+            }
+            return whenStmt;
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
         public Void visitUnless_statement(RubyParser.Unless_statementContext ctx) {
             CFNode unless = new CFNode();
             unless.setLineOfCode(ctx.getStart().getLine());
@@ -401,6 +686,7 @@ public class RubyCFGBuilder {
         public Void visitRvalue(RubyParser.RvalueContext ctx) {
             CFNode rvalue = new CFNode();
             rvalue.setLineOfCode(ctx.getStart().getLine());
+            Logger.info(ctx.getText());
             rvalue.setCode(getOriginalCodeText(ctx));
             addContextualProperty(rvalue, ctx);
             addNodeAndPreEdge(rvalue);
@@ -481,43 +767,85 @@ public class RubyCFGBuilder {
             //              | FOR init_expression SEMICOLON cond_expression SEMICOLON loop_expression crlf statement_body END
             //              ;
 
-            // init_expression
+
+//            CFNode forInit = new CFNode();
+//            forInit.setLineOfCode(ctx.init_expression().for_init_list().getStart().getLine());
+//            forInit.setCode(getOriginalCodeText(ctx.init_expression()));
+//            addContextualProperty(forInit, ctx.init_expression());
+//            addNodeAndPreEdge(forInit);
+//
+//            // cond_expression
+//            CFNode condNode = new CFNode();
+//            condNode.setLineOfCode(ctx.cond_expression().getStart().getLine());
+//            condNode.setCode("for (" + getOriginalCodeText(ctx.cond_expression()) + ")");
+//            addContextualProperty(condNode, ctx.cond_expression());
+//            cfg.addVertex(condNode);
+//            cfg.addEdge(new Edge<>(forInit, new CFEdge(CFEdge.Type.EPSILON), condNode));
+//            // loop_expression
+//            CFNode forUpdate = new CFNode();
+//            forUpdate.setCode(getOriginalCodeText(ctx.loop_expression()));
+//            forUpdate.setLineOfCode(ctx.loop_expression().getStart().getLine());
+//            addContextualProperty(forUpdate, ctx.loop_expression());
+//            cfg.addVertex(forUpdate);
+//
+//            // for-end
+//            CFNode forEnd = new CFNode();
+//            forEnd.setLineOfCode(0);
+//            forEnd.setCode("end for");
+//            cfg.addVertex(forEnd);
+//            cfg.addEdge(new Edge<>(condNode, new CFEdge(CFEdge.Type.FALSE), forEnd));
+//            // for-body-statement
+//
+//            preEdges.push(CFEdge.Type.TRUE);
+//            preNodes.push(condNode);
+//            loopBlocks.push(new Block(forUpdate, forEnd));
+//            visit(ctx.statement_body());
+//            loopBlocks.pop();
+//
+//            popAddPreEdgeTo(forUpdate);
+//            cfg.addEdge(new Edge<>(forUpdate, new CFEdge(CFEdge.Type.EPSILON), condNode));
+//
+//            preEdges.push(CFEdge.Type.EPSILON);
+//            preNodes.push(forEnd);
+
+            // // for_statement : FOR lvalue (COMMA lvalue)*  IN loop_expression DO? CRLF* statement_body END
+            //            //              | for_each_statement;
+            //            // init_expression
+            // loop_expression : array_definition;
+
             CFNode forInit = new CFNode();
-            forInit.setLineOfCode(ctx.init_expression().for_init_list().getStart().getLine());
-            forInit.setCode(getOriginalCodeText(ctx.init_expression()));
-            addContextualProperty(forInit, ctx.init_expression());
+            forInit.setLineOfCode(ctx.getStart().getLine());
+            StringBuilder forVarInit = new StringBuilder();
+            for (var lvalue : ctx.lvalue()) {
+                forVarInit.append(getOriginalCodeText(lvalue)).append(" ");
+            }
+            forInit.setCode(forVarInit.toString());
+            addContextualProperty(forInit, ctx);
             addNodeAndPreEdge(forInit);
 
-            // cond_expression
-            CFNode condNode = new CFNode();
-            condNode.setLineOfCode(ctx.cond_expression().getStart().getLine());
-            condNode.setCode("for (" + getOriginalCodeText(ctx.cond_expression()) + ")");
-            addContextualProperty(condNode, ctx.cond_expression());
-            cfg.addVertex(condNode);
-            cfg.addEdge(new Edge<>(forInit, new CFEdge(CFEdge.Type.EPSILON), condNode));
-            // loop_expression
-            CFNode forUpdate = new CFNode();
-            forUpdate.setCode(getOriginalCodeText(ctx.loop_expression()));
-            forUpdate.setLineOfCode(ctx.loop_expression().getStart().getLine());
-            addContextualProperty(forUpdate, ctx.loop_expression());
-            cfg.addVertex(forUpdate);
+            // forExpression
+            CFNode forExpr = new CFNode();
+            forExpr.setLineOfCode(ctx.getStart().getLine());
+            forExpr.setCode("for in " + getOriginalCodeText(ctx.loop_expression()));
+            addContextualProperty(forExpr, ctx);
+            cfg.addVertex(forExpr);
+            cfg.addEdge(new Edge<>(forInit, new CFEdge(CFEdge.Type.EPSILON), forExpr));
 
-            // for-end
+            // for - end
             CFNode forEnd = new CFNode();
             forEnd.setLineOfCode(0);
-            forEnd.setCode("end for");
+            forEnd.setCode("endfor");
             cfg.addVertex(forEnd);
-            cfg.addEdge(new Edge<>(condNode, new CFEdge(CFEdge.Type.FALSE), forEnd));
-            // for-body-statement
+            cfg.addEdge(new Edge<>(forExpr, new CFEdge(CFEdge.Type.FALSE), forEnd));
 
             preEdges.push(CFEdge.Type.TRUE);
-            preNodes.push(condNode);
-            loopBlocks.push(new Block(forUpdate, forEnd));
+            preNodes.push(forExpr);
+            loopBlocks.push(new Block(forExpr, forEnd));
             visit(ctx.statement_body());
             loopBlocks.pop();
+            popAddPreEdgeTo(forExpr);
 
-            popAddPreEdgeTo(forUpdate);
-            cfg.addEdge(new Edge<>(forUpdate, new CFEdge(CFEdge.Type.EPSILON), condNode));
+//            cfg.addEdge(new Edge<>(forUpdate, new CFEdge(CFEdge.Type.EPSILON), forExpr));
 
             preEdges.push(CFEdge.Type.EPSILON);
             preNodes.push(forEnd);
@@ -628,8 +956,8 @@ public class RubyCFGBuilder {
             if (dontPop)
                 dontPop = false;
             else {
-                Logger.debug("\nPRE-NODES = " + preNodes.size());
-                Logger.debug("PRE-EDGES = " + preEdges.size() + '\n');
+                Logger.info("\nPRE-NODES = " + preNodes.size());
+                Logger.info("PRE-EDGES = " + preEdges.size() + '\n');
                 cfg.addEdge(new Edge<>(preNodes.pop(), new CFEdge(preEdges.pop()), node));
             }
             //

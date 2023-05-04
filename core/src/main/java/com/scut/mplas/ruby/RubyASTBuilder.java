@@ -1079,6 +1079,60 @@ public class RubyASTBuilder {
             return visit(ctx.comparison_list());
         }
 
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public String visitCase_expression(RubyParser.Case_expressionContext ctx) {
+            // case_expression : CASE case_exp  crlf* (WHEN when_cond crlf* statement_body )*(else_token crlf statement_body)?    END;
+            //
+            // case_exp : rvalue;
+            //
+            // when_cond: cond_expression | array_definition;
+            ASNode caseNode = new ASNode(ASNode.Type.RUBY_CASE);
+            caseNode.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(caseNode);
+            AST.addEdge(parentStack.peek(), caseNode);
+
+            ASNode varNode = new ASNode(ASNode.Type.NAME);
+            varNode.setCode(getOriginalCodeText(ctx.case_exp()));
+            varNode.setNormalizedCode("CASE_$" + getOriginalCodeText(ctx.case_exp()));
+            varNode.setLineOfCode(ctx.case_exp().getStart().getLine());
+            AST.addVertex(varNode);
+            AST.addEdge(caseNode, varNode);
+
+            ASNode caseBodyNode = new ASNode(ASNode.Type.RUBY_CASE_BODY);
+            AST.addVertex(caseBodyNode);
+            AST.addEdge(caseNode, caseBodyNode);
+            // when expression
+            if (ctx.WHEN() != null) {
+                for (int i = 0; i < ctx.WHEN().size(); i++) {
+                    ASNode whenNode = new ASNode(ASNode.Type.RUBY_WHEN);
+                    whenNode.setLineOfCode(ctx.when_cond(i).getStart().getLine());
+                    whenNode.setCode(getOriginalCodeText(ctx.when_cond(i)));
+                    AST.addVertex(whenNode);
+                    AST.addEdge(caseBodyNode, whenNode);
+                    parentStack.push(whenNode);
+                    if (ctx.statement_body(i) != null) {
+                        visit(ctx.statement_body(i));
+                    }
+                    parentStack.pop();
+                }
+            }
+            if (ctx.else_token() != null) {
+                ASNode elseNode = new ASNode(ASNode.Type.ELSE);
+                elseNode.setLineOfCode(ctx.else_token().getStart().getLine());
+                parentStack.push((elseNode));
+                visit(ctx.statement_body(ctx.statement_body().size() - 1));
+            }
+            return "";
+        }
+
 
         @Override
         public String visitStatement_body(RubyParser.Statement_bodyContext ctx) {

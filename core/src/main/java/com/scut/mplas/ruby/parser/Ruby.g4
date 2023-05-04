@@ -58,7 +58,14 @@ expression : for_statement
            | begin_expression
            | end_expression
            | begin_rescue_expression
+           | case_expression
            ;
+
+case_expression : CASE case_exp  crlf* (WHEN when_cond crlf* statement_body )*(else_token crlf statement_body)?    END;
+
+case_exp : rvalue;
+
+when_cond: cond_expression | array_definition;
 
 begin_expression :BEGIN LEFT_BBRACKET crlf* statement_body  RIGHT_BBRACKET crlf*;
 
@@ -413,6 +420,8 @@ ELLIPSIS: '..'|'...';
 SEMICOLON : ';';
 CRLF : '\r'? '\n';
 
+CASE: 'case';
+WHEN: 'when';
 REQUIRE : 'require';
 BEGIN: 'begin';
 END : 'end';

@@ -1,20 +1,14 @@
 package com.scut.mplas.controller;
 
 
-import com.alibaba.fastjson.JSON;
-import com.scut.mplas.entity.response.BaseResponse;
-import com.scut.mplas.API;
 import com.scut.mplas.Execution;
+import com.scut.mplas.entity.response.BaseResponse;
 import com.scut.mplas.service.CodeAnalysisServiceFactory;
-import com.scut.mplas.util.AnalysisArgsBuilder;
 import com.scut.mplas.util.ResponseBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.io.InputStream;
 
 @RestController
 @RequestMapping("/")
@@ -24,19 +18,24 @@ public class ApplicationController {
     ResponseBuilder responseBuilder;
     @Autowired
     CodeAnalysisServiceFactory codeAnalysisServiceFactory;
+
     @RequestMapping(value = "/ast", method = RequestMethod.POST)
-    public BaseResponse GenerateAST(@RequestParam String lang,  @RequestBody MultipartFile data){
+    public BaseResponse GenerateAST(@RequestParam String lang, @RequestBody MultipartFile data) {
         // Your Code here
         log.info(lang);
-        BaseResponse successResponse =responseBuilder.getSuccessResponse();
+        BaseResponse successResponse = responseBuilder.getSuccessResponse();
         Object res = codeAnalysisServiceFactory.getService(lang).analysis(Execution.Analysis.AST, data);
         successResponse.setData(res);
         return successResponse;
     }
+
     @RequestMapping(value = "/cfg", method = RequestMethod.POST)
-    public BaseResponse GenerateCFG(){
+    public BaseResponse GenerateCFG(@RequestParam String lang, @RequestBody MultipartFile data) {
         // Your Code here
-        BaseResponse successResponse =responseBuilder.getSuccessResponse();
+        log.info(lang);
+        BaseResponse successResponse = responseBuilder.getSuccessResponse();
+        Object res = codeAnalysisServiceFactory.getService(lang).analysis(Execution.Analysis.CFG, data);
+        successResponse.setData(res);
         return successResponse;
     }
 

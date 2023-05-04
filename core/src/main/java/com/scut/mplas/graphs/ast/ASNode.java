@@ -138,10 +138,11 @@ public class ASNode {
         FORINITSTATEMENT("FORINITSTATEMENT"),
         FOR_RANGE_INIT("FOR_RANGE_INIT"),
         FOR_RANGE_INITER("FOR_RANGE_INITER"),
+        CLASS_TYPE("CLASS_TYPE"),
 
-        ASM  ("ASM"),
+        ASM("ASM"),
         // ---------------------- RUBY ----------------------
-        RUBY_EXPRESSION ("EXPRESSION"),
+        RUBY_EXPRESSION("EXPRESSION"),
         RUBY_TERMINATOR("TERMINATOR"),
         RUBY_FUNCTION("FUNCTION"),
         RUBY_FUNCTION_DEF("FUNCTION_DEF"),
@@ -161,30 +162,29 @@ public class ASNode {
         RUBY_FLOAT_T("FLOAT"),
         RUBY_INT_T("INT"),
         RUBY_NIL_T("NIL"),
+        RUBY_HASH_EXP("HASH_EXP"),
+        RUBY_MODULE("MODULE"),
+        RUBY_BEGIN("BEGIN"),
+        RUBY_BEGIN_RESCUE("BEGIN_RESCUE"),
+        RUBY_RESCUE("RESCUE"),
+        RUBY_ENSURE("ENSURE"),
+        RUBY_CASE("CASE"),
+        RUBY_CASE_BODY("CASE_BODY"),
+        RUBY_WHEN("WHEN"),
 
         RUBY_GLOBAL_GET("GLOBAL_GET"),
-        RUBY_GLOBAL_SET("GLOBAL_SET"),
-        RUBY_GLOBAL_RESULT("GLOBAL_RESULT"),
         RUBY_INSTANCE_GET("INSTANCE_GET"),
+        RUBY_GLOBAL_SET("GLOBAL_SET"),
         RUBY_INSTANCE_SET("INSTANCE_SET"),
-        RUBY_INSTANCE_RESULT("INSTANCE_RESULT"),
-        RUBY_CONST_RESULT("CONST_RESULT"),
+        RUBY_RAISE("RAISE"),
+        RUBY_GLOBAL_RESULT("GLOBAL_RESULT"),
         RUBY_RESULT("RESULT"),
+        RUBY_SUPER("SUPER"),
         RUBY_RETRY("RETRY"),
         RUBY_ELSEIF("ELSIF"),
         RUBY_UNLESS("UNLESS"),
         RUBY_LOOP_EXPR("LOOP_EXPR"),
-        RUBY_GLOBAL_ID("GLOBAL_ID"),
-
-        RUBY_SUPER("SUPER"),
-        RUBY_BEGIN("BEGIN"),
-        RUBY_BEGIN_RESCUE("BEGIN_RESCUE"),
-        RUBY_HASH_EXP("HASH_EXP"),
-        RUBY_RESCUE("RESCUE"),
-        RUBY_ENSURE("ENSURE"),
-        RUBY_RAISE("RAISE"),
-        RUBY_YIELD("YIELD"),
-        RUBY_MODULE("MODULE");;
+        RUBY_GLOBAL_ID("GLOBAL_ID");
         public final String label;
 
         private Type(String lbl) {

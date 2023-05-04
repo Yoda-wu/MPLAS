@@ -1,6 +1,5 @@
 // Generated from D:/school/github/mplas/core/src/main/java/com/scut/mplas/ruby/parser\Ruby.g4 by ANTLR 4.12.0
 package com.scut.mplas.ruby.parser;
-
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -49,6 +48,48 @@ public interface RubyListener extends ParseTreeListener {
      * @param ctx the parse tree
      */
     void exitExpression(RubyParser.ExpressionContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#case_expression}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterCase_expression(RubyParser.Case_expressionContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#case_expression}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitCase_expression(RubyParser.Case_expressionContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#case_exp}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterCase_exp(RubyParser.Case_expContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#case_exp}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitCase_exp(RubyParser.Case_expContext ctx);
+
+    /**
+     * Enter a parse tree produced by {@link RubyParser#when_cond}.
+     *
+     * @param ctx the parse tree
+     */
+    void enterWhen_cond(RubyParser.When_condContext ctx);
+
+    /**
+     * Exit a parse tree produced by {@link RubyParser#when_cond}.
+     *
+     * @param ctx the parse tree
+     */
+    void exitWhen_cond(RubyParser.When_condContext ctx);
 
     /**
      * Enter a parse tree produced by {@link RubyParser#begin_expression}.

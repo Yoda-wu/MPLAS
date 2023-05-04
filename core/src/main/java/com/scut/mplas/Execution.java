@@ -57,15 +57,17 @@ public class Execution {
 	 */
 	public enum Analysis {
 		// analysis types
-		CFG			("CFG"),
-		PDG			("PDG"),
-		AST			("AST"),
-		ICFG		("ICFG"),
-		SRC_INFO 	("INFO");
-		
+		CFG("CFG"),
+		PDG("PDG"),
+		AST("AST"),
+		DDG("DDG"),
+		ICFG("ICFG"),
+		SRC_INFO("INFO");
+
 		private Analysis(String str) {
 			type = str;
 		}
+
 		@Override
 		public String toString() {
 			return type;
@@ -78,6 +80,7 @@ public class Execution {
 	 */
 	public enum Languages {
 		CPP("Cpp", ".cpp"),
+		JAVASCRIPT("JavaScript", ".js"),
 		C("C", ".c"),
 		JAVA("Java", ".java"),
 		RUBY("Ruby", ".rb"),
@@ -92,6 +95,7 @@ public class Execution {
 		public String toString() {
 			return name;
 		}
+
 		public final String name;
 		public final String suffix;
 	}
@@ -271,7 +275,7 @@ public class Execution {
 		Logger.info("\n# " + lang.name + " source files = " + filePaths.length + "\n");
 		
 		// Check language
-		if (!(lang.equals(Languages.JAVA) || lang.equals(Languages.CPP) || lang.equals(Languages.RUBY))) {
+		if (!(lang.equals(Languages.JAVA) || lang.equals(Languages.CPP) || lang.equals(Languages.JAVASCRIPT) || lang.equals(Languages.RUBY))) {
 			Logger.info("Analysis of " + lang.name + " programs is not yet supported!");
 			Logger.info("Abort.");
 			System.exit(0);
@@ -312,6 +316,19 @@ public class Execution {
 						} catch (IOException ex) {
 							Logger.error(ex);
 						}
+					}
+					break;
+				//
+				case "DDG":
+					Logger.info("\nData-Dependence Analysis");
+					Logger.info("=====================");
+					Logger.debug("START: " + Logger.time() + '\n');
+					try {
+						for (ProgramDependeceGraph pdg : PDGBuilder.buildForAll(lang.name, filePaths)) {
+							pdg.DDS.export(format.toString(), outputDir);
+						}
+					} catch (IOException ex) {
+						Logger.error(ex);
 					}
 					break;
 				//

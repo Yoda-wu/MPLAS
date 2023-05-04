@@ -20,13 +20,11 @@ public class BasicAnalysisTests {
 
     private final String JAVA_SRC_DIR = "src/test/resources/java/basic/";
     private final String CPP_SRC_DIR = "src/test/resources/cpp/basic/";
-
-
+    private final String JS_SRC_DIR = "src/test/resources/js/basic/";
     private final String RUBY_SRC_DIR = "src/test/resources/ruby/basic";
-
     private static final String OUTPUT_DIR = "../generate/java/basic/";
     private static final String CPP_OUTPUT_DIR = "../generate/cpp/basic/";
-
+    private static final String JS_OUTPUT_DIR = "../generate/js/basic/";
     private static final String RUBY_OUTPUT_DIR = "../generate/ruby/basic/";
 
     @BeforeClass
@@ -172,16 +170,85 @@ public class BasicAnalysisTests {
         assertEquals(testFiles.length, outFiles.length);
     }
 
+    @Test
+    public void cppCFGJsonTest() {
+        String outDir = CPP_OUTPUT_DIR + "CFG/";
+        String[] args = {"-cfg", "-outdir", outDir, "-format", "json", "-lang", "cpp", CPP_SRC_DIR};
+        Main.main(args);
+        //
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[]{CPP_SRC_DIR}, Execution.Languages.CPP.suffix);
+        String[] outFiles = FileUtils.listFilesWithSuffix(new String[]{outDir}, "-CFG.json");
+        assertEquals(testFiles.length, outFiles.length);
+    }
 
     @Test
-    public void rubyASTreeJsonTest() {
+    public void cppDDGJsonTest() {
+        String outDir = CPP_OUTPUT_DIR + "DDG/";
+        String[] args = {"-ddg", "-outdir", outDir, "-format", "json", "-lang", "cpp", CPP_SRC_DIR};
+        Main.main(args);
+        //
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[]{CPP_SRC_DIR}, Execution.Languages.CPP.suffix);
+        String[] outFiles = FileUtils.listFilesWithSuffix(new String[]{outDir}, "-PDG-DATA.json");
+        assertEquals(testFiles.length, outFiles.length);
+    }
+
+    @Test
+    public void jsASTreeJsonTest() {
+        String outDir = JS_OUTPUT_DIR + "AST/";
+        String[] args = {"-ast", "-outdir", outDir, "-format", "json", "-lang", "js", JS_SRC_DIR};
+        Main.main(args);
+        //
+
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[]{JS_SRC_DIR}, Execution.Languages.JAVASCRIPT.suffix);
+        String[] outFiles = FileUtils.listFilesWithSuffix(new String[]{outDir}, "-AST.json");
+        assertEquals(testFiles.length, outFiles.length);
+    }
+
+    @Test
+    public void jsCFGJsonTest() {
+        String outDir = JS_OUTPUT_DIR + "CFG/";
+        String[] args = {"-cfg", "-outdir", outDir, "-format", "json", "-lang", "js", JS_SRC_DIR};
+        Main.main(args);
+        //
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[]{JS_SRC_DIR}, Execution.Languages.JAVASCRIPT.suffix);
+        String[] outFiles = FileUtils.listFilesWithSuffix(new String[]{outDir}, "-CFG.json");
+        assertEquals(testFiles.length, outFiles.length);
+    }
+
+
+    @Test
+    public void RubyASTreeJsonTest() {
         String outDir = RUBY_OUTPUT_DIR + "AST/";
-        String[] args = {"-ast", "-outdir", outDir, "-format", "dot", "-lang", "ruby", RUBY_SRC_DIR};
+        String[] args = {"-ast", "-outdir", outDir, "-format", "json", "-lang", "ruby", RUBY_SRC_DIR};
         Main.main(args);
         //
 
         String[] testFiles = FileUtils.listFilesWithSuffix(new String[]{RUBY_SRC_DIR}, Execution.Languages.RUBY.suffix);
         String[] outFiles = FileUtils.listFilesWithSuffix(new String[]{outDir}, "-AST.json");
+        assertEquals(testFiles.length, outFiles.length);
+    }
+
+    @Test
+    public void RubyCFGJsonTest() {
+        String outDir = RUBY_OUTPUT_DIR + "AST/";
+        String[] args = {"-cfg", "-outdir", outDir, "-format", "json", "-lang", "ruby", RUBY_SRC_DIR};
+        Main.main(args);
+        //
+
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[]{RUBY_SRC_DIR}, Execution.Languages.RUBY.suffix);
+        String[] outFiles = FileUtils.listFilesWithSuffix(new String[]{outDir}, "-CFG.json");
+        assertEquals(testFiles.length, outFiles.length);
+    }
+
+    @Test
+    public void RubyCFGDotTest() {
+        String outDir = RUBY_OUTPUT_DIR + "AST/";
+        String[] args = {"-cfg", "-outdir", outDir, "-lang", "ruby", RUBY_SRC_DIR};
+        Main.main(args);
+        //
+
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[]{RUBY_SRC_DIR}, Execution.Languages.RUBY.suffix);
+        String[] outFiles = FileUtils.listFilesWithSuffix(new String[]{outDir}, "-CFG.json");
         assertEquals(testFiles.length, outFiles.length);
     }
 }

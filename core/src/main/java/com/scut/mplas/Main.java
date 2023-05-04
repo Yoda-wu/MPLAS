@@ -20,6 +20,7 @@ public class Main {
 			Logger.init("progex.log");
             Logger.setEchoToStdOut(true);
             Logger.setTimeTagEnabled(false);
+			Logger.setActiveLevel(Logger.Level.INFO);
 		} catch (java.io.IOException ex) {
 			System.err.println("[ERR] LOGGER INIT FAILED : " + ex);
 		}

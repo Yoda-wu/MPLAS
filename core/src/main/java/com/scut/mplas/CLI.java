@@ -41,6 +41,10 @@ public class CLI {
 							exec.addAnalysisOption(Execution.Analysis.CFG);
 							break;
 						//
+						case "ddg":
+							exec.addAnalysisOption(Execution.Analysis.DDG);
+							break;
+						//
 						case "pdg":
 							exec.addAnalysisOption(Execution.Analysis.PDG);
 							break;
@@ -102,6 +106,9 @@ public class CLI {
 										break;
 									case "cpp":
 										exec.setLanguage(Execution.Languages.CPP);
+										break;
+									case "js":
+										exec.setLanguage(Execution.Languages.JAVASCRIPT);
 										break;
 									case "ruby":
 										exec.setLanguage(Execution.Languages.RUBY);

@@ -1,1672 +1,379 @@
-======= LOG CREATED on 周一 2023/5月/01 17:40:17:355 =======
+======= LOG CREATED on 周四 2023/5月/04 20:07:47:844 =======
 
 PROGEX (Program Graph Extractor)  [ v3.4.5 ]
 Visit project website @ https://github.com/ghaffarian/progex
 
 PROGEX execution config:
   Language = Ruby
-  Output format = DOT
+  Output format = JSON
   Output directory = ../generate/ruby/basic/AST/\
-  Analysis types = [AST]
+  Analysis types = [CFG]
   File name = 
   Input paths = 
         src/test/resources/ruby/basic
 
 
-# Ruby source files = 9
+# Ruby source files = 10
 
 
-Abstract Syntax Analysis
-========================
-expList -- puts'hahaha!'
-putsa
+Control-Flow Analysis
+=====================
+$i=1
 
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
+PRE-NODES = 1
+PRE-EDGES = 1
 
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
+CFG exported to: ../generate/ruby/basic/AST/\test-CFG.json
 
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
+PRE-NODES = 3
+PRE-EDGES = 3
+
+
+PRE-NODES = 4
+PRE-EDGES = 4
+
+
+PRE-NODES = 4
+PRE-EDGES = 4
+
+
+PRE-NODES = 5
+PRE-EDGES = 5
+
+
+PRE-NODES = 5
+PRE-EDGES = 5
+
+
+PRE-NODES = 5
+PRE-EDGES = 5
+
+
+PRE-NODES = 6
+PRE-EDGES = 6
+
+
+PRE-NODES = 6
+PRE-EDGES = 6
+
+
+PRE-NODES = 7
+PRE-EDGES = 7
+
+
+PRE-NODES = 7
+PRE-EDGES = 7
+
+
+PRE-NODES = 8
+PRE-EDGES = 8
+
+
+PRE-NODES = 8
+PRE-EDGES = 8
+
+
+PRE-NODES = 8
+PRE-EDGES = 8
+
+
+PRE-NODES = 8
+PRE-EDGES = 8
+
+
+PRE-NODES = 9
+PRE-EDGES = 9
+
+
+PRE-NODES = 10
+PRE-EDGES = 10
 
 mas=[]
+
+PRE-NODES = 10
+PRE-EDGES = 10
+
 mas=read_file("lab4.txt")
+
+PRE-NODES = 10
+PRE-EDGES = 10
 
 length=len(mas)
 
-foriin[1...5]
-
-putsi
-
-end
+PRE-NODES = 10
+PRE-EDGES = 10
 
 
+PRE-NODES = 10
+PRE-EDGES = 10
 
 
-s="hello"
-l=len(s)
-putsl
-
-a=func(1,2)
-putsa
-
-deffunca,b
-returna+b
-end
-
-expList--puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
-
-mas=[]
-mas=read_file("lab4.txt")
-
-length=len(mas)
-
-foriin[1...5]
-
-putsi
-
-end
-
-
-
+PRE-NODES = 11
+PRE-EDGES = 11
 
 s="hello"
+
+PRE-NODES = 11
+PRE-EDGES = 11
+
 l=len(s)
-putsl
 
-a=func(1,2)
-putsa
-
-
-expList -- puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
-
-mas=[]
-mas=read_file("lab4.txt")
-
-length=len(mas)
-
-foriin[1...5]
-
-putsi
-
-end
-
-
-
-
-s="hello"
-l=len(s)
-putsl
-
-a=func(1,2)
-putsa
-
-
-expList--puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
-
-mas=[]
-mas=read_file("lab4.txt")
-
-length=len(mas)
-
-foriin[1...5]
-
-putsi
-
-end
-
-
-
-
-s="hello"
-l=len(s)
-putsl
+PRE-NODES = 11
+PRE-EDGES = 11
 
 a=func(1,2)
 
-expList -- puts'hahaha!'
-putsa
+PRE-NODES = 12
+PRE-EDGES = 12
 
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
 
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
+PRE-NODES = 1
+PRE-EDGES = 1
 
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
+CFG exported to: ../generate/ruby/basic/AST/\test_all-CFG.json
+a=1.1+2.5*2
 
-mas=[]
-mas=read_file("lab4.txt")
+PRE-NODES = 1
+PRE-EDGES = 1
 
-length=len(mas)
-
-foriin[1...5]
-
-putsi
-
-end
-
-
-
-
-s="hello"
-l=len(s)
-putsl
-
-a=func(1,2)
-
-expList--puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
-
-mas=[]
-mas=read_file("lab4.txt")
-
-length=len(mas)
-
-foriin[1...5]
-
-putsi
-
-end
-
-
-
-
-s="hello"
-l=len(s)
-putsl
-
-
-expList -- puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
-
-mas=[]
-mas=read_file("lab4.txt")
-
-length=len(mas)
-
-foriin[1...5]
-
-putsi
-
-end
-
-
-
-
-s="hello"
-l=len(s)
-putsl
-
-
-expList--puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
-
-mas=[]
-mas=read_file("lab4.txt")
-
-length=len(mas)
-
-foriin[1...5]
-
-putsi
-
-end
-
-
-
-
-s="hello"
-l=len(s)
-
-expList -- puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
-
-mas=[]
-mas=read_file("lab4.txt")
-
-length=len(mas)
-
-foriin[1...5]
-
-putsi
-
-end
-
-
-
-
-s="hello"
-l=len(s)
-
-expList--puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
-
-mas=[]
-mas=read_file("lab4.txt")
-
-length=len(mas)
-
-foriin[1...5]
-
-putsi
-
-end
-
-
-
-
-s="hello"
-
-expList -- puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
-
-mas=[]
-mas=read_file("lab4.txt")
-
-length=len(mas)
-
-foriin[1...5]
-
-putsi
-
-end
-
-
-
-
-s="hello"
-
-expList--puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
-
-mas=[]
-mas=read_file("lab4.txt")
-
-length=len(mas)
-
-foriin[1...5]
-
-putsi
-
-end
-
-
-
-
-
-expList -- puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
-
-mas=[]
-mas=read_file("lab4.txt")
-
-length=len(mas)
-
-foriin[1...5]
-
-putsi
-
-end
-
-
-
-
-
-expList--puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
-
-mas=[]
-mas=read_file("lab4.txt")
-
-length=len(mas)
-
-
-expList -- puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
-
-mas=[]
-mas=read_file("lab4.txt")
-
-length=len(mas)
-
-
-expList--puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
-
-mas=[]
-mas=read_file("lab4.txt")
-
-
-expList -- puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
-
-mas=[]
-mas=read_file("lab4.txt")
-
-
-expList--puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
-
-mas=[]
-
-expList -- puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
-
-mas=[]
-
-expList--puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
-
-
-expList -- puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-unless'a'<'b'
-puts"c > d"
-else
-puts"c < d"
-end
-
-
-expList--puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-
-expList -- puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-if'a'>'b'
-puts"a > b"
-elsif'c'>'d'
-puts"c > d"
-elsif'c'<'d'
-puts"c < d"
-end
-
-
-expList--puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-
-expList -- puts'hahaha!'
-putsa
-
-if'a'>'b'
-puts"a > b"
-elsif'a'<'b'
-puts"a < b"
-end
-
-
-expList--puts'hahaha!'
-putsa
-
-
-expList -- puts'hahaha!'
-putsa
-
-
-expList--puts'hahaha!'
-
-expList -- puts'hahaha!'
-
-exp--puts'hahaha!'
-visit function_inline_call
-visit function_inline_call
-visit statement
-visit function_inline_call
-visit function_inline_call
-visit statement
-visit function_inline_call
-visit function_inline_call
-visit function_inline_call
-visit statement
-visit function_inline_call
-visit function_inline_call
-visit rvalue
-visit rvalue -- mas=[]
-visit rvalue
-visit rvalue -- mas=read_file("lab4.txt")
-visit rvalue
-visit rvalue -- length=len(mas)
-visit statement
-visit function_inline_call
-visit rvalue
-visit rvalue -- s="hello"
-visit rvalue
-visit rvalue -- l=len(s)
-visit function_inline_call
-visit rvalue
-visit rvalue -- a=func(1,2)
-visit function_inline_call
-visit function_definition
-expList -- returna+b
-
-exp--returna+b
-visit statement
-AST exported to: ../generate/ruby/basic/AST/\test_all-AST.dot
-expList -- a=1.1+2.5*2
 b=1
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
 c=100+(100*3)
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
 a=1
 
+PRE-NODES = 1
+PRE-EDGES = 1
 
 dyn=a+4+2
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
 dyn+=5.2+c*(b+1)
 
+PRE-NODES = 1
+PRE-EDGES = 1
+
 d="abc"
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
 d="abc"+"def"
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
 d="abc"*3
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
 d='abc'
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
 d='abc'+'def'
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
 d='abc'*3
 
+PRE-NODES = 1
+PRE-EDGES = 1
+
 mas=[]
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
 mas[1]=5
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
 mas[2]="String"
 
+PRE-NODES = 1
+PRE-EDGES = 1
+
 a=mas[2]
+
+PRE-NODES = 1
+PRE-EDGES = 1
 
 a=2
 
-expList--a=1.1+2.5*2
-b=1
-c=100+(100*3)
+PRE-NODES = 1
+PRE-EDGES = 1
+
+CFG exported to: ../generate/ruby/basic/AST/\test_assign-CFG.json
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+a+=i
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+CFG exported to: ../generate/ruby/basic/AST/\test_for_statement-CFG.json
+i=10
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+CFG exported to: ../generate/ruby/basic/AST/\test_for_while_stmt-CFG.json
+CFG exported to: ../generate/ruby/basic/AST/\test_function_call-CFG.json
 a=1
 
-
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
-
-d="abc"
-d="abc"+"def"
-d="abc"*3
-d='abc'
-d='abc'+'def'
-d='abc'*3
-
-mas=[]
-mas[1]=5
-mas[2]="String"
-
-a=mas[2]
+PRE-NODES = 1
+PRE-EDGES = 1
 
 
-expList -- a=1.1+2.5*2
-b=1
-c=100+(100*3)
+PRE-NODES = 1
+PRE-EDGES = 1
+
+a=[]
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+a[1]=2
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+a[2]=3
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+b=a[2]
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+a=3
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
 a=1
 
+PRE-NODES = 1
+PRE-EDGES = 1
 
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
 
-d="abc"
-d="abc"+"def"
-d="abc"*3
-d='abc'
-d='abc'+'def'
-d='abc'*3
+PRE-NODES = 1
+PRE-EDGES = 1
 
-mas=[]
-mas[1]=5
-mas[2]="String"
 
-a=mas[2]
+PRE-NODES = 1
+PRE-EDGES = 1
 
+a=2
 
-expList--a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
+PRE-NODES = 1
+PRE-EDGES = 1
 
 
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
+PRE-NODES = 1
+PRE-EDGES = 1
 
-d="abc"
-d="abc"+"def"
-d="abc"*3
-d='abc'
-d='abc'+'def'
-d='abc'*3
+a=4
 
-mas=[]
-mas[1]=5
-mas[2]="String"
+PRE-NODES = 1
+PRE-EDGES = 1
 
+CFG exported to: ../generate/ruby/basic/AST/\test_function_def-CFG.json
 
-expList -- a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
+PRE-NODES = 1
+PRE-EDGES = 1
 
+a=2
 
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
+PRE-NODES = 1
+PRE-EDGES = 1
 
-d="abc"
-d="abc"+"def"
-d="abc"*3
-d='abc'
-d='abc'+'def'
-d='abc'*3
 
-mas=[]
-mas[1]=5
-mas[2]="String"
+PRE-NODES = 1
+PRE-EDGES = 1
 
+a=3
 
-expList--a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
+PRE-NODES = 1
+PRE-EDGES = 1
 
 
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
+PRE-NODES = 1
+PRE-EDGES = 1
 
-d="abc"
-d="abc"+"def"
-d="abc"*3
-d='abc'
-d='abc'+'def'
-d='abc'*3
+CFG exported to: ../generate/ruby/basic/AST/\test_if_statement-CFG.json
+$P0="333444"
 
-mas=[]
-mas[1]=5
+PRE-NODES = 1
+PRE-EDGES = 1
 
-expList -- a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
+$I0=19
 
+PRE-NODES = 1
+PRE-EDGES = 1
 
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
-
-d="abc"
-d="abc"+"def"
-d="abc"*3
-d='abc'
-d='abc'+'def'
-d='abc'*3
-
-mas=[]
-mas[1]=5
-
-expList--a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
-
-d="abc"
-d="abc"+"def"
-d="abc"*3
-d='abc'
-d='abc'+'def'
-d='abc'*3
-
-mas=[]
-
-expList -- a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
-
-d="abc"
-d="abc"+"def"
-d="abc"*3
-d='abc'
-d='abc'+'def'
-d='abc'*3
-
-mas=[]
-
-expList--a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
-
-d="abc"
-d="abc"+"def"
-d="abc"*3
-d='abc'
-d='abc'+'def'
-d='abc'*3
-
-
-expList -- a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
-
-d="abc"
-d="abc"+"def"
-d="abc"*3
-d='abc'
-d='abc'+'def'
-d='abc'*3
-
-
-expList--a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
-
-d="abc"
-d="abc"+"def"
-d="abc"*3
-d='abc'
-d='abc'+'def'
-
-expList -- a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
-
-d="abc"
-d="abc"+"def"
-d="abc"*3
-d='abc'
-d='abc'+'def'
-
-expList--a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
-
-d="abc"
-d="abc"+"def"
-d="abc"*3
-d='abc'
-
-expList -- a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
-
-d="abc"
-d="abc"+"def"
-d="abc"*3
-d='abc'
-
-expList--a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
-
-d="abc"
-d="abc"+"def"
-d="abc"*3
-
-expList -- a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
-
-d="abc"
-d="abc"+"def"
-d="abc"*3
-
-expList--a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
-
-d="abc"
-d="abc"+"def"
-
-expList -- a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
-
-d="abc"
-d="abc"+"def"
-
-expList--a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
-
-d="abc"
-
-expList -- a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
-
-d="abc"
-
-expList--a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
-
-
-expList -- a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-dyn=a+4+2
-dyn+=5.2+c*(b+1)
-
-
-expList--a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-dyn=a+4+2
-
-expList -- a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-dyn=a+4+2
-
-expList--a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-
-expList -- a=1.1+2.5*2
-b=1
-c=100+(100*3)
-a=1
-
-
-
-expList--a=1.1+2.5*2
-b=1
-c=100+(100*3)
-
-expList -- a=1.1+2.5*2
-b=1
-c=100+(100*3)
-
-expList--a=1.1+2.5*2
-b=1
-
-expList -- a=1.1+2.5*2
-b=1
-
-expList--a=1.1+2.5*2
-
-expList -- a=1.1+2.5*2
-
-exp--a=1.1+2.5*2
-visit rvalue
-visit rvalue -- a=1.1+2.5*2
-rvalue visit float_assignment
-float result 1.1+2.5*2 false
-float result 1.1+2.5*2
-finish visit float_assignment code== 1.1+2.5*2
-visit rvalue
-visit rvalue -- b=1
-visit rvalue
-visit rvalue -- c=100+(100*3)
-visit rvalue
-visit rvalue -- a=1
-visit rvalue
-visit rvalue -- dyn=a+4+2
-visit rvalue
-visit rvalue -- dyn+=5.2+c*(b+1)
-visit rvalue
-visit rvalue -- d="abc"
-visit rvalue
-visit rvalue -- d="abc"+"def"
-visit rvalue
-visit rvalue -- d="abc"*3
-visit rvalue
-visit rvalue -- d='abc'
-visit rvalue
-visit rvalue -- d='abc'+'def'
-visit rvalue
-visit rvalue -- d='abc'*3
-visit rvalue
-visit rvalue -- mas=[]
-visit rvalue
-visit rvalue -- mas[1]=5
-visit rvalue
-visit rvalue -- mas[2]="String"
-visit rvalue
-visit rvalue -- a=mas[2]
-visit rvalue
-visit rvalue -- a=2
-AST exported to: ../generate/ruby/basic/AST/\test_assign-AST.dot
-expList -- foriin[1..5]
-
-a+=i;
-
-end
-
-exp--foriin[1..5]
-
-a+=i;
-
-end
-visit statement
-visit rvalue
-visit rvalue -- a+=i
-AST exported to: ../generate/ruby/basic/AST/\test_for_statement-AST.dot
-expList -- i=10
-foriin[1..5]
-ifi==3
-break
-end
+CFG exported to: ../generate/ruby/basic/AST/\test_pir-CFG.json
 a=10
-whilea>0
-puts"hahaha"
-ifa==2
-break
-end
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
 a-=1
-end
-end
+
+PRE-NODES = 1
+PRE-EDGES = 1
 
 
-expList--i=10
+PRE-NODES = 1
+PRE-EDGES = 1
 
-expList -- i=10
-
-exp--i=10
-visit rvalue
-visit rvalue -- i=10
-visit statement
-visit statement
-visit rvalue
-visit rvalue -- a=10
-visit statement
-visit function_inline_call
-visit statement
-visit rvalue
-visit rvalue -- a-=1
-AST exported to: ../generate/ruby/basic/AST/\test_for_while_stmt-AST.dot
-expList -- func0()
-func1(1)
-func2(2+3,3,"Hello "+"world!")
-func3(a+t,b,c)
-func4(a=4+3,b="Hello "+"world!")
-
-
-expList--func0()
-func1(1)
-func2(2+3,3,"Hello "+"world!")
-func3(a+t,b,c)
-
-expList -- func0()
-func1(1)
-func2(2+3,3,"Hello "+"world!")
-func3(a+t,b,c)
-
-expList--func0()
-func1(1)
-func2(2+3,3,"Hello "+"world!")
-
-expList -- func0()
-func1(1)
-func2(2+3,3,"Hello "+"world!")
-
-expList--func0()
-func1(1)
-
-expList -- func0()
-func1(1)
-
-expList--func0()
-
-expList -- func0()
-
-exp--func0()
-visit function_inline_call
-visit function_inline_call
-visit function_inline_call
-visit function_inline_call
-visit function_inline_call
-AST exported to: ../generate/ruby/basic/AST/\test_function_call-AST.dot
-expList -- deffunc1(a,b,c)
-a=1
-returna
-end
-
-deffunc2()
-a=[]
-a[1]=2
-a[2]=3
-b=a[2]
-returnb
-end
-
-
-deffunc3()
-a=3
-ifa>1
-a=1
-end
-foriin[1..2]
-a=2
-end
-a=4
-end
-
-
-expList--deffunc1(a,b,c)
-a=1
-returna
-end
-
-deffunc2()
-a=[]
-a[1]=2
-a[2]=3
-b=a[2]
-returnb
-end
-
-
-
-expList -- deffunc1(a,b,c)
-a=1
-returna
-end
-
-deffunc2()
-a=[]
-a[1]=2
-a[2]=3
-b=a[2]
-returnb
-end
-
-
-
-expList--deffunc1(a,b,c)
-a=1
-returna
-end
-
-
-expList -- deffunc1(a,b,c)
-a=1
-returna
-end
-
-
-exp--deffunc1(a,b,c)
-a=1
-returna
-end
-visit function_definition
-expList -- a=1
-returna
-
-expList--a=1
-
-expList -- a=1
-
-exp--a=1
-visit rvalue
-visit rvalue -- a=1
-visit statement
-visit function_definition
-expList -- a=[]
-a[1]=2
-a[2]=3
-b=a[2]
-returnb
-
-expList--a=[]
-a[1]=2
-a[2]=3
-b=a[2]
-
-expList -- a=[]
-a[1]=2
-a[2]=3
-b=a[2]
-
-expList--a=[]
-a[1]=2
-a[2]=3
-
-expList -- a=[]
-a[1]=2
-a[2]=3
-
-expList--a=[]
-a[1]=2
-
-expList -- a=[]
-a[1]=2
-
-expList--a=[]
-
-expList -- a=[]
-
-exp--a=[]
-visit rvalue
-visit rvalue -- a=[]
-visit rvalue
-visit rvalue -- a[1]=2
-visit rvalue
-visit rvalue -- a[2]=3
-visit rvalue
-visit rvalue -- b=a[2]
-visit statement
-visit function_definition
-expList -- a=3
-ifa>1
-a=1
-end
-foriin[1..2]
-a=2
-end
-a=4
-
-expList--a=3
-ifa>1
-a=1
-end
-foriin[1..2]
-a=2
-end
-
-expList -- a=3
-ifa>1
-a=1
-end
-foriin[1..2]
-a=2
-end
-
-expList--a=3
-ifa>1
-a=1
-end
-
-expList -- a=3
-ifa>1
-a=1
-end
-
-expList--a=3
-
-expList -- a=3
-
-exp--a=3
-visit rvalue
-visit rvalue -- a=3
-visit statement
-visit rvalue
-visit rvalue -- a=1
-visit statement
-visit rvalue
-visit rvalue -- a=2
-visit rvalue
-visit rvalue -- a=4
-AST exported to: ../generate/ruby/basic/AST/\test_function_def-AST.dot
-expList -- ifa==1
-a=2
-unlessb==2
-b=3
-end
-else
-a=3
-end
-
-
-exp--ifa==1
-a=2
-unlessb==2
-b=3
-end
-else
-a=3
-end
-visit statement
-visit rvalue
-visit rvalue -- a=2
-visit statement
-visit rvalue
-visit rvalue -- b=3
-visit rvalue
-visit rvalue -- a=3
-AST exported to: ../generate/ruby/basic/AST/\test_if_statement-AST.dot
-expList -- pir
-$P0="333444"
-$I0=19
-end
-
-
-exp--pir
-$P0="333444"
-$I0=19
-end
-visit pir_inline
-expList -- $P0="333444"
-$I0=19
-
-expList--$P0="333444"
-
-expList -- $P0="333444"
-
-exp--$P0="333444"
-visit rvalue
-visit rvalue -- $P0="333444"
-visit rvalue
-visit rvalue -- $I0=19
-AST exported to: ../generate/ruby/basic/AST/\test_pir-AST.dot
-expList -- a=10
-whilea>0
-a-=1
-end
-
-
-expList--a=10
-
-expList -- a=10
-
-exp--a=10
-visit rvalue
-visit rvalue -- a=10
-visit statement
-visit rvalue
-visit rvalue -- a-=1
-AST exported to: ../generate/ruby/basic/AST/\test_while_statement-AST.dot
+CFG exported to: ../generate/ruby/basic/AST/\test_while_statement-CFG.json

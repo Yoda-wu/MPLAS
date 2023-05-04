@@ -72,6 +72,60 @@ public class RubyBaseListener implements RubyListener {
      * <p>The default implementation does nothing.</p>
      */
     @Override
+    public void enterCase_expression(RubyParser.Case_expressionContext ctx) {
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation does nothing.</p>
+     */
+    @Override
+    public void exitCase_expression(RubyParser.Case_expressionContext ctx) {
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation does nothing.</p>
+     */
+    @Override
+    public void enterCase_exp(RubyParser.Case_expContext ctx) {
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation does nothing.</p>
+     */
+    @Override
+    public void exitCase_exp(RubyParser.Case_expContext ctx) {
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation does nothing.</p>
+     */
+    @Override
+    public void enterWhen_cond(RubyParser.When_condContext ctx) {
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation does nothing.</p>
+     */
+    @Override
+    public void exitWhen_cond(RubyParser.When_condContext ctx) {
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation does nothing.</p>
+     */
+    @Override
     public void enterBegin_expression(RubyParser.Begin_expressionContext ctx) {
     }
 
