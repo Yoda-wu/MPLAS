@@ -134,6 +134,7 @@ public class RubyCFGBuilder {
         @Override
         public Void visitProg(RubyParser.ProgContext ctx) {
             init();
+            Logger.info("visit prog------");
             CFNode prog = new CFNode();
             prog.setLineOfCode(1);
             prog.setCode("rb-program");
@@ -167,6 +168,7 @@ public class RubyCFGBuilder {
          */
         @Override
         public Void visitExpression(RubyParser.ExpressionContext ctx) {
+            Logger.info("----------visitExpression----------");
             return visitChildren(ctx);
         }
 
@@ -183,14 +185,18 @@ public class RubyCFGBuilder {
             // class_definition : 'class' lvalue  ( '<'superclass_id = lvalue )? CRLF statement_expression_list? CRLF END;
             classNames.push(ctx.lvalue(0).getText());
             if (ctx.statement_expression_list() != null) {
+                Logger.info("visit class_body--------" + getOriginalCodeText(ctx.statement_expression_list()));
                 CFNode classBody = new CFNode();
                 classBody.setLineOfCode(ctx.statement_expression_list().getStart().getLine());
                 classBody.setCode("class-body");
-                visit(ctx.statement_expression_list());
-
-                classBody.setProperty("class", classNames.peek());
+                addContextualProperty(classBody, ctx);
+                addNodeAndPreEdge(classBody);
                 preNodes.push(classBody);
                 preEdges.push(CFEdge.Type.EPSILON);
+
+                visit(ctx.statement_expression_list());
+                Logger.info("finish visit class_body--------");
+                classBody.setProperty("class", classNames.peek());
             }
 
             classNames.pop();
@@ -377,14 +383,15 @@ public class RubyCFGBuilder {
         @Override
         public Void visitFunction_definition(RubyParser.Function_definitionContext ctx) {
             // function_definition : function_definition_header function_definition_body END;
-            init();
 
+            Logger.info("function_definition---------");
             CFNode entry = new CFNode();
             entry.setLineOfCode(ctx.getStart().getLine());
             String parameters = getOriginalCodeText(ctx.function_definition_header().function_definition_params());
             String funcName = getOriginalCodeText(ctx.function_definition_header().function_name());
             entry.setCode(funcName + " " + parameters);
             addContextualProperty(entry, ctx);
+            addNodeAndPreEdge(entry);
             cfg.addVertex(entry);
 
             entry.setProperty("name", funcName);
@@ -428,6 +435,7 @@ public class RubyCFGBuilder {
                 func.setProperty("caller", caller);
             }
             addContextualProperty(func, ctx);
+            addNodeAndPreEdge(func);
             cfg.addVertex(func);
 
             func.setProperty("name", funcName);
@@ -684,6 +692,7 @@ public class RubyCFGBuilder {
          */
         @Override
         public Void visitRvalue(RubyParser.RvalueContext ctx) {
+            Logger.info("-------visitRvalue---------");
             CFNode rvalue = new CFNode();
             rvalue.setLineOfCode(ctx.getStart().getLine());
             Logger.info(ctx.getText());
@@ -816,6 +825,7 @@ public class RubyCFGBuilder {
             CFNode forInit = new CFNode();
             forInit.setLineOfCode(ctx.getStart().getLine());
             StringBuilder forVarInit = new StringBuilder();
+            forVarInit.append("forVar——");
             for (var lvalue : ctx.lvalue()) {
                 forVarInit.append(getOriginalCodeText(lvalue)).append(" ");
             }
@@ -841,7 +851,9 @@ public class RubyCFGBuilder {
             preEdges.push(CFEdge.Type.TRUE);
             preNodes.push(forExpr);
             loopBlocks.push(new Block(forExpr, forEnd));
+            Logger.info("before visit for body");
             visit(ctx.statement_body());
+            Logger.info("finish visit for body");
             loopBlocks.pop();
             popAddPreEdgeTo(forExpr);
 
@@ -875,14 +887,17 @@ public class RubyCFGBuilder {
          */
         @Override
         public Void visitStatement_expression_list(RubyParser.Statement_expression_listContext ctx) {
+            Logger.info("visitStatement_expression_list------------" + getOriginalCodeText(ctx));
             if (ctx.statement_expression_list() != null) {
-                return visit(ctx.statement_expression_list());
+                Logger.info("before visit statement_expression_list------------" + getOriginalCodeText(ctx.statement_expression_list()));
+                visit(ctx.statement_expression_list());
             }
             if (ctx.expression() != null) {
-                return visit(ctx.expression());
+                Logger.info("before visit expression------------" + getOriginalCodeText(ctx.expression()));
+                visit(ctx.expression());
             }
             if (ctx.break_expression() != null) {
-                return visit(ctx.break_expression());
+                visit(ctx.break_expression());
             }
             if (ctx.RETRY() != null) {
                 CFNode retry = new CFNode();

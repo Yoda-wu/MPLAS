@@ -242,13 +242,13 @@ public class BasicAnalysisTests {
 
     @Test
     public void RubyCFGDotTest() {
-        String outDir = RUBY_OUTPUT_DIR + "AST/";
+        String outDir = RUBY_OUTPUT_DIR + "CFG/";
         String[] args = {"-cfg", "-outdir", outDir, "-lang", "ruby", RUBY_SRC_DIR};
         Main.main(args);
         //
 
         String[] testFiles = FileUtils.listFilesWithSuffix(new String[]{RUBY_SRC_DIR}, Execution.Languages.RUBY.suffix);
-        String[] outFiles = FileUtils.listFilesWithSuffix(new String[]{outDir}, "-CFG.json");
+        String[] outFiles = FileUtils.listFilesWithSuffix(new String[]{outDir}, "-CFG.dot");
         assertEquals(testFiles.length, outFiles.length);
     }
 }

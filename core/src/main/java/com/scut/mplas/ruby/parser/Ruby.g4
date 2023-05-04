@@ -102,7 +102,7 @@ pir_inline : PIR crlf pir_expression_list END;
 
 pir_expression_list : expression_list;
 
-class_definition : 'class' lvalue  ( '<'superclass_id = lvalue )? CRLF statement_expression_list? CRLF END;
+class_definition : 'class' lvalue  ( '<'superclass_id = lvalue )? crlf* statement_expression_list? crlf* END;
 
 
 

@@ -1,11 +1,11 @@
-======= LOG CREATED on 周四 2023/5月/04 20:07:47:844 =======
+======= LOG CREATED on 周四 2023/5月/04 21:54:27:155 =======
 
 PROGEX (Program Graph Extractor)  [ v3.4.5 ]
 Visit project website @ https://github.com/ghaffarian/progex
 
 PROGEX execution config:
   Language = Ruby
-  Output format = JSON
+  Output format = DOT
   Output directory = ../generate/ruby/basic/AST/\
   Analysis types = [CFG]
   File name = 
@@ -18,355 +18,535 @@ PROGEX execution config:
 
 Control-Flow Analysis
 =====================
-$i=1
+visit prog------
+----------visitExpression----------
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
-CFG exported to: ../generate/ruby/basic/AST/\test-CFG.json
-
-PRE-NODES = 3
-PRE-EDGES = 3
-
-
-PRE-NODES = 4
-PRE-EDGES = 4
+before visit for body
+visitStatement_expression_list------------a = i
+  if i == 3
+    break
+  end
 
 
-PRE-NODES = 4
-PRE-EDGES = 4
+before visit statement_expression_list------------a = i
+
+visitStatement_expression_list------------a = i
+
+before visit expression------------a = i
+----------visitExpression----------
+-------visitRvalue---------
+a=i
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+before visit expression------------if i == 3
+    break
+  end
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+visitStatement_expression_list------------break
 
 
-PRE-NODES = 5
-PRE-EDGES = 5
+PRE-NODES = 1
+PRE-EDGES = 1
+
+finish visit for body
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+CFG exported to: ../generate/ruby/basic/AST/\test-CFG.dot
+visit prog------
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+visitStatement_expression_list------------puts "a > b"
+
+before visit expression------------puts "a > b"
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
 
 
-PRE-NODES = 5
-PRE-EDGES = 5
+PRE-NODES = 1
+PRE-EDGES = 1
 
 
-PRE-NODES = 5
-PRE-EDGES = 5
+PRE-NODES = 1
+PRE-EDGES = 1
+
+visitStatement_expression_list------------puts "a < b"
+
+before visit expression------------puts "a < b"
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
 
 
-PRE-NODES = 6
-PRE-EDGES = 6
+PRE-NODES = 1
+PRE-EDGES = 1
 
 
-PRE-NODES = 6
-PRE-EDGES = 6
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+visitStatement_expression_list------------puts "a > b"
+
+before visit expression------------puts "a > b"
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
 
 
-PRE-NODES = 7
-PRE-EDGES = 7
+PRE-NODES = 1
+PRE-EDGES = 1
 
 
-PRE-NODES = 7
-PRE-EDGES = 7
+PRE-NODES = 1
+PRE-EDGES = 1
+
+visitStatement_expression_list------------puts "c > d"
+
+before visit expression------------puts "c > d"
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
 
 
-PRE-NODES = 8
-PRE-EDGES = 8
+PRE-NODES = 1
+PRE-EDGES = 1
 
 
-PRE-NODES = 8
-PRE-EDGES = 8
+PRE-NODES = 1
+PRE-EDGES = 1
+
+visitStatement_expression_list------------puts "c < d"
+
+before visit expression------------puts "c < d"
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
 
 
-PRE-NODES = 8
-PRE-EDGES = 8
+PRE-NODES = 1
+PRE-EDGES = 1
 
 
-PRE-NODES = 8
-PRE-EDGES = 8
+PRE-NODES = 1
+PRE-EDGES = 1
 
 
-PRE-NODES = 9
-PRE-EDGES = 9
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+visitStatement_expression_list------------puts "c > d"
+
+before visit expression------------puts "c > d"
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
 
 
-PRE-NODES = 10
-PRE-EDGES = 10
+PRE-NODES = 1
+PRE-EDGES = 1
 
+visitStatement_expression_list------------puts "c < d"
+
+before visit expression------------puts "c < d"
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+-------visitRvalue---------
 mas=[]
 
-PRE-NODES = 10
-PRE-EDGES = 10
+PRE-NODES = 1
+PRE-EDGES = 1
 
+----------visitExpression----------
+-------visitRvalue---------
 mas=read_file("lab4.txt")
-
-PRE-NODES = 10
-PRE-EDGES = 10
-
-length=len(mas)
-
-PRE-NODES = 10
-PRE-EDGES = 10
-
-
-PRE-NODES = 10
-PRE-EDGES = 10
-
-
-PRE-NODES = 11
-PRE-EDGES = 11
-
-s="hello"
-
-PRE-NODES = 11
-PRE-EDGES = 11
-
-l=len(s)
-
-PRE-NODES = 11
-PRE-EDGES = 11
-
-a=func(1,2)
-
-PRE-NODES = 12
-PRE-EDGES = 12
-
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
-CFG exported to: ../generate/ruby/basic/AST/\test_all-CFG.json
+----------visitExpression----------
+-------visitRvalue---------
+length=len(mas)
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+before visit for body
+visitStatement_expression_list------------puts i
+
+
+before visit expression------------puts i
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+finish visit for body
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+-------visitRvalue---------
+s="hello"
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+-------visitRvalue---------
+l=len(s)
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+-------visitRvalue---------
+a=func(1,2)
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+function_definition---------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+CFG exported to: ../generate/ruby/basic/AST/\test_all-CFG.dot
+visit prog------
+----------visitExpression----------
+-------visitRvalue---------
 a=1.1+2.5*2
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+----------visitExpression----------
+-------visitRvalue---------
 b=1
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+----------visitExpression----------
+-------visitRvalue---------
 c=100+(100*3)
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+----------visitExpression----------
+-------visitRvalue---------
 a=1
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+----------visitExpression----------
+-------visitRvalue---------
 dyn=a+4+2
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+----------visitExpression----------
+-------visitRvalue---------
 dyn+=5.2+c*(b+1)
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+----------visitExpression----------
+-------visitRvalue---------
 d="abc"
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+----------visitExpression----------
+-------visitRvalue---------
 d="abc"+"def"
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+----------visitExpression----------
+-------visitRvalue---------
 d="abc"*3
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+----------visitExpression----------
+-------visitRvalue---------
 d='abc'
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+----------visitExpression----------
+-------visitRvalue---------
 d='abc'+'def'
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+----------visitExpression----------
+-------visitRvalue---------
 d='abc'*3
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+----------visitExpression----------
+-------visitRvalue---------
 mas=[]
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+----------visitExpression----------
+-------visitRvalue---------
 mas[1]=5
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+----------visitExpression----------
+-------visitRvalue---------
 mas[2]="String"
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+----------visitExpression----------
+-------visitRvalue---------
 a=mas[2]
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+----------visitExpression----------
+-------visitRvalue---------
 a=2
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
-CFG exported to: ../generate/ruby/basic/AST/\test_assign-CFG.json
+CFG exported to: ../generate/ruby/basic/AST/\test_assign-CFG.dot
+visit prog------
+----------visitExpression----------
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+before visit for body
+visitStatement_expression_list------------a += i;
+
+
+before visit expression------------a += i
+----------visitExpression----------
+-------visitRvalue---------
 a+=i
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+finish visit for body
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
-CFG exported to: ../generate/ruby/basic/AST/\test_for_statement-CFG.json
+CFG exported to: ../generate/ruby/basic/AST/\test_for_statement-CFG.dot
+visit prog------
+----------visitExpression----------
+-------visitRvalue---------
 i=10
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+----------visitExpression----------
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+before visit for body
+visitStatement_expression_list------------if i == 3
+    break
+  end
+  a = 10
+  while a > 0
+    puts "hahaha"
+    if a == 2
+      break
+    end
+    a -= 1
+  end
+
+before visit statement_expression_list------------if i == 3
+    break
+  end
+  a = 10
+
+visitStatement_expression_list------------if i == 3
+    break
+  end
+  a = 10
+
+before visit statement_expression_list------------if i == 3
+    break
+  end
+
+visitStatement_expression_list------------if i == 3
+    break
+  end
+
+before visit expression------------if i == 3
+    break
+  end
+----------visitExpression----------
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-CFG exported to: ../generate/ruby/basic/AST/\test_for_while_stmt-CFG.json
-CFG exported to: ../generate/ruby/basic/AST/\test_function_call-CFG.json
-a=1
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-a=[]
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-a[1]=2
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-a[2]=3
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-b=a[2]
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-a=3
-
-PRE-NODES = 1
-PRE-EDGES = 1
+visitStatement_expression_list------------break
 
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
-a=1
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-a=2
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-a=4
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-CFG exported to: ../generate/ruby/basic/AST/\test_function_def-CFG.json
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-a=2
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-a=3
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-CFG exported to: ../generate/ruby/basic/AST/\test_if_statement-CFG.json
-$P0="333444"
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-$I0=19
-
-PRE-NODES = 1
-PRE-EDGES = 1
-
-CFG exported to: ../generate/ruby/basic/AST/\test_pir-CFG.json
+before visit expression------------a = 10
+----------visitExpression----------
+-------visitRvalue---------
 a=10
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+before visit expression------------while a > 0
+    puts "hahaha"
+    if a == 2
+      break
+    end
+    a -= 1
+  end
+----------visitExpression----------
 
 PRE-NODES = 1
 PRE-EDGES = 1
 
+visitStatement_expression_list------------puts "hahaha"
+    if a == 2
+      break
+    end
+    a -= 1
+
+before visit statement_expression_list------------puts "hahaha"
+    if a == 2
+      break
+    end
+
+visitStatement_expression_list------------puts "hahaha"
+    if a == 2
+      break
+    end
+
+before visit statement_expression_list------------puts "hahaha"
+
+visitStatement_expression_list------------puts "hahaha"
+
+before visit expression------------puts "hahaha"
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+before visit expression------------if a == 2
+      break
+    end
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+visitStatement_expression_list------------break
+
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+before visit expression------------a -= 1
+----------visitExpression----------
+-------visitRvalue---------
 a-=1
 
 PRE-NODES = 1
@@ -376,4 +556,268 @@ PRE-EDGES = 1
 PRE-NODES = 1
 PRE-EDGES = 1
 
-CFG exported to: ../generate/ruby/basic/AST/\test_while_statement-CFG.json
+finish visit for body
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+CFG exported to: ../generate/ruby/basic/AST/\test_for_while_stmt-CFG.dot
+visit prog------
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+CFG exported to: ../generate/ruby/basic/AST/\test_function_call-CFG.dot
+visit prog------
+----------visitExpression----------
+function_definition---------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+-------visitRvalue---------
+a=1
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+function_definition---------
+----------visitExpression----------
+-------visitRvalue---------
+a=[]
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+-------visitRvalue---------
+a[1]=2
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+-------visitRvalue---------
+a[2]=3
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+-------visitRvalue---------
+b=a[2]
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+function_definition---------
+----------visitExpression----------
+-------visitRvalue---------
+a=3
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+visitStatement_expression_list------------a = 1
+
+before visit expression------------a = 1
+----------visitExpression----------
+-------visitRvalue---------
+a=1
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+before visit for body
+visitStatement_expression_list------------a = 2
+
+before visit expression------------a = 2
+----------visitExpression----------
+-------visitRvalue---------
+a=2
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+finish visit for body
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+-------visitRvalue---------
+a=4
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+CFG exported to: ../generate/ruby/basic/AST/\test_function_def-CFG.dot
+visit prog------
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+visitStatement_expression_list------------a = 2
+  unless b == 2
+    b = 3
+  end
+
+before visit statement_expression_list------------a = 2
+
+visitStatement_expression_list------------a = 2
+
+before visit expression------------a = 2
+----------visitExpression----------
+-------visitRvalue---------
+a=2
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+before visit expression------------unless b == 2
+    b = 3
+  end
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+visitStatement_expression_list------------b = 3
+
+before visit expression------------b = 3
+----------visitExpression----------
+-------visitRvalue---------
+b=3
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+visitStatement_expression_list------------a = 3
+
+before visit expression------------a = 3
+----------visitExpression----------
+-------visitRvalue---------
+a=3
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+CFG exported to: ../generate/ruby/basic/AST/\test_if_statement-CFG.dot
+visit prog------
+----------visitExpression----------
+-------visitRvalue---------
+i=0
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+visitStatement_expression_list------------i=i+1
+
+
+before visit expression------------i=i+1
+----------visitExpression----------
+-------visitRvalue---------
+i=i+1
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+CFG exported to: ../generate/ruby/basic/AST/\test_pir-CFG.dot
+visit prog------
+----------visitExpression----------
+-------visitRvalue---------
+a=10
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+----------visitExpression----------
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+visitStatement_expression_list------------a -= 1
+
+before visit expression------------a -= 1
+----------visitExpression----------
+-------visitRvalue---------
+a-=1
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+
+PRE-NODES = 1
+PRE-EDGES = 1
+
+CFG exported to: ../generate/ruby/basic/AST/\test_while_statement-CFG.dot
