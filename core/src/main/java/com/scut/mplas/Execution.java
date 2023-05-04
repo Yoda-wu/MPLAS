@@ -198,6 +198,18 @@ public class Execution {
 					}
 					break;
 				//
+				case "DDG":
+					Logger.info("\nData-Dependence Analysis");
+					Logger.info("=====================");
+					Logger.debug("START: " + Logger.time() + '\n');
+					try {
+						ProgramDependeceGraph pdg=PDGBuilder.buildForOne(lang.name,fileName,inputStream);
+						return pdg.DDS.exportJSON();
+					} catch (IOException ex) {
+						Logger.error(ex);
+					}
+					break;
+				//
 				case "ICFG":
 //					Logger.info("\nInterprocedural Control-Flow Analysis");
 //					Logger.info("=====================================");

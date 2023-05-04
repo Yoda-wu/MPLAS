@@ -192,8 +192,79 @@ public class DataDependenceGraph extends AbstractProgramGraph<PDNode, DDEdge> {
 
 	@Override
 	public String exportJSON() throws IOException {
-		return null;
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("{\n  \"directed\": true,");
+		sb.append("  \"multigraph\": true,");
+		for (Map.Entry<String, String> property: properties.entrySet()) {
+			switch (property.getKey()) {
+				case "directed":
+					continue;
+				default:
+					sb.append("  \"" + property.getKey() + "\": \"" + property.getValue() + "\",");
+			}
+		}
+		sb.append("  \"file\": \"" + fileName + "\",\n");
+		//
+		sb.append("  \"nodes\": [");
+		Map<CFNode, Integer> ctrlNodes = new LinkedHashMap<>();
+		Map<PDNode, Integer> dataNodes = new LinkedHashMap<>();
+		Iterator<CFNode> cfNodes = cfg.allVerticesIterator();
+		int nodeCounter = 0;
+		while (cfNodes.hasNext()) {
+			CFNode node = cfNodes.next();
+			sb.append("    {");
+			sb.append("      \"id\": " + nodeCounter + ",");
+			sb.append("      \"line\": " + node.getLineOfCode() + ",");
+			PDNode pdNode = (PDNode) node.getProperty("pdnode");
+			if (pdNode != null) {
+				sb.append("      \"label\": \"" + StringUtils.escape(node.getCode()) + "\",");
+				dataNodes.put(pdNode, nodeCounter);
+				sb.append("      \"defs\": " + StringUtils.toJsonArray(pdNode.getAllDEFs()) + ",");
+				sb.append("      \"uses\": " + StringUtils.toJsonArray(pdNode.getAllUSEs()));
+			} else
+				sb.append("      \"label\": \"" + StringUtils.escape(node.getCode()) + "\"");
+			ctrlNodes.put(node, nodeCounter);
+			++nodeCounter;
+			if (nodeCounter == cfg.vertexCount())
+				sb.append("    }");
+			else
+				sb.append("    },");
+		}
+		//
+		sb.append("  ],\n\n  \"edges\": [");
+		int edgeCounter = 0;
+		Iterator<Edge<CFNode, CFEdge>> cfEdges = cfg.allEdgesIterator();
+		while (cfEdges.hasNext()) {
+			Edge<CFNode, CFEdge> ctrlEdge = cfEdges.next();
+			sb.append("    {");
+			sb.append("      \"id\": " + edgeCounter + ",");
+			sb.append("      \"source\": " + ctrlNodes.get(ctrlEdge.source) + ",");
+			sb.append("      \"target\": " + ctrlNodes.get(ctrlEdge.target) + ",");
+			sb.append("      \"type\": \"Control\",");
+			sb.append("      \"label\": \"" + ctrlEdge.label.type + "\"");
+			sb.append("    },");
+			++edgeCounter;
+		}
+		for (Edge<PDNode, DDEdge> dataEdge: allEdges) {
+			sb.append("    {");
+			sb.append("      \"id\": " + edgeCounter + ",");
+			sb.append("      \"source\": " + dataNodes.get(dataEdge.source) + ",");
+			sb.append("      \"target\": " + dataNodes.get(dataEdge.target) + ",");
+			sb.append("      \"type\": \"" + dataEdge.label.type + "\",");
+			sb.append("      \"label\": \"" + dataEdge.label.var + "\"");
+			++edgeCounter;
+			if (edgeCounter == cfg.edgeCount() + allEdges.size())
+				sb.append("    }");
+			else
+				sb.append("    },");
+		}
+		sb.append("  ]\n}");
+
+		Logger.info("DDS of PDG exported to: " + fileName);
+		return sb.toString();
 	}
+
 
 	@Override
 	public void exportJSON(String outDir) throws FileNotFoundException {
