@@ -1,2 +1,2 @@
-var x=1
-let len=10
+var x = 1
+let len = 10

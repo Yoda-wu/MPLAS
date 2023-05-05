@@ -4,7 +4,6 @@ import com.scut.mplas.graphs.ast.ASNode;
 import com.scut.mplas.graphs.ast.AbstractSyntaxTree;
 import com.scut.mplas.ruby.parser.RubyBaseVisitor;
 import com.scut.mplas.ruby.parser.RubyLexer;
-
 import com.scut.mplas.ruby.parser.RubyParser;
 import ghaffarian.nanologger.Logger;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -43,6 +42,7 @@ public class RubyASTBuilder {
         ParseTree tree = parser.prog();
         return build(rubyFile.getPath(), tree);
     }
+
     public static AbstractSyntaxTree build(String fileName, InputStream inputStream) throws IOException {
         ANTLRInputStream input = new ANTLRInputStream(inputStream);
         RubyLexer lexer = new RubyLexer(input);
@@ -53,25 +53,30 @@ public class RubyASTBuilder {
     }
 
     public static AbstractSyntaxTree build(String fileName, ParseTree tree) {
-        AbstractSyntaxVisitor visitor = new AbstractSyntaxVisitor(fileName);
+        AbstractSyntaxVisitor visitor = new AbstractSyntaxVisitor(fileName, null, null);
         return visitor.build(tree);
     }
 
     private static class AbstractSyntaxVisitor extends RubyBaseVisitor<String> {
+        private String propKey;
+        private String typeModifier;
+        private String memberModifier;
         private Deque<ASNode> parentStack;
         private final AbstractSyntaxTree AST;
+        private Map<String, String> vars, fields, methods;
+        private int varsCounter, fieldsCounter, methodsCounter;
+        private Map<ParserRuleContext, Object> contexutalProperties;
 
-        private Map<String, String> vars, methods;
-
-        private int varsCounter, methodsCounter;
-
-        public AbstractSyntaxVisitor(String fileName) {
-            Logger.info("Construct a AST");
-            AST = new AbstractSyntaxTree(fileName);
+        public AbstractSyntaxVisitor(String fileName, String propKey, Map<ParserRuleContext, Object> ctxProps) {
             parentStack = new ArrayDeque<>();
+            AST = new AbstractSyntaxTree(fileName);
+            this.propKey = propKey;
+            contexutalProperties = ctxProps;
             vars = new LinkedHashMap<>();
+            fields = new LinkedHashMap<>();
             methods = new LinkedHashMap<>();
             varsCounter = 0;
+            fieldsCounter = 0;
             methodsCounter = 0;
         }
 
@@ -84,6 +89,8 @@ public class RubyASTBuilder {
 
             parentStack.pop();
             vars.clear();
+            fields.clear();
+            methods.clear();
             methods.clear();
             return AST;
         }
@@ -94,11 +101,10 @@ public class RubyASTBuilder {
             //                | expression_list expression terminator
             //                | terminator
             //                ;
-            Logger.info("expList -- "+ctx.getText());
-
+            Logger.info("expList -- " + ctx.getText());
 
             if (ctx.expression_list() == null) {
-                Logger.info("exp--"+ctx.expression().getText());
+                Logger.info("exp--" + ctx.expression().getText());
                 ASNode expNode = new ASNode(ASNode.Type.RUBY_EXPRESSION);
                 expNode.setLineOfCode(ctx.expression().getStart().getLine());
                 AST.addVertex(expNode);
@@ -107,7 +113,7 @@ public class RubyASTBuilder {
                 visit(ctx.expression());
                 parentStack.pop();
             } else {
-                Logger.info("expList--"+ctx.expression_list().getText());
+                Logger.info("expList--" + ctx.expression_list().getText());
                 // 递归访问
                 visit(ctx.expression_list());
                 ASNode expNode = new ASNode(ASNode.Type.RUBY_EXPRESSION);
@@ -197,9 +203,214 @@ public class RubyASTBuilder {
             return "";
         }
 
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public String visitHash_expression(RubyParser.Hash_expressionContext ctx) {
+            ASNode hashNode = new ASNode(ASNode.Type.RUBY_HASH_EXP);
+            hashNode.setLineOfCode(ctx.getStart().getLine());
+            hashNode.setCode(getOriginalCodeText(ctx));
+            AST.addVertex(hashNode);
+            AST.addEdge(parentStack.peek(), hashNode);
+            return "";
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public String visitClass_definition(RubyParser.Class_definitionContext ctx) {
+            // class_definition : 'class' lvalue  ( '<'superclass_id = lvalue )? CRLF statement_expression_list? CRLF END;
+            ASNode classNode = new ASNode(ASNode.Type.CLASS);
+            classNode.setLineOfCode(ctx.getStart().getLine());
+            Logger.debug("adding a class node...");
+            AST.addVertex(classNode);
+            AST.addEdge(parentStack.peek(), classNode);
+
+            // lvalue -> id_
+            ASNode nameNode = new ASNode(ASNode.Type.NAME);
+            String className = getOriginalCodeText(ctx.lvalue(0));
+            nameNode.setLineOfCode(ctx.getStart().getLine());
+            nameNode.setCode("CLASS_" + className);
+            Logger.debug("adding a class name: " + className);
+            AST.addVertex(nameNode);
+            AST.addEdge(classNode, nameNode);
+            // 继承
+            if (ctx.superclass_id != null) {
+                ASNode superClassNode = new ASNode(ASNode.Type.RUBY_SUPER);
+                superClassNode.setLineOfCode(ctx.superclass_id.getStart().getLine());
+                superClassNode.setCode(getOriginalCodeText(ctx.superclass_id));
+                Logger.debug("adding super class: " + getOriginalCodeText(ctx.superclass_id));
+                AST.addVertex(superClassNode);
+                AST.addEdge(classNode, superClassNode);
+
+            }
+
+            // 类体
+            if (ctx.statement_expression_list() != null) {
+                parentStack.push(classNode);
+                visit(ctx.statement_expression_list());
+                parentStack.pop();
+            }
+            return "";
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public String visitModule_definition(RubyParser.Module_definitionContext ctx) {
+            // module_definition: 'module' id_ CRLF statement_expression_list? CRLF END;
+            ASNode moduleNode = new ASNode(ASNode.Type.RUBY_MODULE);
+            moduleNode.setLineOfCode(ctx.getStart().getLine());
+            Logger.debug("adding a module");
+            AST.addVertex(moduleNode);
+            AST.addEdge(parentStack.peek(), moduleNode);
+
+            ASNode nameNode = new ASNode(ASNode.Type.NAME);
+            nameNode.setLineOfCode(ctx.getStart().getLine());
+            String moduleName = getOriginalCodeText(ctx.id_());
+            Logger.debug("adding a module name: " + moduleName);
+            nameNode.setCode(moduleName);
+            AST.addVertex(nameNode);
+            AST.addEdge(moduleNode, nameNode);
+
+            if (ctx.statement_expression_list() != null) {
+                parentStack.push(moduleNode);
+                visit(ctx.statement_expression_list());
+                parentStack.pop();
+            }
+
+            return "";
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public String visitBegin_expression(RubyParser.Begin_expressionContext ctx) {
+            ASNode beginNode = new ASNode(ASNode.Type.RUBY_BEGIN);
+            beginNode.setLineOfCode(ctx.getStart().getLine());
+            Logger.debug("adding a begin node ");
+            AST.addVertex(beginNode);
+            AST.addEdge(parentStack.peek(), beginNode);
+            parentStack.push(beginNode);
+            visit(ctx.statement_body());
+            parentStack.pop();
+            return "";
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public String visitEnd_expression(RubyParser.End_expressionContext ctx) {
+            ASNode endNode = new ASNode(ASNode.Type.RUBY_END);
+            endNode.setLineOfCode(ctx.getStart().getLine());
+            Logger.debug("adding a begin node ");
+            AST.addVertex(endNode);
+            AST.addEdge(parentStack.peek(), endNode);
+            parentStack.push(endNode);
+            visit(ctx.statement_body());
+            parentStack.pop();
+            return super.visitEnd_expression(ctx);
+        }
+
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public String visitBegin_rescue_expression(RubyParser.Begin_rescue_expressionContext ctx) {
+            // begin_rescue_expression : BEGIN crlf* statement_body
+            // (RESCUE error_type? crlf* statement_body )*
+            // (else_token crlf statement_body )?
+            // (ENSURE crlf* statement_body )?  END ;
+
+            ASNode beginRescueNode = new ASNode(ASNode.Type.RUBY_BEGIN_RESCUE);
+            beginRescueNode.setLineOfCode(ctx.getStart().getLine());
+            Logger.debug("analysing a begin rescue expression");
+            AST.addVertex(beginRescueNode);
+            AST.addEdge(parentStack.peek(), beginRescueNode);
+
+            parentStack.push((beginRescueNode));
+            // begin块的语句
+            visit(ctx.statement_body(0));
+            parentStack.pop();
+            int size = ctx.rescue_expression().size();
+            // rescue语句
+            if (size > 0) {
+                for (int i = 0; i < size; i++) {
+                    String errorType = getOriginalCodeText(ctx.error_type(i));
+                    ASNode rescueNode = new ASNode(ASNode.Type.RUBY_RESCUE);
+                    rescueNode.setLineOfCode(ctx.rescue_expression(i).getStart().getLine());
+                    rescueNode.setCode(errorType);
+                    AST.addVertex(rescueNode);
+                    AST.addEdge(beginRescueNode, rescueNode);
+
+                    parentStack.push(rescueNode);
+                    visit(ctx.statement_body(i + 1));
+                    parentStack.pop();
+                }
+            }
+            // else 语句
+            if (ctx.else_token() != null) {
+                ASNode elseNode = new ASNode(ASNode.Type.ELSE);
+                elseNode.setLineOfCode(ctx.else_token().getStart().getLine());
+                AST.addVertex(elseNode);
+                AST.addEdge(beginRescueNode, elseNode);
+                parentStack.push(elseNode);
+                visit(ctx.statement_body(size + 1));
+                parentStack.pop();
+            }
+            // ensure语句
+            if (ctx.ensure_expression() != null) {
+                ASNode ensure = new ASNode(ASNode.Type.RUBY_ENSURE);
+                ensure.setLineOfCode(ctx.ensure_expression().getStart().getLine());
+                AST.addVertex(ensure);
+                AST.addEdge(beginRescueNode, ensure);
+                parentStack.push(ensure);
+                visit(ctx.statement_body(size + 2));
+                parentStack.pop();
+            }
+            return "";
+        }
+
         @Override
         public String visitGlobal_get(RubyParser.Global_getContext ctx) {
             ASNode globalGet = new ASNode(ASNode.Type.RUBY_GLOBAL_GET);
+
             globalGet.setLineOfCode(ctx.getStart().getLine());
             globalGet.setCode(visitLvalue(ctx.var_name) + ctx.op.getText() + ctx.global_name.getText());
             AST.addVertex(globalGet);
@@ -209,7 +420,14 @@ public class RubyASTBuilder {
 
         @Override
         public String visitGlobal_set(RubyParser.Global_setContext ctx) {
-            ASNode globalSet = new ASNode(ASNode.Type.RUBY_GLOBAL_GET);
+            ASNode globalSet = new ASNode(ASNode.Type.RUBY_GLOBAL_SET);
+            String id = ctx.global_name.getText();
+            if (!vars.containsKey(id)) {
+                varsCounter++;
+                String normalized = "$GLOBALVARL_" + varsCounter;
+                globalSet.setNormalizedCode(normalized);
+                vars.put(id, normalized);
+            }
             globalSet.setLineOfCode(ctx.getStart().getLine());
             globalSet.setCode(ctx.global_name.getText() + ctx.op.getText() + visitAll_result(ctx.all_result()));
             AST.addVertex(globalSet);
@@ -221,10 +439,85 @@ public class RubyASTBuilder {
         public String visitGlobal_result(RubyParser.Global_resultContext ctx) {
             ASNode globalResult = new ASNode(ASNode.Type.RUBY_GLOBAL_RESULT);
             globalResult.setLineOfCode(ctx.getStart().getLine());
-            globalResult.setCode(visitId_global(ctx.id_global()));
+            globalResult.setCode(getOriginalCodeText(ctx.id_global()));
             AST.addVertex(globalResult);
             AST.addEdge(parentStack.peek(), globalResult);
             return globalResult.getCode();
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public String visitInstance_get(RubyParser.Instance_getContext ctx) {
+            ASNode instanceGet = new ASNode(ASNode.Type.RUBY_INSTANCE_GET);
+            instanceGet.setLineOfCode(ctx.getStart().getLine());
+            instanceGet.setCode(ctx.instance_name.getText() + ctx.op.getText() + ctx.result.getText());
+            AST.addVertex(instanceGet);
+            AST.addEdge(parentStack.peek(), instanceGet);
+            return instanceGet.getCode();
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public String visitInstance_set(RubyParser.Instance_setContext ctx) {
+            ASNode instanceSet = new ASNode(ASNode.Type.RUBY_INSTANCE_SET);
+            String id = ctx.instance_name.getText();
+            if (!fields.containsKey(id)) {
+                fieldsCounter++;
+                String normalized = "$VARL_" + fieldsCounter;
+                instanceSet.setNormalizedCode(normalized);
+                fields.put(id, normalized);
+            }
+            instanceSet.setLineOfCode(ctx.getStart().getLine());
+            instanceSet.setCode(ctx.instance_name.getText() + ctx.op.getText() + ctx.result.getText());
+            AST.addVertex(instanceSet);
+            AST.addEdge(parentStack.peek(), instanceSet);
+            return instanceSet.getCode();
+
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public String visitInstance_result(RubyParser.Instance_resultContext ctx) {
+            ASNode globalResult = new ASNode(ASNode.Type.RUBY_GLOBAL_RESULT);
+            globalResult.setLineOfCode(ctx.getStart().getLine());
+            globalResult.setCode(getOriginalCodeText(ctx.id_instance()));
+            AST.addVertex(globalResult);
+            AST.addEdge(parentStack.peek(), globalResult);
+            return globalResult.getCode();
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
+        @Override
+        public String visitConst_set(RubyParser.Const_setContext ctx) {
+            return super.visitConst_set(ctx);
         }
 
         @Override
@@ -364,12 +657,27 @@ public class RubyASTBuilder {
 
         @Override
         public String visitFunction_call(RubyParser.Function_callContext ctx) {
-            return visitFunction_name(ctx.function_name()) + '(' + visitFunction_call_param_list(ctx.function_call_param_list()) + ')';
+            // function_call : name=function_name LEFT_RBRACKET params=function_call_param_list RIGHT_RBRACKET
+            //              | name=function_name params=function_call_param_list
+            //              | name=function_name LEFT_RBRACKET RIGHT_RBRACKET
+            //              | id_ '.' name=function_name LEFT_RBRACKET (params=function_call_param_list) ? RIGHT_RBRACKET
+            //              | id_ '.' name=function_name (params=function_call_param_list)?
+            //              | id_ '::' name=function_name LEFT_RBRACKET (params=function_call_param_list) ? RIGHT_RBRACKET
+            //              | id_ '::' name=function_name (params=function_call_param_list)?
+            //              ;
+
+            return (ctx.id_() == null ? "" : getOriginalCodeText(ctx.id_()) + ".")
+                    + visitFunction_name(ctx.function_name())
+                    + '('
+                    + visitFunction_call_param_list(ctx.function_call_param_list()) + ')';
         }
 
         @Override
         public String visitFunction_call_param_list(RubyParser.Function_call_param_listContext ctx) {
-            return visit(ctx.function_call_params());
+            if (ctx != null) {
+                return visit(ctx.function_call_params());
+            }
+            return "";
         }
 
         @Override
@@ -621,61 +929,132 @@ public class RubyASTBuilder {
 
         @Override
         public String visitFor_statement(RubyParser.For_statementContext ctx) {
-            // for_statement : FOR LEFT_RBRACKET init_expression SEMICOLON cond_expression SEMICOLON loop_expression RIGHT_RBRACKET crlf statement_body END
-            //              | FOR init_expression SEMICOLON cond_expression SEMICOLON loop_expression crlf statement_body END
-            //              ;
+            //for_statement : FOR lvalue (COMMA lvalue)*  IN loop_expression DO? CRLF statement_body END;
+            // loop_expression : array_definition;
+//            ASNode forNode = new ASNode(ASNode.Type.FOR);
+//            forNode.setLineOfCode(ctx.getStart().getLine());
+//            AST.addVertex(forNode);
+//            AST.addEdge(parentStack.peek(), forNode);
+//
+//            ASNode forInit = new ASNode(ASNode.Type.FOR_INIT);
+//            AST.addVertex(forInit);
+//            AST.addEdge(parentStack.peek(), forInit);
+//            parentStack.push(forInit);
+//            visit(ctx.init_expression());
+//            parentStack.pop();
+//
+//
+//            ASNode condNode = new ASNode(ASNode.Type.CONDITION);
+//            condNode.setLineOfCode(ctx.cond_expression().getStart().getLine());
+//            condNode.setCode(getOriginalCodeText(ctx.cond_expression().comparison_list()));
+//            condNode.setNormalizedCode(visit(ctx.cond_expression().comparison_list()));
+//            AST.addVertex(condNode);
+//            AST.addEdge(parentStack.peek(), condNode);
+//
+//
+//            ASNode loopExpr = new ASNode(ASNode.Type.RUBY_LOOP_EXPR);
+//            loopExpr.setLineOfCode(ctx.loop_expression().getStart().getLine());
+//            AST.addVertex(loopExpr);
+//            AST.addEdge(parentStack.peek(), loopExpr);
+//            parentStack.push(loopExpr);
+//            visit(ctx.loop_expression());
+//            parentStack.pop();
+//
+//
+//            ASNode expr = new ASNode(ASNode.Type.STATEMENT);
+//            expr.setLineOfCode(ctx.statement_body().getStart().getLine());
+//            AST.addVertex(expr);
+//            AST.addEdge(parentStack.peek(), expr);
+//            parentStack.push(expr);
+//            visit(ctx.statement_body());
+//            parentStack.pop();
+//
+//
+//            ASNode endNode = new ASNode(ASNode.Type.RUBY_END);
+//            endNode.setLineOfCode(ctx.getStop().getLine());
+//            endNode.setCode(endNode.getType().label);
+//            AST.addVertex(endNode);
+//
+//            AST.addEdge(parentStack.peek(), endNode);
+
+            // for_statement : FOR lvalue (COMMA lvalue)*  IN loop_expression DO? CRLF statement_body END
+            //              | for_each_statement;
+            //
+            //for_each_statement:  array_definition DOT EACH LEFT_BBRACKET crlf? '|' id_ '|' crlf? statement_body RIGHT_BBRACKET;
+            //
+            //cond_expression : comparison_list;
+            //
+            //loop_expression : array_definition;
+            if (ctx.for_each_statement() != null) {
+                visit(ctx.for_each_statement());
+                return "";
+            }
             ASNode forNode = new ASNode(ASNode.Type.FOR);
             forNode.setLineOfCode(ctx.getStart().getLine());
             AST.addVertex(forNode);
             AST.addEdge(parentStack.peek(), forNode);
 
-            ASNode forInit = new ASNode(ASNode.Type.FOR_INIT);
-            AST.addVertex(forInit);
-            AST.addEdge(parentStack.peek(), forInit);
-            parentStack.push(forInit);
-            visit(ctx.init_expression());
-            parentStack.pop();
+            for (int i = 0; i < ctx.lvalue().size(); i++) {
+                ASNode forVar = new ASNode(ASNode.Type.RUBY_VAR);
+                forVar.setLineOfCode(ctx.lvalue(i).getStart().getLine());
+                forVar.setCode(getOriginalCodeText(ctx.lvalue(i)));
+                varsCounter++;
+                String normalize = "VARS_" + varsCounter;
+                vars.put(getOriginalCodeText(ctx.lvalue(i)), normalize);
+                forVar.setNormalizedCode(normalize);
+                AST.addVertex(forVar);
+                AST.addEdge(forNode, forVar);
+            }
+            if (ctx.loop_expression() != null) {
+                ASNode loopExpression = new ASNode(ASNode.Type.RUBY_LOOP_EXPR);
+                loopExpression.setLineOfCode(ctx.loop_expression().getStart().getLine());
+                loopExpression.setCode(ctx.loop_expression().getText());
+                AST.addVertex(loopExpression);
+                AST.addEdge(forNode, loopExpression);
+            }
 
-
-            ASNode condNode = new ASNode(ASNode.Type.CONDITION);
-            condNode.setLineOfCode(ctx.cond_expression().getStart().getLine());
-            condNode.setCode(getOriginalCodeText(ctx.cond_expression().comparison_list()));
-            condNode.setNormalizedCode(visit(ctx.cond_expression().comparison_list()));
-            AST.addVertex(condNode);
-            AST.addEdge(parentStack.peek(), condNode);
-
-
-            ASNode loopExpr = new ASNode(ASNode.Type.RUBY_LOOP_EXPR);
-            loopExpr.setLineOfCode(ctx.loop_expression().getStart().getLine());
-            AST.addVertex(loopExpr);
-            AST.addEdge(parentStack.peek(), loopExpr);
-            parentStack.push(loopExpr);
-            visit(ctx.loop_expression());
-            parentStack.pop();
-
-
-            ASNode expr = new ASNode(ASNode.Type.STATEMENT);
-            expr.setLineOfCode(ctx.statement_body().getStart().getLine());
-            AST.addVertex(expr);
-            AST.addEdge(parentStack.peek(), expr);
-            parentStack.push(expr);
-            visit(ctx.statement_body());
-            parentStack.pop();
-
-
-            ASNode endNode = new ASNode(ASNode.Type.RUBY_END);
-            endNode.setLineOfCode(ctx.getStop().getLine());
-            endNode.setCode(endNode.getType().label);
-            AST.addVertex(endNode);
-
-            AST.addEdge(parentStack.peek(), endNode);
+            if (ctx.statement_body() != null) {
+                parentStack.push(forNode);
+                visit(ctx.statement_body());
+                parentStack.pop();
+            }
 
             return "";
         }
 
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
         @Override
-        public String visitInit_expression(RubyParser.Init_expressionContext ctx) {
-            return visit(ctx.for_init_list());
+        public String visitFor_each_statement(RubyParser.For_each_statementContext ctx) {
+            // for_each_statement:  array_definition DOT EACH LEFT_BBRACKET crlf? '|' id_ '|' crlf? statement_body RIGHT_BBRACKET;
+            ASNode forNode = new ASNode(ASNode.Type.FOR);
+            forNode.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(forNode);
+            AST.addEdge(parentStack.peek(), forNode);
+
+            ASNode array = new ASNode(ASNode.Type.NAME);
+            array.setLineOfCode(ctx.array_definition().getStart().getLine());
+            array.setCode(getOriginalCodeText(ctx.array_definition()));
+            AST.addVertex(array);
+            AST.addEdge(forNode, array);
+
+            ASNode localVar = new ASNode(ASNode.Type.NAME);
+            localVar.setLineOfCode(ctx.id_().getStart().getLine());
+            localVar.setCode(getOriginalCodeText(ctx.id_()));
+            AST.addVertex(localVar);
+            AST.addEdge(forNode, localVar);
+
+            parentStack.push(forNode);
+            visit(ctx.statement_body());
+            parentStack.pop();
+
+            return "";
         }
 
         @Override
@@ -693,18 +1072,6 @@ public class RubyASTBuilder {
             return "";
         }
 
-        @Override
-        public String visitFor_init_list(RubyParser.For_init_listContext ctx) {
-            // for_init_list : for_init_list COMMA all_assignment
-            //              | all_assignment
-            //              ;
-            if (ctx.for_init_list() == null) {
-                visit(ctx.all_assignment());
-            } else {
-                visit(ctx.for_init_list());
-            }
-            return "";
-        }
 
         @Override
         public String visitCond_expression(RubyParser.Cond_expressionContext ctx) {
@@ -712,24 +1079,60 @@ public class RubyASTBuilder {
             return visit(ctx.comparison_list());
         }
 
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         *
+         * @param ctx
+         */
         @Override
-        public String visitLoop_expression(RubyParser.Loop_expressionContext ctx) {
-            // loop_expression : for_loop_list;
-            return visit(ctx.for_loop_list());
-        }
+        public String visitCase_expression(RubyParser.Case_expressionContext ctx) {
+            // case_expression : CASE case_exp  crlf* (WHEN when_cond crlf* statement_body )*(else_token crlf statement_body)?    END;
+            //
+            // case_exp : rvalue;
+            //
+            // when_cond: cond_expression | array_definition;
+            ASNode caseNode = new ASNode(ASNode.Type.RUBY_CASE);
+            caseNode.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(caseNode);
+            AST.addEdge(parentStack.peek(), caseNode);
 
-        @Override
-        public String visitFor_loop_list(RubyParser.For_loop_listContext ctx) {
-            // for_loop_list : for_loop_list COMMA all_assignment
-            //              | all_assignment
-            //              ;
-            if (ctx.for_loop_list()==null) {
-                visit(ctx.all_assignment());
-            } else {
-                visit(ctx.for_loop_list());
+            ASNode varNode = new ASNode(ASNode.Type.NAME);
+            varNode.setCode(getOriginalCodeText(ctx.case_exp()));
+            varNode.setNormalizedCode("CASE_$" + getOriginalCodeText(ctx.case_exp()));
+            varNode.setLineOfCode(ctx.case_exp().getStart().getLine());
+            AST.addVertex(varNode);
+            AST.addEdge(caseNode, varNode);
+
+            ASNode caseBodyNode = new ASNode(ASNode.Type.RUBY_CASE_BODY);
+            AST.addVertex(caseBodyNode);
+            AST.addEdge(caseNode, caseBodyNode);
+            // when expression
+            if (ctx.WHEN() != null) {
+                for (int i = 0; i < ctx.WHEN().size(); i++) {
+                    ASNode whenNode = new ASNode(ASNode.Type.RUBY_WHEN);
+                    whenNode.setLineOfCode(ctx.when_cond(i).getStart().getLine());
+                    whenNode.setCode(getOriginalCodeText(ctx.when_cond(i)));
+                    AST.addVertex(whenNode);
+                    AST.addEdge(caseBodyNode, whenNode);
+                    parentStack.push(whenNode);
+                    if (ctx.statement_body(i) != null) {
+                        visit(ctx.statement_body(i));
+                    }
+                    parentStack.pop();
+                }
+            }
+            if (ctx.else_token() != null) {
+                ASNode elseNode = new ASNode(ASNode.Type.ELSE);
+                elseNode.setLineOfCode(ctx.else_token().getStart().getLine());
+                parentStack.push((elseNode));
+                visit(ctx.statement_body(ctx.statement_body().size() - 1));
             }
             return "";
         }
+
 
         @Override
         public String visitStatement_body(RubyParser.Statement_bodyContext ctx) {
@@ -738,7 +1141,7 @@ public class RubyASTBuilder {
 
         @Override
         public String visitStatement_expression_list(RubyParser.Statement_expression_listContext ctx) {
-            if(ctx.statement_expression_list() != null ){
+            if (ctx.statement_expression_list() != null) {
                 visit(ctx.statement_expression_list());
             }
             if (ctx.RETRY() != null) {
@@ -749,7 +1152,19 @@ public class RubyASTBuilder {
                 AST.addEdge(parentStack.peek(), retryNode);
             } else if (ctx.expression() != null) {
                 visit(ctx.expression());
-            } else {
+            } else if (ctx.raise_expression() != null) {
+                ASNode raiseNode = new ASNode(ASNode.Type.RUBY_RAISE);
+                raiseNode.setLineOfCode(ctx.raise_expression().getStart().getLine());
+                raiseNode.setCode(getOriginalCodeText(ctx.raise_expression()));
+                AST.addVertex(raiseNode);
+                AST.addEdge(parentStack.peek(), raiseNode);
+            } else if (ctx.yield_expression() != null) {
+                ASNode yieldNode = new ASNode(ASNode.Type.YIELD);
+                yieldNode.setLineOfCode(ctx.yield_expression().getStart().getLine());
+                yieldNode.setCode(getOriginalCodeText(ctx.yield_expression()));
+                AST.addVertex(yieldNode);
+                AST.addEdge(parentStack.peek(), yieldNode);
+            } else if (ctx.break_expression() != null) {
                 ASNode breakNode = new ASNode(ASNode.Type.BREAK);
                 breakNode.setLineOfCode(ctx.break_expression().getStart().getLine());
                 breakNode.setCode(ctx.break_expression().getText());
@@ -795,7 +1210,7 @@ public class RubyASTBuilder {
             initNode.setCode(code);
             AST.addVertex(initNode);
             AST.addEdge(parentStack.peek(), initNode);
-            Logger.info("finish visit float_assignment code="+initNode.getCode());
+            Logger.info("finish visit float_assignment code=" + initNode.getCode());
             return "";
         }
 
@@ -883,14 +1298,14 @@ public class RubyASTBuilder {
         @Override
         public String visitFloat_result(RubyParser.Float_resultContext ctx) {
 
-            if(ctx.float_t() != null ){
+            if (ctx.float_t() != null) {
                 return ctx.float_t().getText();
             }
-            Logger.info("float result "+ctx.getText() + " " +ctx.float_result().isEmpty());
-            if(ctx.float_result().size() > 1) {
+            Logger.info("float result " + ctx.getText() + " " + ctx.float_result().isEmpty());
+            if (ctx.float_result().size() > 1) {
                 // float_result op=( PLUS | MINUS ) float_result
                 // float_result op=( MUL | DIV | MOD ) float_result
-                Logger.info("float result "+ctx.float_result(0).getText() + ctx.op.getText() + ctx.float_result(1).getText());
+                Logger.info("float result " + ctx.float_result(0).getText() + ctx.op.getText() + ctx.float_result(1).getText());
                 return ctx.float_result(0).getText() + ctx.op.getText() + ctx.float_result(1).getText();
             }
             return ctx.getText();
@@ -907,12 +1322,12 @@ public class RubyASTBuilder {
             if (ctx.LEFT_RBRACKET() != null && ctx.RIGHT_RBRACKET() != null) {
                 return '(' + visit(ctx.comparison_list()) + ')';
             }
-            if(ctx.comparison_list() == null ){
-                return  visit(ctx.comparison());
+            if (ctx.comparison_list() == null) {
+                return visit(ctx.comparison());
             }
 
 
-            return visit(ctx.comparison()) +  (ctx.op == null ? "": ctx.op.getText()) + visit(ctx.comparison_list());
+            return visit(ctx.comparison()) + (ctx.op == null ? "" : ctx.op.getText()) + visit(ctx.comparison_list());
         }
 
         @Override
@@ -924,8 +1339,8 @@ public class RubyASTBuilder {
         @Override
         public String visitLvalue(RubyParser.LvalueContext ctx) {
             ASNode lvalue = new ASNode(ASNode.Type.RUBY_LVALUE);
-            lvalue .setLineOfCode(ctx.getStart().getLine());
-            lvalue .setCode(getOriginalCodeText(ctx));
+            lvalue.setLineOfCode(ctx.getStart().getLine());
+            lvalue.setCode(getOriginalCodeText(ctx));
             AST.addVertex(lvalue);
             AST.addEdge(parentStack.peek(), lvalue);
             return super.visitLvalue(ctx);
@@ -933,7 +1348,7 @@ public class RubyASTBuilder {
 
         @Override
         public String visitRvalue(RubyParser.RvalueContext ctx) {
-            Logger.info("visit rvalue -- "+ctx.getText());
+            Logger.info("visit rvalue -- " + ctx.getText());
             if (ctx.lvalue() != null) {
                 visit(ctx.lvalue());
             } else if (ctx.initial_array_assignment() != null) {
@@ -986,11 +1401,11 @@ public class RubyASTBuilder {
                 visit(ctx.bool_t());
             } else if (ctx.float_t() != null) {
                 visit(ctx.float_t());
-            } else if(ctx.int_t() != null ){
+            } else if (ctx.int_t() != null) {
                 visit(ctx.int_t());
-            } else if(ctx.nil_t() != null ){
+            } else if (ctx.nil_t() != null) {
                 visit(ctx.nil_t());
-            }else {
+            } else {
                 //        | rvalue EXP rvalue
                 //
                 //
@@ -1008,7 +1423,7 @@ public class RubyASTBuilder {
                 //       | rvalue ( EQUAL | NOT_EQUAL ) rvalue
                 //
                 //       | rvalue ( OR | AND ) rvalue
-                if(ctx.rvalue().size() > 1 ){
+                if (ctx.rvalue().size() > 1) {
                     Logger.info("rvalue visit more ");
                     visit(ctx.rvalue(0));
                     ASNode op = new ASNode(ASNode.Type.OPERATOR);
@@ -1020,10 +1435,10 @@ public class RubyASTBuilder {
                 }
                 //        | ( NOT | BIT_NOT )rvalue
                 //          LEFT_RBRACKET rvalue RIGHT_RBRACKET
-                if(ctx.rvalue().size() == 1) {
-                    if(ctx.LEFT_RBRACKET() != null ){
+                if (ctx.rvalue().size() == 1) {
+                    if (ctx.LEFT_RBRACKET() != null) {
                         visit(ctx.rvalue(0));
-                    }else {
+                    } else {
                         ASNode op = new ASNode(ASNode.Type.OPERATOR);
                         op.setLineOfCode(ctx.rvalue(0).getStart().getLine());
                         op.setCode(getRValueOP(ctx));
@@ -1037,41 +1452,42 @@ public class RubyASTBuilder {
         }
 
         private String getRValueOP(RubyParser.RvalueContext ctx) {
-            if(ctx.EXP() != null ){
+            if (ctx.EXP() != null) {
                 return ctx.EXP().getText();
             }
-            if(ctx.NOT() != null ){
+            if (ctx.NOT() != null) {
                 return ctx.NOT().getText();
             }
-            if(ctx.BIT_NOT()!=null){
+            if (ctx.BIT_NOT() != null) {
                 return ctx.BIT_NOT().getText();
             }
-            if(ctx.MUL()!= null){
+            if (ctx.MUL() != null) {
                 return ctx.MUL().getText();
             }
-            if(ctx.DIV() != null ){
+            if (ctx.DIV() != null) {
                 return ctx.DIV().getText();
             }
-            if(ctx.MOD() != null ){
+            if (ctx.MOD() != null) {
                 return ctx.MOD().getText();
             }
-            if(ctx.PLUS() != null ){
+            if (ctx.PLUS() != null) {
                 return ctx.PLUS().getText();
             }
-            if(ctx.MINUS() != null ){
+            if (ctx.MINUS() != null) {
                 return ctx.MINUS().getText();
             }
-            if(ctx.BIT_SHL() != null ){
+            if (ctx.BIT_SHL() != null) {
                 return ctx.BIT_SHL().getText();
             }
-            if(ctx.BIT_SHR()!= null ){
+            if (ctx.BIT_SHR() != null) {
                 return ctx.BIT_SHR().getText();
             }
-            if(ctx.BIT_AND() != null){
+            if (ctx.BIT_AND() != null) {
                 return ctx.BIT_AND().getText();
             }
             return "op";
         }
+
         @Override
         public String visitBreak_expression(RubyParser.Break_expressionContext ctx) {
             return super.visitBreak_expression(ctx);
@@ -1140,11 +1556,11 @@ public class RubyASTBuilder {
             return globalID.getCode();
         }
 
+
         @Override
         public String visitId_function(RubyParser.Id_functionContext ctx) {
             return ctx.getText();
         }
-
 
 
         @Override
@@ -1173,8 +1589,8 @@ public class RubyASTBuilder {
 
         private String normalizedIdentifier(TerminalNode id) {
             String normalized = vars.get(id.getText());
-//            if (normalized == null || normalized.isEmpty())
-//                normalized = fields.get(id.getText());
+            if (normalized == null || normalized.isEmpty())
+                normalized = fields.get(id.getText());
             if (normalized == null || normalized.isEmpty())
                 normalized = methods.get(id.getText());
             if (normalized == null || normalized.isEmpty())

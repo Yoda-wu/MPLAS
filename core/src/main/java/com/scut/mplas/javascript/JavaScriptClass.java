@@ -1,9 +1,5 @@
 package com.scut.mplas.javascript;
 
-import com.scut.mplas.java.JavaClass;
-import com.scut.mplas.java.JavaField;
-import com.scut.mplas.java.JavaMethod;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
@@ -31,11 +27,11 @@ public class JavaScriptClass {
         methods = new ArrayList<>();
     }
 
-    public void setTypeParameters(String params){
+    public void setTypeParameters(String params) {
         this.typeParameters = params;
     }
 
-    public String getTypeParameters(){
+    public String getTypeParameters() {
         return this.typeParameters;
     }
 
@@ -44,7 +40,7 @@ public class JavaScriptClass {
     }
 
     public boolean hasField(String name) {
-        for (JavaScriptField fld: fields)
+        for (JavaScriptField fld : fields)
             if (fld.NAME.equals(name))
                 return true;
         return false;
@@ -59,7 +55,7 @@ public class JavaScriptClass {
     }
 
     public boolean hasMethod(String name) {
-        for (JavaScriptMethod mtd: methods)
+        for (JavaScriptMethod mtd : methods)
             if (mtd.NAME.equals(name))
                 return true;
         return false;
@@ -87,15 +83,15 @@ public class JavaScriptClass {
         str.append("  IMPLEMENTS : ").append(Arrays.toString(implementations)).append(",\n");
         str.append("  FILE : \"").append(FILE).append("\",\n");
         str.append("  FIELDS : \n  [\n");
-        for (JavaScriptField fld: fields)
+        for (JavaScriptField fld : fields)
             str.append("    ").append(fld).append(",\n");
         str.append("  ],\n");
         str.append("  METHODS : \n  [\n");
-        for (JavaScriptMethod mtd: methods)
+        for (JavaScriptMethod mtd : methods)
             str.append("    ").append(mtd).append(",\n");
         str.append("  ],\n");
         str.append("  IMPORTS : \n  [\n");
-        for (String imprt: IMPORTS)
+        for (String imprt : IMPORTS)
             str.append("    \"").append(imprt).append("\",\n");
         str.append("  ]\n");
         str.append("}");

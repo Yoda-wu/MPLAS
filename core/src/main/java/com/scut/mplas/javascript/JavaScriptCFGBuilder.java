@@ -1,12 +1,8 @@
 package com.scut.mplas.javascript;
 
-import com.scut.mplas.graphs.ast.ASNode;
 import com.scut.mplas.graphs.cfg.CFEdge;
 import com.scut.mplas.graphs.cfg.CFNode;
 import com.scut.mplas.graphs.cfg.ControlFlowGraph;
-import com.scut.mplas.java.JavaCFGBuilder;
-import com.scut.mplas.java.parser.JavaLexer;
-import com.scut.mplas.java.parser.JavaParser;
 import com.scut.mplas.javascript.parser.JavaScriptBaseVisitor;
 import com.scut.mplas.javascript.parser.JavaScriptLexer;
 import com.scut.mplas.javascript.parser.JavaScriptParser;
@@ -225,13 +221,14 @@ public class JavaScriptCFGBuilder {
 //            }
 //        }
 
-        @Override public Void visitExpressionStatement(JavaScriptParser.ExpressionStatementContext ctx) {
+        @Override
+        public Void visitExpressionStatement(JavaScriptParser.ExpressionStatementContext ctx) {
             //    : {this.notOpenBraceAndNotFunction()}? expressionSequence eos
-            CFNode expr=new CFNode();
+            CFNode expr = new CFNode();
             expr.setLineOfCode(ctx.getStart().getLine());
             expr.setCode(getOriginalCodeText(ctx));
-            Logger.debug(expr.getLineOfCode()+":"+expr.getCode());
-            addContextualProperty(expr,ctx);
+            Logger.debug(expr.getLineOfCode() + ":" + expr.getCode());
+            addContextualProperty(expr, ctx);
             addNodeAndPreEdge(expr);
             preEdges.push(CFEdge.Type.EPSILON);
             preNodes.push(expr);
@@ -239,7 +236,8 @@ public class JavaScriptCFGBuilder {
         }
 
 
-        @Override public Void visitIfStatement(JavaScriptParser.IfStatementContext ctx) {
+        @Override
+        public Void visitIfStatement(JavaScriptParser.IfStatementContext ctx) {
             //    : If '(' expressionSequence ')' statement (Else statement)?
             CFNode ifNode = new CFNode();
             ifNode.setLineOfCode(ctx.getStart().getLine());
@@ -270,7 +268,8 @@ public class JavaScriptCFGBuilder {
             return null;
         }
 
-        @Override public Void visitDoStatement(JavaScriptParser.DoStatementContext ctx) {
+        @Override
+        public Void visitDoStatement(JavaScriptParser.DoStatementContext ctx) {
             //Do statement While '(' expressionSequence ')' eos
             CFNode doNode = new CFNode();
             doNode.setLineOfCode(ctx.getStart().getLine());
@@ -302,7 +301,8 @@ public class JavaScriptCFGBuilder {
             return null;
         }
 
-        @Override public Void visitWhileStatement(JavaScriptParser.WhileStatementContext ctx) {
+        @Override
+        public Void visitWhileStatement(JavaScriptParser.WhileStatementContext ctx) {
             //While '(' expressionSequence ')' statement
             CFNode whileNode = new CFNode();
             whileNode.setLineOfCode(ctx.getStart().getLine());
@@ -328,24 +328,25 @@ public class JavaScriptCFGBuilder {
             return null;
         }
 
-        @Override public Void visitForStatement(JavaScriptParser.ForStatementContext ctx) {
+        @Override
+        public Void visitForStatement(JavaScriptParser.ForStatementContext ctx) {
             //For '(' (expressionSequence | variableDeclarationList)? ';' expressionSequence? ';' expressionSequence? ')' statement
             //forInit
-            CFNode forInit=null;
-            int forIndex=-1;
-            if (ctx.variableDeclarationList()!=null){
-                forIndex=0;
-                forInit=new CFNode();
+            CFNode forInit = null;
+            int forIndex = -1;
+            if (ctx.variableDeclarationList() != null) {
+                forIndex = 0;
+                forInit = new CFNode();
                 forInit.setLineOfCode(ctx.variableDeclarationList().getStart().getLine());
                 forInit.setCode(getOriginalCodeText(ctx.variableDeclarationList()));
-                addContextualProperty(forInit,ctx.variableDeclarationList());
+                addContextualProperty(forInit, ctx.variableDeclarationList());
                 addNodeAndPreEdge(forInit);
-            }else{
-                forIndex=1;
-                forInit=new CFNode();
+            } else {
+                forIndex = 1;
+                forInit = new CFNode();
                 forInit.setLineOfCode(ctx.expressionSequence(0).getStart().getLine());
                 forInit.setCode(getOriginalCodeText(ctx.expressionSequence(0)));
-                addContextualProperty(forInit,ctx.expressionSequence(0));
+                addContextualProperty(forInit, ctx.expressionSequence(0));
                 addNodeAndPreEdge(forInit);
             }
             //for-expression
@@ -365,14 +366,14 @@ public class JavaScriptCFGBuilder {
                 popAddPreEdgeTo(forExpr);
             // for-update
             CFNode forUpdate = new CFNode();
-            if (ctx.expressionSequence(forIndex+1) == null) { // empty for-update
+            if (ctx.expressionSequence(forIndex + 1) == null) { // empty for-update
                 forUpdate.setCode(" ; ");
-                forUpdate.setLineOfCode(ctx.expressionSequence(forIndex+1).getStart().getLine());
+                forUpdate.setLineOfCode(ctx.expressionSequence(forIndex + 1).getStart().getLine());
             } else {
-                forUpdate.setCode(getOriginalCodeText(ctx.expressionSequence(forIndex+1)));
-                forUpdate.setLineOfCode(ctx.expressionSequence(forIndex+1).getStart().getLine());
+                forUpdate.setCode(getOriginalCodeText(ctx.expressionSequence(forIndex + 1)));
+                forUpdate.setLineOfCode(ctx.expressionSequence(forIndex + 1).getStart().getLine());
             }
-            addContextualProperty(forUpdate, ctx.expressionSequence(forIndex+1));
+            addContextualProperty(forUpdate, ctx.expressionSequence(forIndex + 1));
             cfg.addVertex(forUpdate);
             //
             CFNode forEnd = new CFNode();
@@ -394,17 +395,18 @@ public class JavaScriptCFGBuilder {
             return null;
         }
 
-        @Override public Void visitForInStatement(JavaScriptParser.ForInStatementContext ctx) {
+        @Override
+        public Void visitForInStatement(JavaScriptParser.ForInStatementContext ctx) {
             //For '(' (singleExpression | variableDeclarationList) In expressionSequence ')' statement
             CFNode forExpr = new CFNode();
-            if (ctx.singleExpression()!=null){
+            if (ctx.singleExpression() != null) {
                 forExpr.setLineOfCode(ctx.statement().getStart().getLine());
-                forExpr.setCode("for("+getOriginalCodeText(ctx.statement())+")");
+                forExpr.setCode("for(" + getOriginalCodeText(ctx.statement()) + ")");
                 addContextualProperty(forExpr, ctx.statement());
                 addNodeAndPreEdge(forExpr);
-            }else{
+            } else {
                 forExpr.setLineOfCode(ctx.variableDeclarationList().getStart().getLine());
-                forExpr.setCode("for("+getOriginalCodeText(ctx.variableDeclarationList())+")");
+                forExpr.setCode("for(" + getOriginalCodeText(ctx.variableDeclarationList()) + ")");
                 addContextualProperty(forExpr, ctx.statement());
                 addNodeAndPreEdge(forExpr);
             }
@@ -425,22 +427,23 @@ public class JavaScriptCFGBuilder {
             //
             preEdges.push(CFEdge.Type.EPSILON);
             preNodes.push(forEnd);
-           return null;
+            return null;
         }
 
-        @Override public Void visitForOfStatement(JavaScriptParser.ForOfStatementContext ctx) {
+        @Override
+        public Void visitForOfStatement(JavaScriptParser.ForOfStatementContext ctx) {
             //    | For Await? '(' (singleExpression | variableDeclarationList) identifier{this.p("of")}? expressionSequence ')' statement  # ForOfStatement
             CFNode forExpr = new CFNode();
-            if (ctx.singleExpression()!=null){
+            if (ctx.singleExpression() != null) {
                 forExpr.setLineOfCode(ctx.statement().getStart().getLine());
-                forExpr.setCode("for("+ctx.Await().getText()+getOriginalCodeText(ctx.singleExpression())+" "+
-                        getOriginalCodeText(ctx.identifier())+" of "+getOriginalCodeText(ctx.expressionSequence())+")");
+                forExpr.setCode("for(" + ctx.Await().getText() + getOriginalCodeText(ctx.singleExpression()) + " " +
+                        getOriginalCodeText(ctx.identifier()) + " of " + getOriginalCodeText(ctx.expressionSequence()) + ")");
                 addContextualProperty(forExpr, ctx.statement());
                 addNodeAndPreEdge(forExpr);
-            }else{
+            } else {
                 forExpr.setLineOfCode(ctx.variableDeclarationList().getStart().getLine());
-                forExpr.setCode("for("+ctx.Await().getText()+getOriginalCodeText(ctx.variableDeclarationList())+" "+
-                        getOriginalCodeText(ctx.identifier())+" of "+getOriginalCodeText(ctx.expressionSequence())+")");
+                forExpr.setCode("for(" + ctx.Await().getText() + getOriginalCodeText(ctx.variableDeclarationList()) + " " +
+                        getOriginalCodeText(ctx.identifier()) + " of " + getOriginalCodeText(ctx.expressionSequence()) + ")");
                 addContextualProperty(forExpr, ctx.statement());
                 addNodeAndPreEdge(forExpr);
             }
@@ -464,8 +467,9 @@ public class JavaScriptCFGBuilder {
             return null;
         }
 
-        @Override public Void visitVarModifier(JavaScriptParser.VarModifierContext ctx) {
-            CFNode varNode=new CFNode();
+        @Override
+        public Void visitVarModifier(JavaScriptParser.VarModifierContext ctx) {
+            CFNode varNode = new CFNode();
             varNode.setLineOfCode(ctx.getStart().getLine());
             varNode.setCode(getOriginalCodeText(ctx));
             addContextualProperty(varNode, ctx);
@@ -474,7 +478,8 @@ public class JavaScriptCFGBuilder {
             return null;
         }
 
-        @Override public Void visitContinueStatement(JavaScriptParser.ContinueStatementContext ctx) {
+        @Override
+        public Void visitContinueStatement(JavaScriptParser.ContinueStatementContext ctx) {
             //    : Continue ({this.notLineTerminator()}? identifier)? eos
             CFNode continueNode = new CFNode();
             continueNode.setLineOfCode(ctx.getStart().getLine());
@@ -483,7 +488,7 @@ public class JavaScriptCFGBuilder {
             addNodeAndPreEdge(continueNode);
             if (ctx.identifier() != null) {
                 // a label is specified
-                for (Block block: labeledBlocks) {
+                for (Block block : labeledBlocks) {
                     if (block.label.equals(ctx.identifier().Identifier().getText())) {
                         cfg.addEdge(new Edge<>(continueNode, new CFEdge(CFEdge.Type.EPSILON), block.start));
                         break;
@@ -498,16 +503,17 @@ public class JavaScriptCFGBuilder {
             return null;
         }
 
-        @Override public Void visitBreakStatement(JavaScriptParser.BreakStatementContext ctx) {
+        @Override
+        public Void visitBreakStatement(JavaScriptParser.BreakStatementContext ctx) {
             //    : Break ({this.notLineTerminator()}? identifier)? eos
             CFNode breakNode = new CFNode();
             breakNode.setLineOfCode(ctx.getStart().getLine());
             breakNode.setCode(getOriginalCodeText(ctx));
             addContextualProperty(breakNode, ctx);
             addNodeAndPreEdge(breakNode);
-            if (ctx.identifier()!= null) {
+            if (ctx.identifier() != null) {
                 // a label is specified
-                for (Block block: labeledBlocks) {
+                for (Block block : labeledBlocks) {
                     if (block.label.equals(ctx.identifier().Identifier().getText())) {
                         cfg.addEdge(new Edge<>(breakNode, new CFEdge(CFEdge.Type.EPSILON), block.end));
                         break;
@@ -522,7 +528,8 @@ public class JavaScriptCFGBuilder {
             return null;
         }
 
-        @Override public Void visitReturnStatement(JavaScriptParser.ReturnStatementContext ctx) {
+        @Override
+        public Void visitReturnStatement(JavaScriptParser.ReturnStatementContext ctx) {
             //    : Return ({this.notLineTerminator()}? expressionSequence)? eos
             CFNode ret = new CFNode();
             ret.setLineOfCode(ctx.getStart().getLine());
@@ -533,7 +540,8 @@ public class JavaScriptCFGBuilder {
             return null;
         }
 
-        @Override public Void visitYieldStatement(JavaScriptParser.YieldStatementContext ctx) {
+        @Override
+        public Void visitYieldStatement(JavaScriptParser.YieldStatementContext ctx) {
             CFNode yieldNode = new CFNode();
             yieldNode.setLineOfCode(ctx.getStart().getLine());
             yieldNode.setCode(getOriginalCodeText(ctx));
@@ -543,7 +551,8 @@ public class JavaScriptCFGBuilder {
             return null;
         }
 
-        @Override public Void visitWithStatement(JavaScriptParser.WithStatementContext ctx) {
+        @Override
+        public Void visitWithStatement(JavaScriptParser.WithStatementContext ctx) {
             //    : With '(' expressionSequence ')' statement
             CFNode withNode = new CFNode();
             withNode.setLineOfCode(ctx.getStart().getLine());
@@ -568,7 +577,8 @@ public class JavaScriptCFGBuilder {
             return null;
         }
 
-        @Override public Void visitSwitchStatement(JavaScriptParser.SwitchStatementContext ctx) {
+        @Override
+        public Void visitSwitchStatement(JavaScriptParser.SwitchStatementContext ctx) {
             //    : Switch '(' expressionSequence ')' caseBlock
             CFNode switchNode = new CFNode();
             switchNode.setLineOfCode(ctx.getStart().getLine());
@@ -588,7 +598,7 @@ public class JavaScriptCFGBuilder {
             CFNode preCase = null;
             for (JavaScriptParser.CaseClausesContext caseClauses : ctx.caseBlock().caseClauses()) {
                 //            //    : '{' caseClauses? (defaultClause caseClauses?)? '}'
-                preCase=visitSwitchCaseClauses(caseClauses,preCase);
+                preCase = visitSwitchCaseClauses(caseClauses, preCase);
                 for (JavaScriptParser.CaseClauseContext caseClause : caseClauses.caseClause()) {
                     visit(caseClause);
                 }
@@ -605,7 +615,7 @@ public class JavaScriptCFGBuilder {
 
         private CFNode visitSwitchCaseClauses(JavaScriptParser.CaseClausesContext caseClauses, CFNode preCase) {
             //            //    : Case expressionSequence ':' statementList?
-            CFNode caseStmnt=preCase;
+            CFNode caseStmnt = preCase;
             for (JavaScriptParser.CaseClauseContext ctx : caseClauses.caseClause()) {
                 caseStmnt = new CFNode();
                 caseStmnt.setLineOfCode(ctx.getStart().getLine());
@@ -630,7 +640,8 @@ public class JavaScriptCFGBuilder {
             return caseStmnt;
         }
 
-        @Override public Void visitLabelledStatement(JavaScriptParser.LabelledStatementContext ctx) {
+        @Override
+        public Void visitLabelledStatement(JavaScriptParser.LabelledStatementContext ctx) {
             //labelledStatement
             //    : identifier ':' statement
             CFNode labelNode = new CFNode();
@@ -655,7 +666,8 @@ public class JavaScriptCFGBuilder {
             return null;
         }
 
-        @Override public Void visitThrowStatement(JavaScriptParser.ThrowStatementContext ctx) {
+        @Override
+        public Void visitThrowStatement(JavaScriptParser.ThrowStatementContext ctx) {
             CFNode throwNode = new CFNode();
             throwNode.setLineOfCode(ctx.getStart().getLine());
             throwNode.setCode(getOriginalCodeText(ctx));
@@ -665,7 +677,8 @@ public class JavaScriptCFGBuilder {
             return null;
         }
 
-        @Override public Void visitTryStatement(JavaScriptParser.TryStatementContext ctx) {
+        @Override
+        public Void visitTryStatement(JavaScriptParser.TryStatementContext ctx) {
             //    : Try block (catchProduction finallyProduction? | finallyProduction)
             CFNode tryNode = new CFNode();
             tryNode.setLineOfCode(ctx.getStart().getLine());
@@ -713,12 +726,12 @@ public class JavaScriptCFGBuilder {
                 endCatch.setLineOfCode(0);
                 endCatch.setCode("end-catch");
                 cfg.addVertex(endCatch);
-                catchNode=new CFNode();
+                catchNode = new CFNode();
                 catchNode.setLineOfCode(ctx.catchProduction().getStart().getLine());
-                catchNode.setCode("catch("+ctx.catchProduction().getText()+")");
-                addContextualProperty(catchNode,ctx.catchProduction());
+                catchNode.setCode("catch(" + ctx.catchProduction().getText() + ")");
+                addContextualProperty(catchNode, ctx.catchProduction());
                 cfg.addVertex(catchNode);
-                cfg.addEdge(new Edge<>(endTry,new CFEdge(CFEdge.Type.THROWS),catchNode));
+                cfg.addEdge(new Edge<>(endTry, new CFEdge(CFEdge.Type.THROWS), catchNode));
                 preEdges.push(CFEdge.Type.EPSILON);
                 preNodes.push(catchNode);
                 visit(ctx.catchProduction().block());
@@ -746,45 +759,48 @@ public class JavaScriptCFGBuilder {
             return null;
         }
 
-        @Override public Void visitCatchProduction(JavaScriptParser.CatchProductionContext ctx) {
+        @Override
+        public Void visitCatchProduction(JavaScriptParser.CatchProductionContext ctx) {
             CFNode catchNode = new CFNode();
             catchNode.setLineOfCode(ctx.getStart().getLine());
-            catchNode.setCode("catch("+getOriginalCodeText(ctx.assignable())+")");
+            catchNode.setCode("catch(" + getOriginalCodeText(ctx.assignable()) + ")");
             addContextualProperty(catchNode, ctx);
             addNodeAndPreEdge(catchNode);
-            CFNode endCatch=new CFNode();
+            CFNode endCatch = new CFNode();
             endCatch.setLineOfCode(0);
             endCatch.setCode("end-catch");
             cfg.addVertex(endCatch);
             preEdges.push(CFEdge.Type.EPSILON);
             preNodes.push(endCatch);
-            labeledBlocks.add(new Block(catchNode,endCatch));
+            labeledBlocks.add(new Block(catchNode, endCatch));
             visit(ctx.block());
             popAddPreEdgeTo(endCatch);
             dontPop = true;
             return null;
         }
 
-        @Override public Void visitFinallyProduction(JavaScriptParser.FinallyProductionContext ctx) {
+        @Override
+        public Void visitFinallyProduction(JavaScriptParser.FinallyProductionContext ctx) {
             CFNode finalNode = new CFNode();
             finalNode.setLineOfCode(ctx.getStart().getLine());
             finalNode.setCode(getOriginalCodeText(ctx));
             addContextualProperty(finalNode, ctx);
             addNodeAndPreEdge(finalNode);
-            CFNode endFinal=new CFNode();
+            CFNode endFinal = new CFNode();
             endFinal.setLineOfCode(0);
             endFinal.setCode("end-finally");
             cfg.addVertex(endFinal);
             preEdges.push(CFEdge.Type.EPSILON);
             preNodes.push(endFinal);
-            labeledBlocks.add(new Block(finalNode,endFinal));
+            labeledBlocks.add(new Block(finalNode, endFinal));
             visit(ctx.block());
             popAddPreEdgeTo(endFinal);
             dontPop = true;
             return null;
         }
 
-        @Override public Void visitDebuggerStatement(JavaScriptParser.DebuggerStatementContext ctx) {
+        @Override
+        public Void visitDebuggerStatement(JavaScriptParser.DebuggerStatementContext ctx) {
             CFNode ret = new CFNode();
             ret.setLineOfCode(ctx.getStart().getLine());
             ret.setCode(getOriginalCodeText(ctx));
@@ -794,17 +810,18 @@ public class JavaScriptCFGBuilder {
             return null;
         }
 
-        @Override public Void visitFunctionDeclaration(JavaScriptParser.FunctionDeclarationContext ctx) {
+        @Override
+        public Void visitFunctionDeclaration(JavaScriptParser.FunctionDeclarationContext ctx) {
             //    : Async? Function_ '*'? identifier '(' formalParameterList? ')' functionBody
             init();
             //
             CFNode entry = new CFNode();
             entry.setLineOfCode(ctx.getStart().getLine());
-            String args ="";
-            if(ctx.formalParameterList()!=null&&!ctx.formalParameterList().isEmpty()){
-                args=  getOriginalCodeText(ctx.formalParameterList());
+            String args = "";
+            if (ctx.formalParameterList() != null && !ctx.formalParameterList().isEmpty()) {
+                args = getOriginalCodeText(ctx.formalParameterList());
             }
-            entry.setCode( ctx.identifier().Identifier() + args);
+            entry.setCode(ctx.identifier().Identifier() + args);
             addContextualProperty(entry, ctx);
             cfg.addVertex(entry);
             //
@@ -817,12 +834,13 @@ public class JavaScriptCFGBuilder {
             return visitChildren(ctx);
         }
 
-        @Override public Void visitClassDeclaration(JavaScriptParser.ClassDeclarationContext ctx) {
+        @Override
+        public Void visitClassDeclaration(JavaScriptParser.ClassDeclarationContext ctx) {
             //Class identifier classTail
             classNames.push(getOriginalCodeText(ctx.identifier()));
             visit(ctx.classTail());
             classNames.pop();
-            CFNode classNode=new CFNode();
+            CFNode classNode = new CFNode();
             classNode.setCode(getOriginalCodeText(ctx));
             classNode.setLineOfCode(ctx.getStart().getLine());
             cfg.addVertex(classNode);
@@ -834,14 +852,14 @@ public class JavaScriptCFGBuilder {
 
         @Override public Void visitClassTail(JavaScriptParser.ClassTailContext ctx) {
             //    : (Extends singleExpression)? '{' classElement* '}'
-            CFNode classTail=new CFNode();
-            String extend="";
-            if (ctx.singleExpression()!=null){
-                extend=getOriginalCodeText(ctx.singleExpression());
+            CFNode classTail = new CFNode();
+            String extend = "";
+            if (ctx.singleExpression() != null) {
+                extend = getOriginalCodeText(ctx.singleExpression());
             }
             for (JavaScriptParser.ClassElementContext classElement : ctx.classElement()) {
-                extend+=" ";
-                extend+=getOriginalCodeText(classElement);
+                extend += " ";
+                extend += getOriginalCodeText(classElement);
             }
             classTail.setCode(extend);
             classTail.setLineOfCode(ctx.getStart().getLine());
@@ -851,13 +869,15 @@ public class JavaScriptCFGBuilder {
             preEdges.push(CFEdge.Type.EPSILON);
             return visitChildren(ctx);
         }
+
         /**
          * {@inheritDoc}
          *
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public Void visitClassElement(JavaScriptParser.ClassElementContext ctx) {
+        @Override
+        public Void visitClassElement(JavaScriptParser.ClassElementContext ctx) {
             //classElement
             //    : (Static | {this.n("static")}? identifier | Async)* (methodDefinition | assignable '=' objectLiteral ';')
             //    | emptyStatement_
@@ -866,40 +886,42 @@ public class JavaScriptCFGBuilder {
             return visitChildren(ctx);
         }
 
-        @Override public Void visitMethodDefinition(JavaScriptParser.MethodDefinitionContext ctx) {
+        @Override
+        public Void visitMethodDefinition(JavaScriptParser.MethodDefinitionContext ctx) {
             //    : '*'? '#'? propertyName '(' formalParameterList? ')' functionBody
             //    | '*'? '#'? getter '(' ')' functionBody
             //    | '*'? '#'? setter '(' formalParameterList? ')' functionBody
-            CFNode mdNode=new CFNode();
+            CFNode mdNode = new CFNode();
             mdNode.setLineOfCode(ctx.getStart().getLine());
-            if (ctx.propertyName()!=null){
-                mdNode.setCode(getOriginalCodeText(ctx.propertyName())+"("+getOriginalCodeText(ctx.formalParameterList())+")");
-                addContextualProperty(mdNode,ctx.propertyName());
-            }else if(ctx.getter()!=null){
-                mdNode.setCode(getOriginalCodeText(ctx.getter())+"()");
-                addContextualProperty(mdNode,ctx.getter());
-            }else{
-                mdNode.setCode(getOriginalCodeText(ctx.setter())+"("+getOriginalCodeText(ctx.formalParameterList())+")");
-                addContextualProperty(mdNode,ctx.setter());
+            if (ctx.propertyName() != null) {
+                mdNode.setCode(getOriginalCodeText(ctx.propertyName()) + "(" + getOriginalCodeText(ctx.formalParameterList()) + ")");
+                addContextualProperty(mdNode, ctx.propertyName());
+            } else if (ctx.getter() != null) {
+                mdNode.setCode(getOriginalCodeText(ctx.getter()) + "()");
+                addContextualProperty(mdNode, ctx.getter());
+            } else {
+                mdNode.setCode(getOriginalCodeText(ctx.setter()) + "(" + getOriginalCodeText(ctx.formalParameterList()) + ")");
+                addContextualProperty(mdNode, ctx.setter());
             }
             addNodeAndPreEdge(mdNode);
-            CFNode mdEnd=new CFNode();
+            CFNode mdEnd = new CFNode();
             mdEnd.setLineOfCode(0);
             cfg.addVertex(mdNode);
             cfg.addVertex(mdEnd);
-            cfg.addEdge(new Edge<>(mdNode,new CFEdge(CFEdge.Type.EPSILON),mdEnd));
+            cfg.addEdge(new Edge<>(mdNode, new CFEdge(CFEdge.Type.EPSILON), mdEnd));
             preEdges.push(CFEdge.Type.EPSILON);
             preNodes.push(mdNode);
-            labeledBlocks.add(new Block(mdNode,mdEnd));
+            labeledBlocks.add(new Block(mdNode, mdEnd));
             visit(ctx.functionBody());
-            labeledBlocks.remove(labeledBlocks.size()-1);
+            labeledBlocks.remove(labeledBlocks.size() - 1);
             preEdges.push(CFEdge.Type.EPSILON);
             preNodes.push(mdEnd);
             return null;
         }
 
 
-        @Override public Void visitLet_(JavaScriptParser.Let_Context ctx) {
+        @Override
+        public Void visitLet_(JavaScriptParser.Let_Context ctx) {
             //    : Let ({this.notLineTerminator()}? expressionSequence)? eos
             System.out.println("let");
             CFNode ret = new CFNode();
@@ -911,20 +933,21 @@ public class JavaScriptCFGBuilder {
             return null;
         }
 
-        @Override public Void visitFormalParameterList(JavaScriptParser.FormalParameterListContext ctx) {
-            if (ctx.formalParameterArg()==null||ctx.formalParameterArg().size()==0){
+        @Override
+        public Void visitFormalParameterList(JavaScriptParser.FormalParameterListContext ctx) {
+            if (ctx.formalParameterArg() == null || ctx.formalParameterArg().size() == 0) {
                 return visitLastFormalParameterArg(ctx.lastFormalParameterArg());
             }
             CFNode ret = new CFNode();
             ret.setLineOfCode(ctx.getStart().getLine());
-            StringBuffer stringBuffer=new StringBuffer();
+            StringBuffer stringBuffer = new StringBuffer();
             stringBuffer.append(getOriginalCodeText(ctx.formalParameterArg(0)));
-            for(int i=1;i<ctx.formalParameterArg().size();i++){
+            for (int i = 1; i < ctx.formalParameterArg().size(); i++) {
                 stringBuffer.append(",");
                 stringBuffer.append(getOriginalCodeText(ctx.formalParameterArg(i)));
             }
             stringBuffer.append(",");
-            if (ctx.lastFormalParameterArg()!=null&&!ctx.lastFormalParameterArg().isEmpty()){
+            if (ctx.lastFormalParameterArg() != null && !ctx.lastFormalParameterArg().isEmpty()) {
                 stringBuffer.append(getOriginalCodeText(ctx.lastFormalParameterArg()));
             }
             ret.setCode(stringBuffer.toString());
@@ -934,18 +957,20 @@ public class JavaScriptCFGBuilder {
             return null;
         }
 
-        @Override public Void visitFormalParameterArg(JavaScriptParser.FormalParameterArgContext ctx) {
+        @Override
+        public Void visitFormalParameterArg(JavaScriptParser.FormalParameterArgContext ctx) {
             //    : assignable ('=' singleExpression)?      // ECMAScript 6: Initialization
             CFNode ret = new CFNode();
             ret.setLineOfCode(ctx.getStart().getLine());
-            ret.setCode(getOriginalCodeText(ctx.assignable())+"="+getOriginalCodeText(ctx.singleExpression()));
+            ret.setCode(getOriginalCodeText(ctx.assignable()) + "=" + getOriginalCodeText(ctx.singleExpression()));
             addContextualProperty(ret, ctx);
             addNodeAndPreEdge(ret);
             dontPop = true;
             return null;
         }
 
-        @Override public Void visitLastFormalParameterArg(JavaScriptParser.LastFormalParameterArgContext ctx) {
+        @Override
+        public Void visitLastFormalParameterArg(JavaScriptParser.LastFormalParameterArgContext ctx) {
             CFNode ret = new CFNode();
             ret.setLineOfCode(ctx.getStart().getLine());
             ret.setCode(getOriginalCodeText(ctx.singleExpression()));
@@ -955,7 +980,8 @@ public class JavaScriptCFGBuilder {
             return null;
         }
 
-        @Override public Void visitFunctionBody(JavaScriptParser.FunctionBodyContext ctx) {
+        @Override
+        public Void visitFunctionBody(JavaScriptParser.FunctionBodyContext ctx) {
             CFNode ret = new CFNode();
             ret.setLineOfCode(ctx.getStart().getLine());
             ret.setCode(getOriginalCodeText(ctx.sourceElements()));
@@ -999,7 +1025,7 @@ public class JavaScriptCFGBuilder {
             else {
                 Logger.debug("\nPRE-NODES = " + preNodes.size());
                 Logger.debug("PRE-EDGES = " + preEdges.size() + '\n');
-                if (preNodes.size()>0){
+                if (preNodes.size() > 0) {
                     cfg.addEdge(new Edge<>(preNodes.pop(), new CFEdge(preEdges.pop()), node));
                 }
             }

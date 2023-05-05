@@ -1,6 +1,5 @@
 package com.scut.mplas.service.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.scut.mplas.API;
@@ -23,16 +22,15 @@ public class JavaScriptCodeAnalysisServiceImpl implements CodeAnalysisService {
     @Override
     public Object analysis(Execution.Analysis analysis, MultipartFile data) {
         try {
-            BufferedReader reader=new BufferedReader(new InputStreamReader(data.getInputStream()));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(data.getInputStream()));
             String line;
-            List<String> result=new ArrayList<>();
-            while((line=reader.readLine())!=null)
-            {
-                JSONObject srcFile=JSONObject.parseObject(line);
+            List<String> result = new ArrayList<>();
+            while ((line = reader.readLine()) != null) {
+                JSONObject srcFile = JSONObject.parseObject(line);
                 String fileName = srcFile.getString("text");
-                String src=srcFile.getString("code");
+                String src = srcFile.getString("code");
 
-                InputStream stream=new ByteArrayInputStream(src.getBytes(StandardCharsets.UTF_8));
+                InputStream stream = new ByteArrayInputStream(src.getBytes(StandardCharsets.UTF_8));
                 String dataStr = new API(analysisArgsBuilder.
                         setFileName(fileName).
                         setAnalysisOpt(analysis).

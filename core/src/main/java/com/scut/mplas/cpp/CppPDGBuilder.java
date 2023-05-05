@@ -1,6 +1,5 @@
 package com.scut.mplas.cpp;
 
-import com.scut.mplas.graphs.pdg.ControlDependenceGraph;
 import com.scut.mplas.graphs.pdg.DataDependenceGraph;
 import com.scut.mplas.graphs.pdg.ProgramDependeceGraph;
 
@@ -44,7 +43,7 @@ public class CppPDGBuilder {
 
     public static ProgramDependeceGraph buildForOne(String fileName, InputStream inputStream) throws IOException {
         DataDependenceGraph dataSubgraphs;
-        dataSubgraphs = CppDDGBuilder.buildForOne(fileName,inputStream);
+        dataSubgraphs = CppDDGBuilder.buildForOne(fileName, inputStream);
         //
         // Join the subgraphs into PDGs
         ProgramDependeceGraph pdgArray = new ProgramDependeceGraph(fileName, null, dataSubgraphs);

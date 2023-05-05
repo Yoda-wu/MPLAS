@@ -1,22 +1,22 @@
 /*** In The Name of Allah ***/
 package com.scut.mplas.graphs.ast;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import com.scut.mplas.cpp.CppASTBuilder;
 import com.scut.mplas.java.JavaASTBuilder;
 import com.scut.mplas.javascript.JavaScriptASTBuilder;
 import com.scut.mplas.ruby.RubyASTBuilder;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 /**
  * Abstract Syntax Tree (AST) Builder.
  * This class invokes the appropriate builder based on the given language parameter.
- * 
+ *
  * @author Seyed Mohammad Ghaffarian
  */
 public class ASTBuilder {
-    
+
 	/**
 	 * Build and return the CFG of the given source code file with specified language.
 	 */
@@ -32,7 +32,7 @@ public class ASTBuilder {
 				return JavaASTBuilder.build(srcFilePath);
 			//
 			case "Python":
-				return  null;
+				return null;
 			case "Ruby":
 				return RubyASTBuilder.build(srcFilePath);
 			//
@@ -56,15 +56,15 @@ public class ASTBuilder {
 				return null;
 			//
 			case "Java":
-				return JavaASTBuilder.build(fileName,inputStream );
+				return JavaASTBuilder.build(fileName, inputStream);
 			//
 			case "Python":
 				return null;
 			case "Ruby":
-				return RubyASTBuilder.build(fileName,inputStream);
+				return RubyASTBuilder.build(fileName, inputStream);
 			//
 			case "JavaScript":
-				return JavaScriptASTBuilder.build(fileName,inputStream);
+				return JavaScriptASTBuilder.build(fileName, inputStream);
 			//
 			default:
 				return null;

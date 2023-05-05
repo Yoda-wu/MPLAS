@@ -1,14 +1,5 @@
 package com.scut.mplas.javascript;
 
-import com.scut.mplas.cpp.CppClass;
-import com.scut.mplas.cpp.CppExtractor;
-import com.scut.mplas.cpp.CppMethod;
-import com.scut.mplas.java.JavaClass;
-import com.scut.mplas.java.JavaClassExtractor;
-import com.scut.mplas.java.JavaMethod;
-import com.scut.mplas.java.parser.JavaBaseVisitor;
-import com.scut.mplas.java.parser.JavaLexer;
-import com.scut.mplas.java.parser.JavaParser;
 import com.scut.mplas.javascript.parser.JavaScriptBaseVisitor;
 import com.scut.mplas.javascript.parser.JavaScriptLexer;
 import com.scut.mplas.javascript.parser.JavaScriptParser;
@@ -50,7 +41,7 @@ public class JavaScriptClassExtractor {
 
     public static void extractInfo(String jsFilePath, ParseTree tree, List<JavaScriptClass> classs, List<JavaScriptMethod> functions) {
         JavaScriptClassVisitor visitor = new JavaScriptClassVisitor(jsFilePath);
-        visitor.build(tree,classs,functions);
+        visitor.build(tree, classs, functions);
     }
 
 
@@ -58,7 +49,7 @@ public class JavaScriptClassExtractor {
         ZipFile zip = new ZipFile("lib/src.zip");
         ArrayList<JavaScriptClass> jsLangClasses = new ArrayList<>();
         String qualifiedName = "java.lang.*";
-        for (ZipEntry ent: getPackageEntries(zip, qualifiedName))
+        for (ZipEntry ent : getPackageEntries(zip, qualifiedName))
             jsLangClasses.addAll(JavaScriptClassExtractor.extractInfo("src.zip/" + ent.getName(), zip.getInputStream(ent)));
         return jsLangClasses;
     }
@@ -66,9 +57,9 @@ public class JavaScriptClassExtractor {
     public static List<JavaScriptClass> extractImportsInfo(String[] imports) throws IOException {
         ZipFile zip = new ZipFile("lib/src.zip");
         ArrayList<JavaScriptClass> classes = new ArrayList<>();
-        for (String qualifiedName: imports) {
+        for (String qualifiedName : imports) {
             if (qualifiedName.endsWith(".*")) {
-                for (ZipEntry ent: getPackageEntries(zip, qualifiedName))
+                for (ZipEntry ent : getPackageEntries(zip, qualifiedName))
                     classes.addAll(JavaScriptClassExtractor.extractInfo("src.zip/" + ent.getName(), zip.getInputStream(ent)));
             } else {
                 ZipEntry entry = getZipEntry(zip, qualifiedName);
@@ -104,7 +95,7 @@ public class JavaScriptClassExtractor {
 
     private static int countSlashes(String str) {
         int slashCount = 0;
-        for (char chr: str.toCharArray())
+        for (char chr : str.toCharArray())
             if (chr == '/')
                 ++slashCount;
         return slashCount;
@@ -118,7 +109,7 @@ public class JavaScriptClassExtractor {
         private String lastModifier;
         private List<String> importsList;
         private List<JavaScriptClass> jsClasses;
-        private List<JavaScriptMethod>jsFunctions;
+        private List<JavaScriptMethod> jsFunctions;
         private Deque<JavaScriptClass> activeClasses;
         private Deque<String> namespaces;
         private String specifier;
@@ -142,23 +133,22 @@ public class JavaScriptClassExtractor {
             return jsClasses;
         }
 
-        public void build(ParseTree tree,List<JavaScriptClass> classs,List<JavaScriptMethod> functions)
-        {
-            jsClasses=classs;
-            jsFunctions=functions;
-            activeClasses=new ArrayDeque<>();
-            namespaces=new ArrayDeque<>();
+        public void build(ParseTree tree, List<JavaScriptClass> classs, List<JavaScriptMethod> functions) {
+            jsClasses = classs;
+            jsFunctions = functions;
+            activeClasses = new ArrayDeque<>();
+            namespaces = new ArrayDeque<>();
             namespaces.push("");
-            specifier="";
-            type="";
-            pointOp="";
-            nestedName="";
-            varName="";
+            specifier = "";
+            type = "";
+            pointOp = "";
+            nestedName = "";
+            varName = "";
             clearFlags();
             visit(tree);
         }
 
-        private void clearFlags(){
+        private void clearFlags() {
         }
 
         /**
@@ -167,7 +157,10 @@ public class JavaScriptClassExtractor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitAliasName(JavaScriptParser.AliasNameContext ctx) { return visitChildren(ctx); }
+        @Override
+        public String visitAliasName(JavaScriptParser.AliasNameContext ctx) {
+            return visitChildren(ctx);
+        }
 
         /**
          * {@inheritDoc}
@@ -175,15 +168,19 @@ public class JavaScriptClassExtractor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitFunctionDeclaration(JavaScriptParser.FunctionDeclarationContext ctx) { return visitChildren(ctx); }
+        @Override
+        public String visitFunctionDeclaration(JavaScriptParser.FunctionDeclarationContext ctx) {
+            return visitChildren(ctx);
+        }
 
-        @Override public String visitClassDeclaration(JavaScriptParser.ClassDeclarationContext ctx) {
+        @Override
+        public String visitClassDeclaration(JavaScriptParser.ClassDeclarationContext ctx) {
             // classDeclaration
             //    : Class identifier classTail
             //    ;
             String extend = null;
-            if (ctx.classTail()!=null&&ctx.classTail().singleExpression()!=null){
-                extend=visit(ctx.classTail().singleExpression());
+            if (ctx.classTail() != null && ctx.classTail().singleExpression() != null) {
+                extend = visit(ctx.classTail().singleExpression());
             }
             String[] imports = importsList.toArray(new String[importsList.size()]);
 
@@ -195,13 +192,15 @@ public class JavaScriptClassExtractor {
             jsClasses.add(activeClasses.pop());
             return null;
         }
+
         /**
          * {@inheritDoc}
          *
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitClassTail(JavaScriptParser.ClassTailContext ctx) {
+        @Override
+        public String visitClassTail(JavaScriptParser.ClassTailContext ctx) {
             //classTail
             //    : (Extends singleExpression)? '{' classElement* '}'
             //    ;
@@ -215,7 +214,8 @@ public class JavaScriptClassExtractor {
         }
 
 
-        @Override public String visitMethodDefinition(JavaScriptParser.MethodDefinitionContext ctx) {
+        @Override
+        public String visitMethodDefinition(JavaScriptParser.MethodDefinitionContext ctx) {
             //methodDefinition
             //    : '*'? '#'? propertyName '(' formalParameterList? ')' functionBody
             //    | '*'? '#'? getter '(' ')' functionBody
@@ -234,13 +234,13 @@ public class JavaScriptClassExtractor {
             //lastFormalParameterArg                        // ECMAScript 6: Rest Parameter
             //    : Ellipsis singleExpression
             //    ;
-            String name =null;
-            if (ctx.propertyName()!=null){
-                name=ctx.propertyName().getText();
-            }else if(ctx.setter()!=null){
-                name=ctx.setter().getText();
-            }else{
-                name=ctx.getter().getText();
+            String name = null;
+            if (ctx.propertyName() != null) {
+                name = ctx.propertyName().getText();
+            } else if (ctx.setter() != null) {
+                name = ctx.setter().getText();
+            } else {
+                name = ctx.getter().getText();
             }
             String[] args = null;
             List<String> argsList = new ArrayList<>();
@@ -259,16 +259,21 @@ public class JavaScriptClassExtractor {
             return null;
         }
 
-        @Override public String visitLastFormalParameterArg(JavaScriptParser.LastFormalParameterArgContext ctx) {
+        @Override
+        public String visitLastFormalParameterArg(JavaScriptParser.LastFormalParameterArgContext ctx) {
             return ctx.getText();
         }
+
         /**
          * {@inheritDoc}
          *
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitFunctionBody(JavaScriptParser.FunctionBodyContext ctx) { return visitChildren(ctx); }
+        @Override
+        public String visitFunctionBody(JavaScriptParser.FunctionBodyContext ctx) {
+            return visitChildren(ctx);
+        }
 
     }
 }
