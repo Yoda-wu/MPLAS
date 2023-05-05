@@ -52,6 +52,7 @@ public class BasicAnalysisTests {
         dir.delete();
     }
 
+
     @Test
     public void javaASTreeDotTest() {
         String outDir = OUTPUT_DIR + "AST/";
