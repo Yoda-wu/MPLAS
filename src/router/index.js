@@ -12,7 +12,7 @@ const routes = [
   },*/
   {
     path: '/',
-    redirect: '/upload',
+    redirect: '/lay',
   },
   /* {
     path: '/input',
@@ -41,6 +41,28 @@ const routes = [
       }
     ],
   }, */
+  {
+    path: '/lay',
+    name: 'lay',
+    component: () => import('../views/test/layoutView.vue'),
+    children:[
+      {
+        path: '/ast',
+        name: 'ast',
+        component: () => import('../views/result/astView.vue')
+      },
+      {
+        path: '/cfg',
+        name: 'cfg',
+        component: () => import('../views/result/cfgView.vue')
+      },
+      {
+        path: '/ddg',
+        name: 'ddg',
+        component: () => import('../views/result/ddgView.vue')
+      },
+    ],
+  },
   {
     path: '/upload',
     name: 'upload',

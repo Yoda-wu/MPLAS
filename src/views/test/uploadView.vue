@@ -56,7 +56,7 @@
         <el-tab-pane label="AST" name="first" index="ast"></el-tab-pane>
         <el-tab-pane label="CFG" name="second" index="cfg"></el-tab-pane>
         <el-tab-pane label="DDG" name="third" index="ddg"></el-tab-pane>
-        <el-tab-pane label="PDG" name="fourth" index="cfg"></el-tab-pane>
+        <!-- <el-tab-pane label="PDG" name="fourth" index="cfg"></el-tab-pane> -->
         <router-view></router-view>
   </el-tabs>
     </div>
@@ -114,19 +114,18 @@
           //formData.append("file",this.fileList[0].raw);
 
           var config = {
-          method: 'post',
-          url: 'https://mock.apifox.cn/m1/2527665-0-default/ast?lang='+lang,
-          headers: { 
-            
-              'Accept': '*/*', 
-              
-          },
-          data : data
-          };
-
+              method: 'post',
+              url: 'https://mock.apifox.cn/m1/2527665-0-default/ast?lang='+lang,
+              headers: { 
+                
+                  'Accept': '*/*', 
+                  
+              },
+              data : data
+            };
           
           if(this.u==0){
-              axios(config).then((response)=> {
+             axios(config).then((response)=> {
                   //console.log(JSON.stringify(response.data));
                   //this.ast=response.data;
   
@@ -138,9 +137,10 @@
                   console.log(error);
                   this.$notify.error({
                   title: '错误',
-                  message: 'ast获取error'
+                  message: 'ast获取error',
+                  duration: 0
                   });
-              });
+              }); 
           }
       },
       getCFG(data){
@@ -269,11 +269,11 @@
               });
     },
     submit(){
-      console.log(this.value);
+      //console.log(this.value);
       let data={"data":this.textarea};
 
-
-            axios.all([this.getAST(data),this.getCFG(data),this.getDDG(data)])
+      //,this.getCFG(data),this.getDDG(data)
+            axios.all([this.getAST(data)])
               .then(axios.spread((acct, perms) => {
                 this.$notify({
                       title: '全部处理完成',

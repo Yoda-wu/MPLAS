@@ -1,42 +1,59 @@
 <template>
-    <div>
-        <el-container  style="height: 700px; border: 1px solid #eee">
-            
-            <el-container>
-                
-                <el-main>
-                    <canvas height="1000" width="2000" id="canvas"></canvas>
-                </el-main>
+    <div v-html="mermaidCode"></div>
+  </template>
+  
+  <script>
+  import mermaid from "mermaid";
+  import {mermaidCode} from "../js/transForAST";
+  mermaid.initialize({
+          startOnLoad: true,
+          securityLevel:"loose"
+      });
 
-            </el-container>
-        </el-container>
-    </div>
-    
-</template>
+  export default {
+    data() {
+      return {
+      }
+    },
+    computed: {
+      mermaidCode() {
+        let ast=this.$route.params.data;
 
-<script>
-import { drawAST } from '../js/ast';
-export default{
-    data(){
-        return{
+        
+        if(ast!=undefined)
+        {
+            var data={
+                "astFir":ast[0],
+            };
             
+        
+          sessionStorage.setItem("data",JSON.stringify(data));
         }
+        var astJsonStr = sessionStorage.getItem("data");
+        
+        var ast1 = JSON.parse(astJsonStr);
+
+        let result=mermaidCode(ast1.astFir);
+        
+        
+        return result;
+      },
+      
+    },
+    methods:{
+
+    },
+    mounted: function() {
+      if (location.href.indexOf("#reloaded")<=0) {
+        location.href = location.href+"#reloaded";
+        location.reload();
+      }
+    }, 
+
+    created(){
+      
     },
 
-
-    mounted() {
-        console.log("astView");
-        let node=this.$route.params.data //123;
-        console.log(node.data);
-        drawAST(node.data);
-    },
-
-    methods: {
-
-    }
-}
-</script>
-
-<style>
-
-</style>
+  }
+  </script>
+  
