@@ -1,12 +1,6 @@
 /*** In The Name of Allah ***/
 package com.scut.mplas;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import com.scut.mplas.graphs.ast.ASTBuilder;
 import com.scut.mplas.graphs.ast.AbstractSyntaxTree;
 import com.scut.mplas.graphs.cfg.CFGBuilder;
@@ -14,11 +8,17 @@ import com.scut.mplas.graphs.cfg.ControlFlowGraph;
 import com.scut.mplas.graphs.cfg.ICFGBuilder;
 import com.scut.mplas.graphs.pdg.PDGBuilder;
 import com.scut.mplas.graphs.pdg.ProgramDependeceGraph;
+import com.scut.mplas.java.JavaClass;
+import com.scut.mplas.java.JavaClassExtractor;
 import com.scut.mplas.utils.FileUtils;
 import com.scut.mplas.utils.SystemUtils;
 import ghaffarian.nanologger.Logger;
-import com.scut.mplas.java.JavaClass;
-import com.scut.mplas.java.JavaClassExtractor;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -57,41 +57,45 @@ public class Execution {
 	 */
 	public enum Analysis {
 		// analysis types
-		CFG			("CFG"),
-		PDG			("PDG"),
-		AST			("AST"),
-		DDG			("DDG"),
-		ICFG		("ICFG"),
-		SRC_INFO 	("INFO");
-		
+		CFG("CFG"),
+		PDG("PDG"),
+		AST("AST"),
+		DDG("DDG"),
+		ICFG("ICFG"),
+		SRC_INFO("INFO");
+
 		private Analysis(String str) {
 			type = str;
 		}
+
 		@Override
 		public String toString() {
 			return type;
 		}
 		public final String type;
 	}
-	
+
 	/**
 	 * Enumeration of different supported languages.
 	 */
 	public enum Languages {
-		CPP("Cpp",".cpp"),
-		JAVASCRIPT("JavaScript",".js"),
-		C		("C", ".c"),
-		JAVA	    ("Java", ".java"),
-		PYTHON	("Python", ".py");
-		
+		CPP("Cpp", ".cpp"),
+		JAVASCRIPT("JavaScript", ".js"),
+		C("C", ".c"),
+		JAVA("Java", ".java"),
+		RUBY("Ruby", ".rb"),
+		PYTHON("Python", ".py");
+
 		private Languages(String str, String suffix) {
 			name = str;
 			this.suffix = suffix;
 		}
+
 		@Override
 		public String toString() {
 			return name;
 		}
+
 		public final String name;
 		public final String suffix;
 	}
@@ -179,8 +183,8 @@ public class Execution {
 					Logger.debug("START: " + Logger.time() + '\n');
 
 					try {
-						AbstractSyntaxTree ast = ASTBuilder.build(lang.name, fileName,inputStream);
-						return  ast.exportJson();
+						AbstractSyntaxTree ast = ASTBuilder.build(lang.name, fileName, inputStream);
+						return ast.exportJson();
 					} catch (IOException ex) {
 						Logger.error(ex);
 					}
@@ -191,7 +195,7 @@ public class Execution {
 					Logger.info("=====================");
 					Logger.debug("START: " + Logger.time() + '\n');
 					try {
-						ControlFlowGraph cfg = CFGBuilder.build(lang.name, fileName,inputStream);
+						ControlFlowGraph cfg = CFGBuilder.build(lang.name, fileName, inputStream);
 						return cfg.exportJson();
 					} catch (IOException ex) {
 						Logger.error(ex);
@@ -203,7 +207,7 @@ public class Execution {
 					Logger.info("=====================");
 					Logger.debug("START: " + Logger.time() + '\n');
 					try {
-						ProgramDependeceGraph pdg=PDGBuilder.buildForOne(lang.name,fileName,inputStream);
+						ProgramDependeceGraph pdg = PDGBuilder.buildForOne(lang.name, fileName, inputStream);
 						return pdg.DDS.exportJSON();
 					} catch (IOException ex) {
 						Logger.error(ex);
@@ -283,7 +287,7 @@ public class Execution {
 		Logger.info("\n# " + lang.name + " source files = " + filePaths.length + "\n");
 		
 		// Check language
-		if (!(lang.equals(Languages.JAVA) || lang.equals(Languages.CPP) || lang.equals(Languages.JAVASCRIPT))) {
+		if (!(lang.equals(Languages.JAVA) || lang.equals(Languages.CPP) || lang.equals(Languages.JAVASCRIPT) || lang.equals(Languages.RUBY))) {
 			Logger.info("Analysis of " + lang.name + " programs is not yet supported!");
 			Logger.info("Abort.");
 			System.exit(0);
@@ -332,7 +336,7 @@ public class Execution {
 					Logger.info("=====================");
 					Logger.debug("START: " + Logger.time() + '\n');
 					try {
-						for (ProgramDependeceGraph pdg: PDGBuilder.buildForAll(lang.name, filePaths)) {
+						for (ProgramDependeceGraph pdg : PDGBuilder.buildForAll(lang.name, filePaths)) {
 							pdg.DDS.export(format.toString(), outputDir);
 						}
 					} catch (IOException ex) {

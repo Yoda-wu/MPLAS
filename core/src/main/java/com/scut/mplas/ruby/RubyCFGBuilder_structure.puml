@@ -1,0 +1,246 @@
+@startuml
+
+/' diagram meta data start
+config=StructureConfiguration;
+{
+  "projectClassification": {
+    "searchMode": "OpenProject", // OpenProject, AllProjects
+    "includedProjects": "",
+    "pathEndKeywords": "*.impl",
+    "isClientPath": "",
+    "isClientName": "",
+    "isTestPath": "",
+    "isTestName": "",
+    "isMappingPath": "",
+    "isMappingName": "",
+    "isDataAccessPath": "",
+    "isDataAccessName": "",
+    "isDataStructurePath": "",
+    "isDataStructureName": "",
+    "isInterfaceStructuresPath": "",
+    "isInterfaceStructuresName": "",
+    "isEntryPointPath": "",
+    "isEntryPointName": "",
+    "treatFinalFieldsAsMandatory": false
+  },
+  "graphRestriction": {
+    "classPackageExcludeFilter": "",
+    "classPackageIncludeFilter": "",
+    "classNameExcludeFilter": "",
+    "classNameIncludeFilter": "",
+    "methodNameExcludeFilter": "",
+    "methodNameIncludeFilter": "",
+    "removeByInheritance": "", // inheritance/annotation based filtering is done in a second step
+    "removeByAnnotation": "",
+    "removeByClassPackage": "", // cleanup the graph after inheritance/annotation based filtering is done
+    "removeByClassName": "",
+    "cutMappings": false,
+    "cutEnum": true,
+    "cutTests": true,
+    "cutClient": true,
+    "cutDataAccess": false,
+    "cutInterfaceStructures": false,
+    "cutDataStructures": false,
+    "cutGetterAndSetter": true,
+    "cutConstructors": true
+  },
+  "graphTraversal": {
+    "forwardDepth": 6,
+    "backwardDepth": 6,
+    "classPackageExcludeFilter": "",
+    "classPackageIncludeFilter": "",
+    "classNameExcludeFilter": "",
+    "classNameIncludeFilter": "",
+    "methodNameExcludeFilter": "",
+    "methodNameIncludeFilter": "",
+    "hideMappings": false,
+    "hideDataStructures": false,
+    "hidePrivateMethods": true,
+    "hideInterfaceCalls": true, // indirection: implementation -> interface (is hidden) -> implementation
+    "onlyShowApplicationEntryPoints": false, // root node is included
+    "useMethodCallsForStructureDiagram": "ForwardOnly" // ForwardOnly, BothDirections, No
+  },
+  "details": {
+    "aggregation": "GroupByClass", // ByClass, GroupByClass, None
+    "showClassGenericTypes": true,
+    "showMethods": true,
+    "showMethodParameterNames": true,
+    "showMethodParameterTypes": true,
+    "showMethodReturnType": true,
+    "showPackageLevels": 2,
+    "showDetailedClassStructure": true
+  },
+  "rootClass": "com.scut.mplas.ruby.RubyCFGBuilder",
+  "extensionCallbackMethod": "" // qualified.class.name#methodName - signature: public static String method(String)
+}
+diagram meta data end '/
+
+
+
+digraph g {
+    rankdir="TB"
+    splines=polyline
+    
+
+'nodes 
+subgraph cluster_3524847 { 
+   	label=scut
+	labeljust=l
+	fillcolor="#ececec"
+	style=filled
+   
+   subgraph cluster_630942884 { 
+   	label=mplas
+	labeljust=l
+	fillcolor="#d8d8d8"
+	style=filled
+   
+   RubyCFGBuilder552153791[
+	label=<<TABLE BORDER="1" CELLBORDER="0" CELLPADDING="4" CELLSPACING="0">
+<TR><TD ALIGN="LEFT" >(C)RubyCFGBuilder</TD></TR>
+<HR/>
+<TR><TD ALIGN="LEFT" >+ build(javaFile: String): ControlFlowGraph</TD></TR>
+<TR><TD ALIGN="LEFT" >+ build(javaFile: File): ControlFlowGraph</TD></TR>
+<TR><TD ALIGN="LEFT" >+ build(fileName: String, inputStream: InputStream): ControlFlowGraph</TD></TR>
+<TR><TD ALIGN="LEFT" >+ build(javaFileName: String, tree: ParseTree, propKey: String, ctxProps: Map&lt;ParserRuleContext, Object&gt;): ControlFlowGraph</TD></TR>
+</TABLE>>
+	style=filled
+	margin=0
+	shape=plaintext
+	fillcolor="#FFFFFF"
+];
+
+RubyParser2026170926[
+	label=<<TABLE BORDER="1" CELLBORDER="0" CELLPADDING="4" CELLSPACING="0">
+<TR><TD ALIGN="LEFT" >(C)RubyParser</TD></TR>
+<HR/>
+<TR><TD ALIGN="LEFT" >+ all_assignment(): All_assignmentContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ all_result(): All_resultContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ array_assignment(): Array_assignmentContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ array_definition(): Array_definitionContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ array_definition_elements(): Array_definition_elementsContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- array_definition_elements(_p: int): Array_definition_elementsContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- array_definition_elements_sempred(_localctx: Array_definition_elementsContext, predIndex: int): boolean</TD></TR>
+<TR><TD ALIGN="LEFT" >+ array_selector(): Array_selectorContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ assignment(): AssignmentContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ begin_expression(): Begin_expressionContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ begin_rescue_expression(): Begin_rescue_expressionContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ bool_t(): Bool_tContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ break_expression(): Break_expressionContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ case_exp(): Case_expContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ case_expression(): Case_expressionContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ class_definition(): Class_definitionContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ comp_var(): Comp_varContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ comparison(): ComparisonContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ comparison_list(): Comparison_listContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ cond_expression(): Cond_expressionContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ const_set(): Const_setContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ crlf(): CrlfContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ dynamic_(): Dynamic_Context</TD></TR>
+<TR><TD ALIGN="LEFT" >+ dynamic_assignment(): Dynamic_assignmentContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ dynamic_result(): Dynamic_resultContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- dynamic_result(_p: int): Dynamic_resultContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- dynamic_result_sempred(_localctx: Dynamic_resultContext, predIndex: int): boolean</TD></TR>
+<TR><TD ALIGN="LEFT" >+ else_token(): Else_tokenContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ elsif_statement(): Elsif_statementContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ end_expression(): End_expressionContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ ensure_expression(): Ensure_expressionContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ error_type(): Error_typeContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ expression(): ExpressionContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ expression_list(): Expression_listContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- expression_list(_p: int): Expression_listContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- expression_list_sempred(_localctx: Expression_listContext, predIndex: int): boolean</TD></TR>
+<TR><TD ALIGN="LEFT" >+ float_assignment(): Float_assignmentContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ float_result(): Float_resultContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- float_result(_p: int): Float_resultContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- float_result_sempred(_localctx: Float_resultContext, predIndex: int): boolean</TD></TR>
+<TR><TD ALIGN="LEFT" >+ float_t(): Float_tContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ for_each_statement(): For_each_statementContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ for_statement(): For_statementContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ function_call(): Function_callContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ function_call_assignment(): Function_call_assignmentContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ function_call_param_list(): Function_call_param_listContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ function_call_params(): Function_call_paramsContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- function_call_params(_p: int): Function_call_paramsContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- function_call_params_sempred(_localctx: Function_call_paramsContext, predIndex: int): boolean</TD></TR>
+<TR><TD ALIGN="LEFT" >+ function_definition(): Function_definitionContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ function_definition_body(): Function_definition_bodyContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ function_definition_header(): Function_definition_headerContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ function_definition_param_id(): Function_definition_param_idContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ function_definition_params(): Function_definition_paramsContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ function_definition_params_list(): Function_definition_params_listContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- function_definition_params_list(_p: int): Function_definition_params_listContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- function_definition_params_list_sempred(_localctx: Function_definition_params_listContext, predIndex: int): boolean</TD></TR>
+<TR><TD ALIGN="LEFT" >+ function_inline_call(): Function_inline_callContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ function_name(): Function_nameContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ function_named_param(): Function_named_paramContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ function_param(): Function_paramContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ function_unnamed_param(): Function_unnamed_paramContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ global_get(): Global_getContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ global_result(): Global_resultContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ global_set(): Global_setContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ id_(): Id_Context</TD></TR>
+<TR><TD ALIGN="LEFT" >+ id_constence(): Id_constenceContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ id_function(): Id_functionContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ id_global(): Id_globalContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ id_instance(): Id_instanceContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ if_elsif_statement(): If_elsif_statementContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ if_statement(): If_statementContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ initial_array_assignment(): Initial_array_assignmentContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ instance_get(): Instance_getContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ instance_result(): Instance_resultContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ instance_set(): Instance_setContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ int_assignment(): Int_assignmentContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ int_result(): Int_resultContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- int_result(_p: int): Int_resultContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- int_result_sempred(_localctx: Int_resultContext, predIndex: int): boolean</TD></TR>
+<TR><TD ALIGN="LEFT" >+ int_t(): Int_tContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ literal_t(): Literal_tContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ loop_expression(): Loop_expressionContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ lvalue(): LvalueContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- makeLiteralNames(): String[]</TD></TR>
+<TR><TD ALIGN="LEFT" >- makeRuleNames(): String[]</TD></TR>
+<TR><TD ALIGN="LEFT" >- makeSymbolicNames(): String[]</TD></TR>
+<TR><TD ALIGN="LEFT" >+ map_result(): Map_resultContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ module_definition(): Module_definitionContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ nil_t(): Nil_tContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ pir_expression_list(): Pir_expression_listContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ pir_inline(): Pir_inlineContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ prog(): ProgContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ raise_expression(): Raise_expressionContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ require_block(): Require_blockContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ rescue_expression(): Rescue_expressionContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ return_statement(): Return_statementContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ rvalue(): RvalueContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- rvalue(_p: int): RvalueContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- rvalue_sempred(_localctx: RvalueContext, predIndex: int): boolean</TD></TR>
+<TR><TD ALIGN="LEFT" >+ sempred(_localctx: RuleContext, ruleIndex: int, predIndex: int): boolean</TD></TR>
+<TR><TD ALIGN="LEFT" >+ statement_body(): Statement_bodyContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ statement_expression_list(): Statement_expression_listContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- statement_expression_list(_p: int): Statement_expression_listContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- statement_expression_list_sempred(_localctx: Statement_expression_listContext, predIndex: int): boolean</TD></TR>
+<TR><TD ALIGN="LEFT" >+ string_assignment(): String_assignmentContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ string_result(): String_resultContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- string_result(_p: int): String_resultContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- string_result_sempred(_localctx: String_resultContext, predIndex: int): boolean</TD></TR>
+<TR><TD ALIGN="LEFT" >+ terminator(): TerminatorContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- terminator(_p: int): TerminatorContext</TD></TR>
+<TR><TD ALIGN="LEFT" >- terminator_sempred(_localctx: TerminatorContext, predIndex: int): boolean</TD></TR>
+<TR><TD ALIGN="LEFT" >+ unless_statement(): Unless_statementContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ when_cond(): When_condContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ while_statement(): While_statementContext</TD></TR>
+<TR><TD ALIGN="LEFT" >+ yield_expression(): Yield_expressionContext</TD></TR>
+</TABLE>>
+	style=filled
+	margin=0
+	shape=plaintext
+	fillcolor="#FFFFFF"
+];
+} 
+} 
+
+'edges    
+
+    
+}
+@enduml

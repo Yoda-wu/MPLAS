@@ -8,11 +8,10 @@ public class CppField {
     public final String TYPE;
     public final String SPECIFIER;
 
-    public CppField(String specifier,String type,String name)
-    {
-        NAME=name;
-        TYPE=type;
-        SPECIFIER=specifier==null?"":specifier;
+    public CppField(String specifier, String type, String name) {
+        NAME = name;
+        TYPE = type;
+        SPECIFIER = specifier == null ? "" : specifier;
     }
 
     @Override

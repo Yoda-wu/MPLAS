@@ -1,18 +1,12 @@
 package com.scut.mplas.javascript;
 
-import com.scut.mplas.cpp.CppClass;
-import com.scut.mplas.cpp.CppDDGBuilder;
-import com.scut.mplas.cpp.CppExtractor;
-import com.scut.mplas.cpp.CppMethod;
 import com.scut.mplas.graphs.cfg.CFNode;
 import com.scut.mplas.graphs.cfg.CFPathTraversal;
 import com.scut.mplas.graphs.cfg.ControlFlowGraph;
 import com.scut.mplas.graphs.pdg.DDEdge;
 import com.scut.mplas.graphs.pdg.DataDependenceGraph;
 import com.scut.mplas.graphs.pdg.PDNode;
-import com.scut.mplas.java.*;
-import com.scut.mplas.java.parser.JavaBaseVisitor;
-import com.scut.mplas.java.parser.JavaLexer;
+import com.scut.mplas.java.JavaCFGBuilder;
 import com.scut.mplas.java.parser.JavaParser;
 import com.scut.mplas.javascript.parser.JavaScriptBaseVisitor;
 import com.scut.mplas.javascript.parser.JavaScriptLexer;
@@ -44,7 +38,7 @@ public class JavaScriptDDGBuilder {
     private static Map<String, JavaScriptClass> allClassInfos;
 
     //记录所有非class成员函数的函数信息
-    private static Map<String,List<MethodDefInfo>>allNonClassFunctionInfos;
+    private static Map<String, List<MethodDefInfo>> allNonClassFunctionInfos;
 
     private static Map<String, List<MethodDefInfo>> methodDEFs;
 
@@ -69,7 +63,7 @@ public class JavaScriptDDGBuilder {
         for (int i = 0; i < files.length; ++i) {
             List<JavaScriptClass> classesList = JavaScriptClassExtractor.extractInfo(files[i].getPath(), parseTrees[i]);
             filesClasses.add(classesList.toArray(new JavaScriptClass[classesList.size()]));
-            for (JavaScriptClass cls: classesList)
+            for (JavaScriptClass cls : classesList)
                 allClassInfos.put(cls.NAME, cls);
         }
         Logger.info("Done.");
@@ -77,7 +71,7 @@ public class JavaScriptDDGBuilder {
         // Initialize method DEF information
         Logger.info("\nInitializing method-DEF infos ... ");
         methodDEFs = new HashMap<>();
-        for (JavaScriptClass[] classArray: filesClasses) {
+        for (JavaScriptClass[] classArray : filesClasses) {
             for (JavaScriptClass cls : classArray) {
                 for (JavaScriptMethod mtd : cls.getAllMethods()) {
                     List<MethodDefInfo> list = methodDEFs.get(mtd.NAME);
@@ -142,51 +136,44 @@ public class JavaScriptDDGBuilder {
     }
 
     // 为每一个源代码文件都进行DDG分析
-    private static void build(File file,ParseTree parseTree,
+    private static void build(File file, ParseTree parseTree,
                               DataDependenceGraph ddg,
-                              Map<ParserRuleContext, Object> pdNodes) throws IOException
-    {
+                              Map<ParserRuleContext, Object> pdNodes) throws IOException {
         // Extract the information of all given Cpp classes and NonClass Function
         Logger.info("\nExtracting class-infos and nonClass-Func-infos ... ");
         allClassInfos = new HashMap<>();
-        allNonClassFunctionInfos =new HashMap<>();
-        methodDEFs =new HashMap<>();
-        List<JavaScriptClass> classesList=new LinkedList<>();
-        List<JavaScriptMethod> functiopnsList=new LinkedList<>();
+        allNonClassFunctionInfos = new HashMap<>();
+        methodDEFs = new HashMap<>();
+        List<JavaScriptClass> classesList = new LinkedList<>();
+        List<JavaScriptMethod> functiopnsList = new LinkedList<>();
 
-        JavaScriptClassExtractor.extractInfo(file.getPath(),parseTree,classesList,functiopnsList);
-        for(JavaScriptClass cls:classesList)
-            allClassInfos.put(cls.NAME,cls);
+        JavaScriptClassExtractor.extractInfo(file.getPath(), parseTree, classesList, functiopnsList);
+        for (JavaScriptClass cls : classesList)
+            allClassInfos.put(cls.NAME, cls);
         Logger.info("Done.");
 
         // Initialize method DEF information
         Logger.info("\nInitializing method-DEF infos ... ");
         // 增加非class函数信息
-        for(JavaScriptMethod func:functiopnsList)
-        {
-            List<MethodDefInfo> list=methodDEFs.get(func.NAME);
-            if(list==null)
-            {
-                list=new ArrayList<>();
-                list.add(new MethodDefInfo(func.RET_TYPE,func.NAME,null,null,func.ARG_TYPES));
+        for (JavaScriptMethod func : functiopnsList) {
+            List<MethodDefInfo> list = methodDEFs.get(func.NAME);
+            if (list == null) {
+                list = new ArrayList<>();
+                list.add(new MethodDefInfo(func.RET_TYPE, func.NAME, null, null, func.ARG_TYPES));
                 methodDEFs.put(func.NAME, list);
-            }
-            else
-                list.add(new MethodDefInfo(func.RET_TYPE,func.NAME,null,null,func.ARG_TYPES));
+            } else
+                list.add(new MethodDefInfo(func.RET_TYPE, func.NAME, null, null, func.ARG_TYPES));
         }
         // 增加class 成员函数信息
-        for(JavaScriptClass cls:classesList)
-            for(JavaScriptMethod func:cls.getAllMethods())
-            {
-                List<MethodDefInfo> list=methodDEFs.get(func.NAME);
-                if(list==null)
-                {
-                    list=new ArrayList<>();
-                    list.add(new MethodDefInfo(func.RET_TYPE,func.NAME,cls.PACKAGE,cls.NAME,func.ARG_TYPES));
+        for (JavaScriptClass cls : classesList)
+            for (JavaScriptMethod func : cls.getAllMethods()) {
+                List<MethodDefInfo> list = methodDEFs.get(func.NAME);
+                if (list == null) {
+                    list = new ArrayList<>();
+                    list.add(new MethodDefInfo(func.RET_TYPE, func.NAME, cls.PACKAGE, cls.NAME, func.ARG_TYPES));
                     methodDEFs.put(func.NAME, list);
-                }
-                else
-                    list.add(new MethodDefInfo(func.RET_TYPE,func.NAME,cls.PACKAGE,cls.NAME,func.ARG_TYPES));
+                } else
+                    list.add(new MethodDefInfo(func.RET_TYPE, func.NAME, cls.PACKAGE, cls.NAME, func.ARG_TYPES));
             }
         Logger.info("Done.");
 
@@ -218,9 +205,9 @@ public class JavaScriptDDGBuilder {
         Logger.info("\nExtracting & Parsing imports ... ");
         Set<String> rawImports = new LinkedHashSet<>();
 //        rawImports.add("java.lang.*");
-        for (JavaScriptClass[] classes: filesClasses)
-            for (JavaScriptClass cls: classes)
-                for (String qualifiedName: cls.IMPORTS)
+        for (JavaScriptClass[] classes : filesClasses)
+            for (JavaScriptClass cls : classes)
+                for (String qualifiedName : cls.IMPORTS)
                     rawImports.add(qualifiedName);
         // NOTE: imports can contain specific or whole package imports;
         //       so, we need to extract specific ZIP-entries for all imports.
@@ -230,9 +217,9 @@ public class JavaScriptDDGBuilder {
         Set<String> imports = new LinkedHashSet<>();
         List<ParseTree> importsParseTrees = new ArrayList<>();
         List<JavaScriptClass[]> importsClassInfos = new ArrayList<>();
-        for (String qualifiedName: rawImports) {
+        for (String qualifiedName : rawImports) {
             if (qualifiedName.endsWith(".*")) {
-                for (ZipEntry ent: getPackageEntries(zip, qualifiedName)) {
+                for (ZipEntry ent : getPackageEntries(zip, qualifiedName)) {
                     if (imports.add(ent.getName())) {
                         ANTLRInputStream input = new ANTLRInputStream(zip.getInputStream(ent));
                         JavaScriptLexer lexer = new JavaScriptLexer(input);
@@ -243,7 +230,7 @@ public class JavaScriptDDGBuilder {
                         importsParseTrees.add(tree);
                         List<JavaScriptClass> list = JavaScriptClassExtractor.extractInfo("src.zip/" + ent.getName(), tree);
                         importsClassInfos.add(list.toArray(new JavaScriptClass[list.size()]));
-                        for (JavaScriptClass cls: list)
+                        for (JavaScriptClass cls : list)
                             allClassInfos.put(cls.NAME, cls);
                     }
                 }
@@ -270,7 +257,7 @@ public class JavaScriptDDGBuilder {
         }
         Logger.info("Done.");
         //
-        for (JavaScriptClass[] classArray: importsClassInfos) {
+        for (JavaScriptClass[] classArray : importsClassInfos) {
             for (JavaScriptClass cls : classArray) {
                 for (JavaScriptMethod mtd : cls.getAllMethods()) {
                     List<MethodDefInfo> list = methodDEFs.get(mtd.NAME);
@@ -295,7 +282,7 @@ public class JavaScriptDDGBuilder {
             ++iteration;
             changed = false;
             int i = 0;
-            for (String imprt: imports) {
+            for (String imprt : imports) {
                 currentFile = "src.zip/" + imprt;
                 JavaScriptDDGBuilder.DefUseVisitor defUse = new JavaScriptDDGBuilder.DefUseVisitor(iteration, importsClassInfos.get(i), dummyDDG, dummyMap);
                 defUse.visit(importsParseTrees.get(i));
@@ -334,7 +321,7 @@ public class JavaScriptDDGBuilder {
      */
     private static int countSlashes(String str) {
         int slashCount = 0;
-        for (char chr: str.toCharArray())
+        for (char chr : str.toCharArray())
             if (chr == '/')
                 ++slashCount;
         return slashCount;
@@ -346,7 +333,7 @@ public class JavaScriptDDGBuilder {
      */
     private static void addDataFlowEdges(ControlFlowGraph cfg, DataDependenceGraph ddg) {
         Set<CFNode> visitedDefs = new LinkedHashSet<>();
-        for (CFNode entry: cfg.getAllMethodEntries()) {
+        for (CFNode entry : cfg.getAllMethodEntries()) {
             visitedDefs.clear();
             CFPathTraversal defTraversal = new CFPathTraversal(cfg, entry);
             while (defTraversal.hasNext()) {
@@ -363,12 +350,12 @@ public class JavaScriptDDGBuilder {
                 if (defNode.getAllDEFs().length == 0)
                     continue;
                 // first add any self-flows of this node
-                for (String flow: defNode.getAllSelfFlows()) {
+                for (String flow : defNode.getAllSelfFlows()) {
                     ddg.addEdge(new Edge<>(defNode, new DDEdge(DDEdge.Type.FLOW, flow), defNode));
                 }
                 // now traverse the CFG for any USEs till a DEF
                 Set<CFNode> visitedUses = new LinkedHashSet<>();
-                for (String def: defNode.getAllDEFs()) {
+                for (String def : defNode.getAllDEFs()) {
                     CFPathTraversal useTraversal = new CFPathTraversal(cfg, defCFNode);
                     visitedUses.clear();
                     CFNode useCFNode = useTraversal.next(); // skip start node
@@ -384,14 +371,14 @@ public class JavaScriptDDGBuilder {
                             useTraversal.continueNextPath(); // no need to continue this path
                         if (!visitedUses.add(useCFNode))
                             useTraversal.continueNextPath(); // no need to continue this path
-                        else
-                        if (useNode.hasUSE(def))
+                        else if (useNode.hasUSE(def))
                             ddg.addEdge(new Edge<>(defNode, new DDEdge(DDEdge.Type.FLOW, def), useNode));
                     }
                 }
             }
         }
     }
+
     /**
      * Visitor class which performs iterative DEF-USE analysis for all program statements.
      */
@@ -732,11 +719,12 @@ public class JavaScriptDDGBuilder {
          **************************************
          **************************************/
 
-        @Override public String visitClassDeclaration(JavaScriptParser.ClassDeclarationContext ctx) {
+        @Override
+        public String visitClassDeclaration(JavaScriptParser.ClassDeclarationContext ctx) {
             //classDeclaration
             //    : Class identifier classTail
             //    ;
-            for (JavaScriptClass cls: classInfos) {
+            for (JavaScriptClass cls : classInfos) {
                 if (cls.NAME.equals(ctx.identifier().Identifier().getText())) {
                     activeClasses.push(cls);
                     visit(ctx.classTail());
@@ -747,8 +735,9 @@ public class JavaScriptDDGBuilder {
             return null;
         }
 
-       //TODO
-        @Override public String visitClassTail(JavaScriptParser.ClassTailContext ctx) {
+        //TODO
+        @Override
+        public String visitClassTail(JavaScriptParser.ClassTailContext ctx) {
             //    : (Extends singleExpression)? '{' classElement* '}'
             //classElement
             //    : (Static | {this.n("static")}? identifier | Async)* (methodDefinition | assignable '=' objectLiteral ';')
@@ -757,17 +746,18 @@ public class JavaScriptDDGBuilder {
             //    ;
             localVars.clear();
             for (JavaScriptParser.ClassElementContext classElement : ctx.classElement()) {
-                if (classElement.methodDefinition()!=null){
-                    methodParams=new JavaScriptField[0];
-                    methodDefInfo=new MethodDefInfo(null,"block","",activeClasses.peek().NAME,null);
+                if (classElement.methodDefinition() != null) {
+                    methodParams = new JavaScriptField[0];
+                    methodDefInfo = new MethodDefInfo(null, "block", "", activeClasses.peek().NAME, null);
                     return null;
                 }
             }
-           return null;
+            return null;
         }
 
 
-        @Override public String visitMethodDefinition(JavaScriptParser.MethodDefinitionContext ctx) {
+        @Override
+        public String visitMethodDefinition(JavaScriptParser.MethodDefinitionContext ctx) {
             //methodDefinition
             //    : '*'? '#'? propertyName '(' formalParameterList? ')' functionBody
             //    | '*'? '#'? getter '(' ')' functionBody
@@ -778,16 +768,16 @@ public class JavaScriptDDGBuilder {
                 entry = new PDNode();
                 entry.setLineOfCode(ctx.getStart().getLine());
                 String args = "";
-                if (ctx.propertyName()!=null){
-                    args=getOriginalCodeText(ctx.formalParameterList());
-                    entry.setCode(ctx.propertyName().getText()+args);
-                    entry.setProperty("name",ctx.propertyName().getText());
-                }else if(ctx.getter()!=null){
+                if (ctx.propertyName() != null) {
+                    args = getOriginalCodeText(ctx.formalParameterList());
+                    entry.setCode(ctx.propertyName().getText() + args);
+                    entry.setProperty("name", ctx.propertyName().getText());
+                } else if (ctx.getter() != null) {
                     entry.setCode(ctx.getter().getText());
-                    entry.setProperty("name",ctx.getter().getText());
-                }else{
-                    args=getOriginalCodeText(ctx.formalParameterList());
-                    entry.setCode(ctx.setter().getText()+args);
+                    entry.setProperty("name", ctx.getter().getText());
+                } else {
+                    args = getOriginalCodeText(ctx.formalParameterList());
+                    entry.setCode(ctx.setter().getText() + args);
                     entry.setProperty("name", ctx.setter().getText());
                 }
                 ddg.addVertex(entry);
@@ -811,7 +801,7 @@ public class JavaScriptDDGBuilder {
                 entry.setProperty("params", methodParams);
                 //
                 // Add initial DEF info: method entry nodes define the input-parameters
-                for (String pid: paramIDs)
+                for (String pid : paramIDs)
                     changed |= entry.addDEF(pid);
             } else {
                 entry = (PDNode) pdNodes.get(ctx);
@@ -819,7 +809,7 @@ public class JavaScriptDDGBuilder {
             }
 
             methodDefInfo = findDefInfo((String) entry.getProperty("name"),
-                    (String) entry.getProperty("type"),	methodParams);
+                    (String) entry.getProperty("type"), methodParams);
             if (methodDefInfo == null) {
                 Logger.error("Method NOT FOUND!");
                 Logger.error("NAME = " + (String) entry.getProperty("name"));
@@ -848,28 +838,43 @@ public class JavaScriptDDGBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitFormalParameterList(JavaScriptParser.FormalParameterListContext ctx) { return visitChildren(ctx); }
+        @Override
+        public String visitFormalParameterList(JavaScriptParser.FormalParameterListContext ctx) {
+            return visitChildren(ctx);
+        }
+
         /**
          * {@inheritDoc}
          *
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitFormalParameterArg(JavaScriptParser.FormalParameterArgContext ctx) { return visitChildren(ctx); }
+        @Override
+        public String visitFormalParameterArg(JavaScriptParser.FormalParameterArgContext ctx) {
+            return visitChildren(ctx);
+        }
+
         /**
          * {@inheritDoc}
          *
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitLastFormalParameterArg(JavaScriptParser.LastFormalParameterArgContext ctx) { return visitChildren(ctx); }
+        @Override
+        public String visitLastFormalParameterArg(JavaScriptParser.LastFormalParameterArgContext ctx) {
+            return visitChildren(ctx);
+        }
+
         /**
          * {@inheritDoc}
          *
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public String visitFunctionBody(JavaScriptParser.FunctionBodyContext ctx) { return visitChildren(ctx); }
+        @Override
+        public String visitFunctionBody(JavaScriptParser.FunctionBodyContext ctx) {
+            return visitChildren(ctx);
+        }
 
 
         /************************************
@@ -879,7 +884,8 @@ public class JavaScriptDDGBuilder {
          ************************************/
 
 
-        @Override public String visitExpressionStatement(JavaScriptParser.ExpressionStatementContext ctx) {
+        @Override
+        public String visitExpressionStatement(JavaScriptParser.ExpressionStatementContext ctx) {
             //expressionStatement
             //    : {this.notOpenBraceAndNotFunction()}? expressionSequence eos
             //    ;
@@ -901,7 +907,8 @@ public class JavaScriptDDGBuilder {
             return null;
         }
 
-        @Override public String visitIfStatement(JavaScriptParser.IfStatementContext ctx) {
+        @Override
+        public String visitIfStatement(JavaScriptParser.IfStatementContext ctx) {
             //
 //            ifStatement
 //            : If '(' expressionSequence ')' statement (Else statement)?
@@ -921,12 +928,13 @@ public class JavaScriptDDGBuilder {
                 analyseDefUse(ifNode, expressionContext);
             }
             //
-            for (JavaScriptParser.StatementContext stmnt: ctx.statement())
+            for (JavaScriptParser.StatementContext stmnt : ctx.statement())
                 visit(stmnt);
             return null;
         }
 
-        @Override public String visitDoStatement(JavaScriptParser.DoStatementContext ctx) {
+        @Override
+        public String visitDoStatement(JavaScriptParser.DoStatementContext ctx) {
             //     : Do statement While '(' expressionSequence ')' eos                                                                       # DoStatement
             visit(ctx.statement());
             //
@@ -945,7 +953,8 @@ public class JavaScriptDDGBuilder {
             return null;
         }
 
-        @Override public String visitWhileStatement(JavaScriptParser.WhileStatementContext ctx) {
+        @Override
+        public String visitWhileStatement(JavaScriptParser.WhileStatementContext ctx) {
             //     | While '(' expressionSequence ')' statement                                                                              # WhileStatement
             PDNode whileNode;
             if (iteration == 1) {
@@ -965,13 +974,14 @@ public class JavaScriptDDGBuilder {
             return visit(ctx.statement());
         }
 
-        @Override public String visitForStatement(JavaScriptParser.ForStatementContext ctx) {
+        @Override
+        public String visitForStatement(JavaScriptParser.ForStatementContext ctx) {
             //     | For '(' (expressionSequence | variableDeclarationList)? ';' expressionSequence? ';' expressionSequence? ')' statement   # ForStatement
             int entrySize = localVars.size();
             //  First, we should check type of for-loop ...
             // It's a traditional for-loop:
-            int index=0;
-            if(ctx.expressionSequence().size()==3){
+            int index = 0;
+            if (ctx.expressionSequence().size() == 3) {
                 ++index;
                 PDNode forInit;
                 if (iteration == 1) {
@@ -984,11 +994,11 @@ public class JavaScriptDDGBuilder {
                     forInit = (PDNode) pdNodes.get(ctx.expressionSequence(0));
                 //
                 // Now analyse DEF-USE by visiting the expression ...
-                if (ctx.variableDeclarationList()!= null)
+                if (ctx.variableDeclarationList() != null)
                     analyseDefUse(forInit, ctx.variableDeclarationList());
-            }else{
+            } else {
                 //variableDeclarationList不为空或为空
-                if (ctx.variableDeclarationList()!=null){
+                if (ctx.variableDeclarationList() != null) {
                     PDNode forInit;
                     if (iteration == 1) {
                         forInit = new PDNode();
@@ -1000,7 +1010,7 @@ public class JavaScriptDDGBuilder {
                         forInit = (PDNode) pdNodes.get(ctx.variableDeclarationList());
                     //
                     // Now analyse DEF-USE by visiting the expression ...
-                    if (ctx.variableDeclarationList()!= null)
+                    if (ctx.variableDeclarationList() != null)
                         analyseDefUse(forInit, ctx.variableDeclarationList());
                 }
             }
@@ -1020,19 +1030,19 @@ public class JavaScriptDDGBuilder {
                 analyseDefUse(forExpr, ctx.expressionSequence(index));
             }
             // for-update
-            if (ctx.expressionSequence(index+1) != null) { // non-empty for-update
+            if (ctx.expressionSequence(index + 1) != null) { // non-empty for-update
                 PDNode forUpdate;
                 if (iteration == 1) {
                     forUpdate = new PDNode();
-                    forUpdate.setCode(getOriginalCodeText(ctx.expressionSequence(index+1)));
-                    forUpdate.setLineOfCode(ctx.expressionSequence(index+1).getStart().getLine());
+                    forUpdate.setCode(getOriginalCodeText(ctx.expressionSequence(index + 1)));
+                    forUpdate.setLineOfCode(ctx.expressionSequence(index + 1).getStart().getLine());
                     ddg.addVertex(forUpdate);
-                    pdNodes.put(ctx.expressionSequence(index+1), forUpdate);
+                    pdNodes.put(ctx.expressionSequence(index + 1), forUpdate);
                 } else
-                    forUpdate = (PDNode) pdNodes.get(ctx.expressionSequence(index+1));
+                    forUpdate = (PDNode) pdNodes.get(ctx.expressionSequence(index + 1));
                 //
                 // Now analyse DEF-USE by visiting the expression ...
-                analyseDefUse(forUpdate, ctx.expressionSequence(index+1));
+                analyseDefUse(forUpdate, ctx.expressionSequence(index + 1));
             }
             // visit for loop body
             String visit = visit(ctx.statement());
@@ -1042,7 +1052,8 @@ public class JavaScriptDDGBuilder {
             return visit;
         }
 
-        @Override public String visitForInStatement(JavaScriptParser.ForInStatementContext ctx) {
+        @Override
+        public String visitForInStatement(JavaScriptParser.ForInStatementContext ctx) {
             //    | For '(' (singleExpression | variableDeclarationList) In expressionSequence ')' statement                                # ForInStatement
             int entrySize = localVars.size();
             PDNode forExpr;
@@ -1057,11 +1068,11 @@ public class JavaScriptDDGBuilder {
             //
             // Now analyse DEF-USE by visiting the expression ...
             String type = null;
-            String var=null;
-            if (ctx.singleExpression()!=null){
-                var=getOriginalCodeText(ctx.singleExpression());
-            }else if(ctx.variableDeclarationList()!=null){
-                var=getOriginalCodeText(ctx.variableDeclarationList());
+            String var = null;
+            if (ctx.singleExpression() != null) {
+                var = getOriginalCodeText(ctx.singleExpression());
+            } else if (ctx.variableDeclarationList() != null) {
+                var = getOriginalCodeText(ctx.variableDeclarationList());
             }
             localVars.add(new JavaScriptField(null, false, type, var));
             changed |= forExpr.addDEF(var);
@@ -1074,7 +1085,8 @@ public class JavaScriptDDGBuilder {
             return visit;
         }
 
-        @Override public String visitContinueStatement(JavaScriptParser.ContinueStatementContext ctx) {
+        @Override
+        public String visitContinueStatement(JavaScriptParser.ContinueStatementContext ctx) {
             //continueStatement
             //    : Continue ({this.notLineTerminator()}? identifier)? eos
             //    ;
@@ -1094,7 +1106,8 @@ public class JavaScriptDDGBuilder {
             return null;
         }
 
-        @Override public String visitBreakStatement(JavaScriptParser.BreakStatementContext ctx) {
+        @Override
+        public String visitBreakStatement(JavaScriptParser.BreakStatementContext ctx) {
             //breakStatement
             //    : Break ({this.notLineTerminator()}? identifier)? eos
             //    ;
@@ -1114,7 +1127,8 @@ public class JavaScriptDDGBuilder {
             return null;
         }
 
-        @Override public String visitReturnStatement(JavaScriptParser.ReturnStatementContext ctx) {
+        @Override
+        public String visitReturnStatement(JavaScriptParser.ReturnStatementContext ctx) {
             //returnStatement
             //    : Return ({this.notLineTerminator()}? expressionSequence)? eos
             //    ;
@@ -1134,8 +1148,9 @@ public class JavaScriptDDGBuilder {
             return null;
         }
 
-        @Override public String visitYieldStatement(JavaScriptParser.YieldStatementContext ctx) {
-           //yieldStatement
+        @Override
+        public String visitYieldStatement(JavaScriptParser.YieldStatementContext ctx) {
+            //yieldStatement
             //    : Yield ({this.notLineTerminator()}? expressionSequence)? eos
             //    ;
             PDNode ret;
@@ -1154,7 +1169,8 @@ public class JavaScriptDDGBuilder {
             return null;
         }
 
-        @Override public String visitWithStatement(JavaScriptParser.WithStatementContext ctx) {
+        @Override
+        public String visitWithStatement(JavaScriptParser.WithStatementContext ctx) {
             //withStatement
             //    : With '(' expressionSequence ')' statement
             //    ;
@@ -1174,7 +1190,8 @@ public class JavaScriptDDGBuilder {
             return null;
         }
 
-        @Override public String visitSwitchStatement(JavaScriptParser.SwitchStatementContext ctx) {
+        @Override
+        public String visitSwitchStatement(JavaScriptParser.SwitchStatementContext ctx) {
             //  switchStatement
             //    : Switch '(' expressionSequence ')' caseBlock
             //    ;
@@ -1210,14 +1227,15 @@ public class JavaScriptDDGBuilder {
                     visit(caseContext);
                 }
             }
-            if (ctx.caseBlock().defaultClause()!=null){
+            if (ctx.caseBlock().defaultClause() != null) {
                 visit(ctx.caseBlock().defaultClause());
             }
             return null;
         }
 
 
-        @Override public String visitThrowStatement(JavaScriptParser.ThrowStatementContext ctx) {
+        @Override
+        public String visitThrowStatement(JavaScriptParser.ThrowStatementContext ctx) {
             //     : Throw {this.notLineTerminator()}? expressionSequence eos
             PDNode throwNode;
             if (iteration == 1) {
@@ -1234,7 +1252,8 @@ public class JavaScriptDDGBuilder {
             return null;
         }
 
-        @Override public String visitTryStatement(JavaScriptParser.TryStatementContext ctx) {
+        @Override
+        public String visitTryStatement(JavaScriptParser.TryStatementContext ctx) {
             //tryStatement
             //    : Try block (catchProduction finallyProduction? | finallyProduction)
             //    ;
@@ -1244,7 +1263,7 @@ public class JavaScriptDDGBuilder {
             //
             // But the 'catchClause' define a local exception variable;
             // so we need to visit any available catch clauses
-            if (ctx.catchProduction() != null ) {
+            if (ctx.catchProduction() != null) {
                 //catchProduction
                 //    : Catch ('(' assignable? ')')? block
                 JavaScriptParser.CatchProductionContext cx = ctx.catchProduction();
@@ -1252,7 +1271,7 @@ public class JavaScriptDDGBuilder {
                 if (iteration == 1) {
                     catchNode = new PDNode();
                     catchNode.setLineOfCode(cx.getStart().getLine());
-                    catchNode.setCode("catch (" + getOriginalCodeText(cx.assignable()) +  ")");
+                    catchNode.setCode("catch (" + getOriginalCodeText(cx.assignable()) + ")");
                     ddg.addVertex(catchNode);
                     pdNodes.put(cx, catchNode);
                 } else
@@ -1276,13 +1295,11 @@ public class JavaScriptDDGBuilder {
         }
 
 
-
         /***********************************************
          ***********************************************
          ***       NON-DETERMINANT EXPRESSIONS       ***
          ***********************************************
          ***********************************************/
-
 
 
         /**
@@ -1296,7 +1313,7 @@ public class JavaScriptDDGBuilder {
          */
         private boolean isUsableExpression(String expr) {
             // must not be a literal or of type 'class'.
-            if(expr==null||expr==""){
+            if (expr == null || expr == "") {
                 return false;
             }
             if (expr.startsWith("$"))
@@ -1408,8 +1425,8 @@ class MethodDefInfo {
         if (RET_TYPE == null)
             return true;
         // If not, then try to guess by method-name ...
-        String[] prefixes = { "set", "put", "add", "insert", "push", "append" };
-        for (String pre: prefixes)
+        String[] prefixes = {"set", "put", "add", "insert", "push", "append"};
+        for (String pre : prefixes)
             if (NAME.toLowerCase().startsWith(pre))
                 return true;
         return false;

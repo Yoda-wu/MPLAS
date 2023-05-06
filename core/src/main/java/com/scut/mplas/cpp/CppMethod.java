@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 /**
- *  A simple structure for storing key information about a Cpp Function.
+ * A simple structure for storing key information about a Cpp Function.
  */
 public class CppMethod {
     public final String NAME;
@@ -14,14 +14,13 @@ public class CppMethod {
     public final int LINE_OF_CODE;
     public final String[] ARG_TYPES;
 
-    public CppMethod(String specifier,String name,String namespace,String retType,String[] argTypes,int line)
-    {
-        SPECIFIER=specifier;
-        NAME=name;
-        NAMESPACE=namespace;
-        RET_TYPE=retType;
-        ARG_TYPES=argTypes;
-        LINE_OF_CODE=line;
+    public CppMethod(String specifier, String name, String namespace, String retType, String[] argTypes, int line) {
+        SPECIFIER = specifier;
+        NAME = name;
+        NAMESPACE = namespace;
+        RET_TYPE = retType;
+        ARG_TYPES = argTypes;
+        LINE_OF_CODE = line;
     }
 
     @Override

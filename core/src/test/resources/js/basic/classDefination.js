@@ -2,9 +2,11 @@ class Runoob {
     constructor(name) {
         this.sitename = name;
     }
+
     get s_name() {
         return this.sitename;
     }
+
     set s_name(x) {
         this.sitename = x;
     }

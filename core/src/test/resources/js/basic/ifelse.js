@@ -1,6 +1,6 @@
-var i=10
-if(i%2==0){
+var i = 10
+if (i % 2 == 0) {
     console.log('hello world')
-}else{
+} else {
     console.log('world hello')
 }

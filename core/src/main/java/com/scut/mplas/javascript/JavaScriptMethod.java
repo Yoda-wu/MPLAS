@@ -1,7 +1,5 @@
 package com.scut.mplas.javascript;
 
-import com.scut.mplas.java.JavaMethod;
-
 import java.util.Arrays;
 import java.util.Objects;
 

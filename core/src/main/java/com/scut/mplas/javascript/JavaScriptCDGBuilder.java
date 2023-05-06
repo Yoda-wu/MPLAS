@@ -3,9 +3,6 @@ package com.scut.mplas.javascript;
 import com.scut.mplas.graphs.pdg.CDEdge;
 import com.scut.mplas.graphs.pdg.ControlDependenceGraph;
 import com.scut.mplas.graphs.pdg.PDNode;
-import com.scut.mplas.java.parser.JavaBaseVisitor;
-import com.scut.mplas.java.parser.JavaLexer;
-import com.scut.mplas.java.parser.JavaParser;
 import com.scut.mplas.javascript.parser.JavaScriptBaseVisitor;
 import com.scut.mplas.javascript.parser.JavaScriptLexer;
 import com.scut.mplas.javascript.parser.JavaScriptParser;
@@ -88,9 +85,13 @@ public class JavaScriptCDGBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public Void visitExpressionStatement(JavaScriptParser.ExpressionStatementContext ctx) { return visitChildren(ctx); }
+        @Override
+        public Void visitExpressionStatement(JavaScriptParser.ExpressionStatementContext ctx) {
+            return visitChildren(ctx);
+        }
 
-        @Override public Void visitIfStatement(JavaScriptParser.IfStatementContext ctx) {
+        @Override
+        public Void visitIfStatement(JavaScriptParser.IfStatementContext ctx) {
             //    : If '(' expressionSequence ')' statement (Else statement)?
             PDNode ifNode = new PDNode();
             ifNode.setLineOfCode(ctx.getStart().getLine());
@@ -132,7 +133,8 @@ public class JavaScriptCDGBuilder {
             return null;
         }
 
-        @Override public Void visitDoStatement(JavaScriptParser.DoStatementContext ctx) {
+        @Override
+        public Void visitDoStatement(JavaScriptParser.DoStatementContext ctx) {
             // : Do statement While '(' expressionSequence ')' eos
 // 'do' statement 'while' parExpression ';'
             PDNode doRegion = new PDNode();
@@ -155,7 +157,8 @@ public class JavaScriptCDGBuilder {
             return null;
         }
 
-        @Override public Void visitWhileStatement(JavaScriptParser.WhileStatementContext ctx) {
+        @Override
+        public Void visitWhileStatement(JavaScriptParser.WhileStatementContext ctx) {
             //    | While '(' expressionSequence ')' statement                                                                              # WhileStatement
             // 'while' parExpression statement
             PDNode whileNode = new PDNode();
@@ -175,101 +178,79 @@ public class JavaScriptCDGBuilder {
             return null;
         }
 
-        @Override public Void visitForStatement(JavaScriptParser.ForStatementContext ctx) {
+        @Override
+        public Void visitForStatement(JavaScriptParser.ForStatementContext ctx) {
             //    | For '(' (expressionSequence | variableDeclarationList)? ';' expressionSequence? ';' expressionSequence? ')' statement   # ForStatement
             //  First, we should check type of for-loop ...
-                // It's a traditional for-loop:
-                //   forInit? ';' expression? ';' forUpdate?
-                PDNode forInit;
-                PDNode forExpr, forUpdate;
-                if (ctx.expressionSequence().size()==3){
-                    forInit = new PDNode();
-                    forInit.setLineOfCode(ctx.expressionSequence(0).getStart().getLine());
-                    forInit.setCode(getOriginalCodeText(ctx.expressionSequence(0)));
-                    addNodeEdge(forInit);
-                }
-                if (ctx.variableDeclarationList()!=null&&!ctx.variableDeclarationList().isEmpty()){
-                    forInit = new PDNode();
-                    forInit.setLineOfCode(ctx.variableDeclarationList().getStart().getLine());
-                    forInit.setCode(getOriginalCodeText(ctx.variableDeclarationList()));
-                    addNodeEdge(forInit);
-                }
-                int updateIndex=0;
-                if (ctx.expressionSequence().size()==3){
-                    updateIndex++;
-                }
-                int forExprLine;
-                String forExprCode;
-                if (ctx.expressionSequence(updateIndex) == null) { // empty for-loop-predicate
-                    forExprCode = ";";
-                    forExprLine = ctx.getStart().getLine();
-                } else {
-                    forExprCode = getOriginalCodeText(ctx.expressionSequence(updateIndex));
-                    forExprLine = ctx.expressionSequence(updateIndex).getStart().getLine();
-                }
-                forExpr = new PDNode();
-                forExpr.setLineOfCode(forExprLine);
-                forExpr.setCode("for (" + forExprCode + ")");
-                addNodeEdge(forExpr);
-                //
-                PDNode loopRegion = new PDNode();
-                loopRegion.setLineOfCode(0);
-                loopRegion.setCode("LOOP");
-                cdg.addVertex(loopRegion);
-                cdg.addEdge(new Edge<>(forExpr, new CDEdge(CDEdge.Type.TRUE), loopRegion));
-                //
-                pushLoopBlockDep(loopRegion);
-                visit(ctx.statement());
-                if (ctx.expressionSequence(updateIndex+1) != null) { // non-empty for-update
-                    forUpdate = new PDNode();
-                    forUpdate.setLineOfCode(ctx.expressionSequence(updateIndex+1).getStart().getLine());
-                    forUpdate.setCode(getOriginalCodeText(ctx.expressionSequence(updateIndex+1)));
-                    // we don't use 'addNodeEdge(forUpdate)' because the behavior of for-update
-                    // step is different from other statements with regards to break/continue.
-                    cdg.addVertex(forUpdate);
-                    cdg.addEdge(new Edge<>(ctrlDeps.peek(), new CDEdge(CDEdge.Type.EPSILON), forUpdate));
+            // It's a traditional for-loop:
+            //   forInit? ';' expression? ';' forUpdate?
+            PDNode forInit;
+            PDNode forExpr, forUpdate;
+            if (ctx.expressionSequence().size() == 3) {
+                forInit = new PDNode();
+                forInit.setLineOfCode(ctx.expressionSequence(0).getStart().getLine());
+                forInit.setCode(getOriginalCodeText(ctx.expressionSequence(0)));
+                addNodeEdge(forInit);
+            }
+            if (ctx.variableDeclarationList() != null && !ctx.variableDeclarationList().isEmpty()) {
+                forInit = new PDNode();
+                forInit.setLineOfCode(ctx.variableDeclarationList().getStart().getLine());
+                forInit.setCode(getOriginalCodeText(ctx.variableDeclarationList()));
+                addNodeEdge(forInit);
+            }
+            int updateIndex = 0;
+            if (ctx.expressionSequence().size() == 3) {
+                updateIndex++;
+            }
+            int forExprLine;
+            String forExprCode;
+            if (ctx.expressionSequence(updateIndex) == null) { // empty for-loop-predicate
+                forExprCode = ";";
+                forExprLine = ctx.getStart().getLine();
+            } else {
+                forExprCode = getOriginalCodeText(ctx.expressionSequence(updateIndex));
+                forExprLine = ctx.expressionSequence(updateIndex).getStart().getLine();
+            }
+            forExpr = new PDNode();
+            forExpr.setLineOfCode(forExprLine);
+            forExpr.setCode("for (" + forExprCode + ")");
+            addNodeEdge(forExpr);
+            //
+            PDNode loopRegion = new PDNode();
+            loopRegion.setLineOfCode(0);
+            loopRegion.setCode("LOOP");
+            cdg.addVertex(loopRegion);
+            cdg.addEdge(new Edge<>(forExpr, new CDEdge(CDEdge.Type.TRUE), loopRegion));
+            //
+            pushLoopBlockDep(loopRegion);
+            visit(ctx.statement());
+            if (ctx.expressionSequence(updateIndex + 1) != null) { // non-empty for-update
+                forUpdate = new PDNode();
+                forUpdate.setLineOfCode(ctx.expressionSequence(updateIndex + 1).getStart().getLine());
+                forUpdate.setCode(getOriginalCodeText(ctx.expressionSequence(updateIndex + 1)));
+                // we don't use 'addNodeEdge(forUpdate)' because the behavior of for-update
+                // step is different from other statements with regards to break/continue.
+                cdg.addVertex(forUpdate);
+                cdg.addEdge(new Edge<>(ctrlDeps.peek(), new CDEdge(CDEdge.Type.EPSILON), forUpdate));
                 popLoopBlockDep(loopRegion);
             }
             return null;
         }
 
-        @Override public Void visitForInStatement(JavaScriptParser.ForInStatementContext ctx) {
-             //   | For '(' (singleExpression | variableDeclarationList) In expressionSequence ')' statement                                # ForInStatement
+        @Override
+        public Void visitForInStatement(JavaScriptParser.ForInStatementContext ctx) {
+            //   | For '(' (singleExpression | variableDeclarationList) In expressionSequence ')' statement                                # ForInStatement
 //  First, we should check type of for-loop ...
-             // This is a for-each loop;
-             //   enhancedForControl:
-             //     variableModifier* typeType variableDeclaratorId ':' expression
-             PDNode forExpr = new PDNode();
-             if (ctx.singleExpression()!=null&&!ctx.singleExpression().isEmpty()){
-                 forExpr.setLineOfCode(ctx.singleExpression().getStart().getLine());
-                 forExpr.setCode("for (" + getOriginalCodeText(ctx.singleExpression())+ctx.In().getText()+getOriginalCodeText(ctx.expressionSequence()) + ")");
-             }else{
-                 forExpr.setLineOfCode(ctx.variableDeclarationList().getStart().getLine());
-                 forExpr.setCode("for (" + getOriginalCodeText(ctx.variableDeclarationList())+ctx.In().getText()+getOriginalCodeText(ctx.expressionSequence()) + ")");
-             }
-             addNodeEdge(forExpr);
-             //
-             PDNode loopRegion = new PDNode();
-             loopRegion.setLineOfCode(0);
-             loopRegion.setCode("LOOP");
-             cdg.addVertex(loopRegion);
-             cdg.addEdge(new Edge<>(forExpr, new CDEdge(CDEdge.Type.TRUE), loopRegion));
-             //
-             pushLoopBlockDep(loopRegion);
-             visit(ctx.statement());
-             popLoopBlockDep(loopRegion);
-            return null;
-        }
-
-        @Override public Void visitForOfStatement(JavaScriptParser.ForOfStatementContext ctx) {
-              //  | For Await? '(' (singleExpression | variableDeclarationList) identifier{this.p("of")}? expressionSequence ')' statement  # ForOfStatement
+            // This is a for-each loop;
+            //   enhancedForControl:
+            //     variableModifier* typeType variableDeclaratorId ':' expression
             PDNode forExpr = new PDNode();
-            if (ctx.singleExpression()!=null&&!ctx.singleExpression().isEmpty()){
+            if (ctx.singleExpression() != null && !ctx.singleExpression().isEmpty()) {
                 forExpr.setLineOfCode(ctx.singleExpression().getStart().getLine());
-                forExpr.setCode("for (" + getOriginalCodeText(ctx.singleExpression())+getOriginalCodeText(ctx.identifier())+getOriginalCodeText(ctx.expressionSequence()) + ")");
-            }else{
+                forExpr.setCode("for (" + getOriginalCodeText(ctx.singleExpression()) + ctx.In().getText() + getOriginalCodeText(ctx.expressionSequence()) + ")");
+            } else {
                 forExpr.setLineOfCode(ctx.variableDeclarationList().getStart().getLine());
-                forExpr.setCode("for (" + getOriginalCodeText(ctx.variableDeclarationList())+getOriginalCodeText(ctx.identifier())+getOriginalCodeText(ctx.expressionSequence()) + ")");
+                forExpr.setCode("for (" + getOriginalCodeText(ctx.variableDeclarationList()) + ctx.In().getText() + getOriginalCodeText(ctx.expressionSequence()) + ")");
             }
             addNodeEdge(forExpr);
             //
@@ -284,13 +265,40 @@ public class JavaScriptCDGBuilder {
             popLoopBlockDep(loopRegion);
             return null;
         }
+
+        @Override
+        public Void visitForOfStatement(JavaScriptParser.ForOfStatementContext ctx) {
+            //  | For Await? '(' (singleExpression | variableDeclarationList) identifier{this.p("of")}? expressionSequence ')' statement  # ForOfStatement
+            PDNode forExpr = new PDNode();
+            if (ctx.singleExpression() != null && !ctx.singleExpression().isEmpty()) {
+                forExpr.setLineOfCode(ctx.singleExpression().getStart().getLine());
+                forExpr.setCode("for (" + getOriginalCodeText(ctx.singleExpression()) + getOriginalCodeText(ctx.identifier()) + getOriginalCodeText(ctx.expressionSequence()) + ")");
+            } else {
+                forExpr.setLineOfCode(ctx.variableDeclarationList().getStart().getLine());
+                forExpr.setCode("for (" + getOriginalCodeText(ctx.variableDeclarationList()) + getOriginalCodeText(ctx.identifier()) + getOriginalCodeText(ctx.expressionSequence()) + ")");
+            }
+            addNodeEdge(forExpr);
+            //
+            PDNode loopRegion = new PDNode();
+            loopRegion.setLineOfCode(0);
+            loopRegion.setCode("LOOP");
+            cdg.addVertex(loopRegion);
+            cdg.addEdge(new Edge<>(forExpr, new CDEdge(CDEdge.Type.TRUE), loopRegion));
+            //
+            pushLoopBlockDep(loopRegion);
+            visit(ctx.statement());
+            popLoopBlockDep(loopRegion);
+            return null;
+        }
+
         /**
          * {@inheritDoc}
          *
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public Void visitVarModifier(JavaScriptParser.VarModifierContext ctx) {
+        @Override
+        public Void visitVarModifier(JavaScriptParser.VarModifierContext ctx) {
             return visitChildren(ctx);
         }
 
@@ -358,7 +366,8 @@ public class JavaScriptCDGBuilder {
             return visitChildren(ctx);
         }
 
-        @Override public Void visitYieldStatement(JavaScriptParser.YieldStatementContext ctx) {
+        @Override
+        public Void visitYieldStatement(JavaScriptParser.YieldStatementContext ctx) {
             //       : Yield ({this.notLineTerminator()}? expressionSequence)? eos
             PDNode ret = new PDNode();
             ret.setLineOfCode(ctx.getStart().getLine());
@@ -377,7 +386,8 @@ public class JavaScriptCDGBuilder {
             return visitChildren(ctx);
         }
 
-        @Override public Void visitWithStatement(JavaScriptParser.WithStatementContext ctx) {
+        @Override
+        public Void visitWithStatement(JavaScriptParser.WithStatementContext ctx) {
             //    : With '(' expressionSequence ')' statement
             PDNode ret = new PDNode();
             ret.setLineOfCode(ctx.getStart().getLine());
@@ -396,7 +406,8 @@ public class JavaScriptCDGBuilder {
             return visitChildren(ctx);
         }
 
-        @Override public Void visitSwitchStatement(JavaScriptParser.SwitchStatementContext ctx) {
+        @Override
+        public Void visitSwitchStatement(JavaScriptParser.SwitchStatementContext ctx) {
             //     : Switch '(' expressionSequence ')' caseBlock
             PDNode switchNode = new PDNode();
             switchNode.setLineOfCode(ctx.getStart().getLine());
@@ -409,78 +420,79 @@ public class JavaScriptCDGBuilder {
             return null;
         }
 
-        @Override public Void visitCaseBlock(JavaScriptParser.CaseBlockContext ctx) {
+        @Override
+        public Void visitCaseBlock(JavaScriptParser.CaseBlockContext ctx) {
             //caseBlock
             //    : '{' caseClauses? (defaultClause caseClauses?)? '}'
-            if (ctx.caseClauses()==null||ctx.caseClauses().size()==0){
-                PDNode defaultNode=new PDNode();
+            if (ctx.caseClauses() == null || ctx.caseClauses().size() == 0) {
+                PDNode defaultNode = new PDNode();
                 defaultNode.setLineOfCode(ctx.defaultClause().getStart().getLine());
                 defaultNode.setCode(getOriginalCodeText(ctx.defaultClause()));
                 addNodeEdge(defaultNode);
-                if (ctx.defaultClause().statementList()!=null){
+                if (ctx.defaultClause().statementList() != null) {
                     negDeps.push(defaultNode);
                     visit(ctx.defaultClause().statementList());
                     negDeps.pop();
                 }
                 return null;
             }
-            PDNode lastCase=new PDNode();
+            PDNode lastCase = new PDNode();
             lastCase.setLineOfCode(ctx.caseClauses(0).caseClause(0).getStart().getLine());
             lastCase.setCode(getOriginalCodeText(ctx.caseClauses(0).caseClause(0)));
             addNodeEdge(lastCase);
-            PDNode thenRegion=null;
-            if (ctx.caseClauses(0).caseClause(0).statementList()!=null){
-                thenRegion=new PDNode();
+            PDNode thenRegion = null;
+            if (ctx.caseClauses(0).caseClause(0).statementList() != null) {
+                thenRegion = new PDNode();
                 thenRegion.setLineOfCode(0);
                 thenRegion.setCode("THEN");
                 cdg.addVertex(thenRegion);
-                cdg.addEdge(new Edge<>(lastCase,new CDEdge(CDEdge.Type.TRUE),thenRegion));
-                for(int i=1;i<ctx.caseClauses(0).caseClause().size();i++){
-                    PDNode nextCase=new PDNode();
+                cdg.addEdge(new Edge<>(lastCase, new CDEdge(CDEdge.Type.TRUE), thenRegion));
+                for (int i = 1; i < ctx.caseClauses(0).caseClause().size(); i++) {
+                    PDNode nextCase = new PDNode();
                     nextCase.setLineOfCode(ctx.caseClauses(0).caseClause(i).getStart().getLine());
                     nextCase.setCode(getOriginalCodeText(ctx.caseClauses(0).caseClause(i)));
                     cdg.addVertex(nextCase);
-                    cdg.addEdge(new Edge<>(lastCase,new CDEdge(CDEdge.Type.FALSE),nextCase));
-                    cdg.addEdge(new Edge<>(nextCase,new CDEdge(CDEdge.Type.TRUE),thenRegion));
+                    cdg.addEdge(new Edge<>(lastCase, new CDEdge(CDEdge.Type.FALSE), nextCase));
+                    cdg.addEdge(new Edge<>(nextCase, new CDEdge(CDEdge.Type.TRUE), thenRegion));
                 }
-                for(int i=1;i<ctx.caseClauses().size();i++){
+                for (int i = 1; i < ctx.caseClauses().size(); i++) {
                     for (JavaScriptParser.CaseClauseContext caseClauseContext : ctx.caseClauses(i).caseClause()) {
-                        PDNode nextCase=new PDNode();
+                        PDNode nextCase = new PDNode();
                         nextCase.setLineOfCode(caseClauseContext.getStart().getLine());
                         nextCase.setCode(getOriginalCodeText(caseClauseContext));
                         cdg.addVertex(nextCase);
-                        cdg.addEdge(new Edge<>(lastCase,new CDEdge(CDEdge.Type.FALSE),nextCase));
-                        cdg.addEdge(new Edge<>(nextCase,new CDEdge(CDEdge.Type.TRUE),thenRegion));
+                        cdg.addEdge(new Edge<>(lastCase, new CDEdge(CDEdge.Type.FALSE), nextCase));
+                        cdg.addEdge(new Edge<>(nextCase, new CDEdge(CDEdge.Type.TRUE), thenRegion));
                     }
                 }
-                if (ctx.defaultClause()!=null){
-                    PDNode nextCase=new PDNode();
+                if (ctx.defaultClause() != null) {
+                    PDNode nextCase = new PDNode();
                     nextCase.setLineOfCode(ctx.defaultClause().getStart().getLine());
                     nextCase.setCode(getOriginalCodeText(ctx.defaultClause()));
                     cdg.addVertex(nextCase);
-                    cdg.addEdge(new Edge<>(lastCase,new CDEdge(CDEdge.Type.FALSE),nextCase));
-                    cdg.addEdge(new Edge<>(nextCase,new CDEdge(CDEdge.Type.TRUE),thenRegion));
+                    cdg.addEdge(new Edge<>(lastCase, new CDEdge(CDEdge.Type.FALSE), nextCase));
+                    cdg.addEdge(new Edge<>(nextCase, new CDEdge(CDEdge.Type.TRUE), thenRegion));
                 }
-                PDNode elseRegion=new PDNode();
+                PDNode elseRegion = new PDNode();
                 elseRegion.setLineOfCode(0);
                 elseRegion.setCode("ELSE");
                 cdg.addVertex(elseRegion);
                 pushCtrlDep(thenRegion);
                 negDeps.push(elseRegion);
-                for(int i=0;i<ctx.caseClauses().size();i++){
-                    for(int j=0;j<ctx.caseClauses(i).caseClause().size();j++){
+                for (int i = 0; i < ctx.caseClauses().size(); i++) {
+                    for (int j = 0; j < ctx.caseClauses(i).caseClause().size(); j++) {
                         visit(ctx.caseClauses(i).caseClause(j).statementList());
                     }
                 }
-                if (ctx.defaultClause()!=null){
+                if (ctx.defaultClause() != null) {
                     visit(ctx.defaultClause().statementList());
                 }
                 negDeps.pop();
                 popCtrlDep(thenRegion);
-                if (buildRegion){
+                if (buildRegion) {
                     // there was a 'break', so we need to keep the ELSE region
-                    cdg.addEdge(new Edge<>(lastCase,new CDEdge(CDEdge.Type.FALSE),elseRegion));
-                }else if(cdg.getOutDegree(elseRegion)==0){
+                    cdg.addEdge(new Edge<>(lastCase, new CDEdge(CDEdge.Type.FALSE), elseRegion));
+                } else if (cdg.getOutDegree(elseRegion) == 0) {
                     // the ELSE region is not needed, so we remove it
                     cdg.removeVertex(elseRegion);
                 }
@@ -488,7 +500,8 @@ public class JavaScriptCDGBuilder {
             return null;
         }
 
-        @Override public Void visitLabelledStatement(JavaScriptParser.LabelledStatementContext ctx) {
+        @Override
+        public Void visitLabelledStatement(JavaScriptParser.LabelledStatementContext ctx) {
             //    : identifier ':' statement
             PDNode labelRegion = new PDNode();
             labelRegion.setLineOfCode(ctx.getStart().getLine());
@@ -500,7 +513,8 @@ public class JavaScriptCDGBuilder {
             return null;
         }
 
-        @Override public Void visitThrowStatement(JavaScriptParser.ThrowStatementContext ctx) {
+        @Override
+        public Void visitThrowStatement(JavaScriptParser.ThrowStatementContext ctx) {
             //    : Throw {this.notLineTerminator()}? expressionSequence eos
             PDNode thr = new PDNode();
             thr.setLineOfCode(ctx.getStart().getLine());
@@ -520,7 +534,8 @@ public class JavaScriptCDGBuilder {
             return null;
         }
 
-        @Override public Void visitTryStatement(JavaScriptParser.TryStatementContext ctx) {
+        @Override
+        public Void visitTryStatement(JavaScriptParser.TryStatementContext ctx) {
             //    : Try block (catchProduction finallyProduction? | finallyProduction)
             PDNode tryRegion = new PDNode();
             tryRegion.setLineOfCode(ctx.getStart().getLine());
@@ -533,11 +548,11 @@ public class JavaScriptCDGBuilder {
             // visit any available catch clauses
             if (ctx.catchProduction() != null) {
                 // 'catch' '(' variableModifier* catchType Identifier ')' block
-                PDNode catchNode=new PDNode();
+                PDNode catchNode = new PDNode();
                 catchNode.setLineOfCode(ctx.catchProduction().getStart().getLine());
-                catchNode.setCode("catch("+getOriginalCodeText(ctx.catchProduction().assignable())+")");
+                catchNode.setCode("catch(" + getOriginalCodeText(ctx.catchProduction().assignable()) + ")");
                 cdg.addVertex(catchNode);
-                cdg.addEdge(new Edge<>(tryRegion,new CDEdge(CDEdge.Type.THROWS),catchNode));
+                cdg.addEdge(new Edge<>(tryRegion, new CDEdge(CDEdge.Type.THROWS), catchNode));
                 pushCtrlDep(catchNode);
                 visit(ctx.catchProduction().block());
                 popCtrlDep(catchNode);
@@ -565,16 +580,20 @@ public class JavaScriptCDGBuilder {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public Void visitDebuggerStatement(JavaScriptParser.DebuggerStatementContext ctx) { return visitChildren(ctx); }
+        @Override
+        public Void visitDebuggerStatement(JavaScriptParser.DebuggerStatementContext ctx) {
+            return visitChildren(ctx);
+        }
 
-        @Override public Void visitFunctionDeclaration(JavaScriptParser.FunctionDeclarationContext ctx) {
+        @Override
+        public Void visitFunctionDeclaration(JavaScriptParser.FunctionDeclarationContext ctx) {
             //    : Async? Function_ '*'? identifier '(' formalParameterList? ')' functionBody
             init();
             //
             PDNode entry = new PDNode();
             entry.setLineOfCode(ctx.getStart().getLine());
             String args = getOriginalCodeText(ctx.formalParameterList());
-            entry.setCode( ctx.identifier().Identifier() + args);
+            entry.setCode(ctx.identifier().Identifier() + args);
             cdg.addVertex(entry);
             //
             pushCtrlDep(entry);
@@ -588,75 +607,85 @@ public class JavaScriptCDGBuilder {
             cdg.addEdge(new Edge<>(entry, new CDEdge(CDEdge.Type.EPSILON), exit));
             return null;
         }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public Void visitClassDeclaration(JavaScriptParser.ClassDeclarationContext ctx) { return visitChildren(ctx); }
-        /**
-         * {@inheritDoc}
-         *
-         * <p>The default implementation returns the result of calling
-         * {@link #visitChildren} on {@code ctx}.</p>
-         */
-        @Override public Void visitClassTail(JavaScriptParser.ClassTailContext ctx) { return visitChildren(ctx); }
 
-        @Override public Void visitClassElement(JavaScriptParser.ClassElementContext ctx) {
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitClassDeclaration(JavaScriptParser.ClassDeclarationContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        /**
+         * {@inheritDoc}
+         *
+         * <p>The default implementation returns the result of calling
+         * {@link #visitChildren} on {@code ctx}.</p>
+         */
+        @Override
+        public Void visitClassTail(JavaScriptParser.ClassTailContext ctx) {
+            return visitChildren(ctx);
+        }
+
+        @Override
+        public Void visitClassElement(JavaScriptParser.ClassElementContext ctx) {
             // : (Static | {this.n("static")}? identifier | Async)* (methodDefinition | assignable '=' objectLiteral ';')
             //    | emptyStatement_
             //    | '#'? propertyName '=' singleExpression
             //    ;
             init();
-                //
-                PDNode block = new PDNode();
-                boolean flag=false;
-                if (ctx.getChildCount() == 2 && ctx.getChild(0).getText().equals("static")) {
-                    block.setLineOfCode(ctx.getStart().getLine());
-                    block.setCode("static");
-                } else {
-                    block.setLineOfCode(0);
-                    block.setCode("block");
-                }
-                if (ctx.emptyStatement_()!=null){
-                    block.setLineOfCode(ctx.getStart().getLine());
-                    block.setCode(getOriginalCodeText(ctx.emptyStatement_()));
-                    return null;
-                }else if(ctx.getChild(0).getText().equals("#")){
-                    block.setLineOfCode(ctx.getStart().getLine());
-                    block.setCode("#");
-                }else if(ctx.propertyName()!=null){
-                    block.setLineOfCode(ctx.getStart().getLine());
-                    block.setCode(getOriginalCodeText(ctx.propertyName())+"="+getOriginalCodeText(ctx.singleExpression()));
-                }else{
-                    flag=true;
-                    block.setLineOfCode(ctx.getStart().getLine());
-                    StringBuffer stringBuffer=new StringBuffer();
-                    stringBuffer.append("static ");
-                    for (JavaScriptParser.IdentifierContext identifierContext : ctx.identifier()) {
-                        stringBuffer.append(getOriginalCodeText(identifierContext)+" ");
-                    }
-                    if (ctx.methodDefinition()!=null&&!ctx.methodDefinition().isEmpty()){
-                        stringBuffer.append(getOriginalCodeText(ctx.methodDefinition()));
-                    }else{
-                        stringBuffer.append(getOriginalCodeText(ctx.assignable()));
-                    }
-                    stringBuffer.append("="+getOriginalCodeText(ctx.objectLiteral())+";");
-                    block.setCode(stringBuffer.toString());
-                }
-                cdg.addVertex(block);
-                pushCtrlDep(block);
-                //
-                PDNode exit = new PDNode();
-                exit.setLineOfCode(0);
-                exit.setCode("exit");
-                cdg.addVertex(exit);
-                cdg.addEdge(new Edge<>(block, new CDEdge(CDEdge.Type.EPSILON), exit));
+            //
+            PDNode block = new PDNode();
+            boolean flag = false;
+            if (ctx.getChildCount() == 2 && ctx.getChild(0).getText().equals("static")) {
+                block.setLineOfCode(ctx.getStart().getLine());
+                block.setCode("static");
+            } else {
+                block.setLineOfCode(0);
+                block.setCode("block");
+            }
+            if (ctx.emptyStatement_() != null) {
+                block.setLineOfCode(ctx.getStart().getLine());
+                block.setCode(getOriginalCodeText(ctx.emptyStatement_()));
                 return null;
+            } else if (ctx.getChild(0).getText().equals("#")) {
+                block.setLineOfCode(ctx.getStart().getLine());
+                block.setCode("#");
+            } else if (ctx.propertyName() != null) {
+                block.setLineOfCode(ctx.getStart().getLine());
+                block.setCode(getOriginalCodeText(ctx.propertyName()) + "=" + getOriginalCodeText(ctx.singleExpression()));
+            } else {
+                flag = true;
+                block.setLineOfCode(ctx.getStart().getLine());
+                StringBuffer stringBuffer = new StringBuffer();
+                stringBuffer.append("static ");
+                for (JavaScriptParser.IdentifierContext identifierContext : ctx.identifier()) {
+                    stringBuffer.append(getOriginalCodeText(identifierContext) + " ");
+                }
+                if (ctx.methodDefinition() != null && !ctx.methodDefinition().isEmpty()) {
+                    stringBuffer.append(getOriginalCodeText(ctx.methodDefinition()));
+                } else {
+                    stringBuffer.append(getOriginalCodeText(ctx.assignable()));
+                }
+                stringBuffer.append("=" + getOriginalCodeText(ctx.objectLiteral()) + ";");
+                block.setCode(stringBuffer.toString());
+            }
+            cdg.addVertex(block);
+            pushCtrlDep(block);
+            //
+            PDNode exit = new PDNode();
+            exit.setLineOfCode(0);
+            exit.setCode("exit");
+            cdg.addVertex(exit);
+            cdg.addEdge(new Edge<>(block, new CDEdge(CDEdge.Type.EPSILON), exit));
+            return null;
         }
 
-        @Override public Void visitMethodDefinition(JavaScriptParser.MethodDefinitionContext ctx) {
+        @Override
+        public Void visitMethodDefinition(JavaScriptParser.MethodDefinitionContext ctx) {
             // : '*'? '#'? propertyName '(' formalParameterList? ')' functionBody
             //    | '*'? '#'? getter '(' ')' functionBody
             //    | '*'? '#'? setter '(' formalParameterList? ')' functionBody
@@ -665,13 +694,13 @@ public class JavaScriptCDGBuilder {
             PDNode entry = new PDNode();
             entry.setLineOfCode(ctx.getStart().getLine());
             String retType;
-            if (ctx.propertyName()!=null){
+            if (ctx.propertyName() != null) {
                 String args = getOriginalCodeText(ctx.formalParameterList());
-                entry.setCode(ctx.propertyName()+"("+args+")");
-            }else if(ctx.getter()!=null){
-                entry.setCode(ctx.getter()+"()");
-            }else{
-                entry.setCode(ctx.setter()+"()");
+                entry.setCode(ctx.propertyName() + "(" + args + ")");
+            } else if (ctx.getter() != null) {
+                entry.setCode(ctx.getter() + "()");
+            } else {
+                entry.setCode(ctx.setter() + "()");
             }
             cdg.addVertex(entry);
             //
@@ -686,7 +715,6 @@ public class JavaScriptCDGBuilder {
             cdg.addEdge(new Edge<>(entry, new CDEdge(CDEdge.Type.EPSILON), exit));
             return null;
         }
-
 
 
         /**
@@ -713,7 +741,7 @@ public class JavaScriptCDGBuilder {
                 cdg.addVertex(followRegion);
                 // check to see if there are any exit-jumps in the current chain
                 followRegion.setProperty("isJump", Boolean.TRUE);
-                for (PDNode dep: jumpDeps)
+                for (PDNode dep : jumpDeps)
                     if ((Boolean) dep.getProperty("isExit")) {
                         followRegion.setProperty("isJump", Boolean.FALSE);
                         followRegion.setProperty("isExit", Boolean.TRUE);

@@ -1,9 +1,7 @@
 package com.scut.mplas.service.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scut.mplas.API;
 import com.scut.mplas.Execution;
 import com.scut.mplas.service.CodeAnalysisService;
@@ -16,7 +14,6 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class JavaCodeAnalysisServiceImpl implements CodeAnalysisService {
@@ -25,7 +22,7 @@ public class JavaCodeAnalysisServiceImpl implements CodeAnalysisService {
     @Override
     public Object analysis(Execution.Analysis analysis, MultipartFile data) {
         try {
-            BufferedReader reader=new BufferedReader(new InputStreamReader(data.getInputStream()));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(data.getInputStream()));
             String line;
             List<String> result=new ArrayList<>();
             while((line=reader.readLine())!=null)
@@ -37,7 +34,7 @@ public class JavaCodeAnalysisServiceImpl implements CodeAnalysisService {
                 // 这个是从json记录中获取源代码数据，key取决于json文件中哪个关键字是表示源代码数据的
                 String src = srcFile.getString("code");
 
-                InputStream stream=new ByteArrayInputStream(src.getBytes(StandardCharsets.UTF_8));
+                InputStream stream = new ByteArrayInputStream(src.getBytes(StandardCharsets.UTF_8));
                 String dataStr = new API(analysisArgsBuilder.
                         setFileName(fileName).
                         setAnalysisOpt(analysis).
