@@ -24,7 +24,7 @@ public class PDGBuilder {
 				return null;
 			//
 			case "Java":
-				return null;
+				return JavaPDGBuilder.buildForOne(fileName,inputStream);
 			//
 			case "Python":
 				return null;

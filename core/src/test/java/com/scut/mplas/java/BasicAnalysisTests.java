@@ -63,12 +63,17 @@ public class BasicAnalysisTests {
     // 将指定的目录下的所有代码文件，转换为一个jsonl，每一个源代码文件对应生成的jsonl文件中的一条json对象
     // 每一个代码文件都会转换为一个json对象,json对象格式如下：
     // { test：“文件名”，code：“源代码文件里的文本”}
+    private static final String CPP_DIR="src/test/resources/cpp/";
     private static final String CPP_JSONL_DIR="src/test/resources/cpp/testJSONL/";
     private static final String CPP_SUFFIX=".cpp";
 
+
+    private static final String JS_DIR="src/test/resources/js/";
     private static final String JS_JSONL_DIR="src/test/resources/js/testJSONL/";
     private static final String JS_SUFFIX=".js";
 
+
+    private final String JAVA_DIR = "src/test/resources/java/";
     private final String JAVA_JSONL_DIR = "src/test/resources/java/testJSONL/";
     private final String JAVA_SUFFIX=".java";
 
@@ -81,14 +86,14 @@ public class BasicAnalysisTests {
         // 指定源代码文件的后缀名
         String suffix="";
 
-        //String lang="cpp";
+        String lang="cpp";
         //String lang="java";
-        String lang="js";
+        //String lang="js";
         //String lang="ruby";
         switch(lang)
         {
             case "cpp":
-                inputDir=CPP_SRC_DIR;
+                inputDir=CPP_DIR+"basic/";
                 outDir=CPP_JSONL_DIR;
                 suffix=CPP_SUFFIX;
                 break;
@@ -110,7 +115,7 @@ public class BasicAnalysisTests {
 
         String[] filePaths=new String[0];
         filePaths=FileUtils.listFilesWithSuffix(new String[]{inputDir},suffix);
-
+        // 设置输出的jsonl文件的名字：outDir + jsonl文件名
         String outputName=outDir+lang+"Test.jsonl";
         File outputFile=new File(outputName);
         FileWriter writer=new FileWriter(outputFile);
@@ -206,11 +211,12 @@ public class BasicAnalysisTests {
     @Test
     public void javaASTreeJsonTest() {
         String outDir = OUTPUT_DIR + "AST/";
-        String[] args = {"-ast", "-outdir", outDir, "-format", "json", JAVA_SRC_DIR};
+        String inputDir=JAVA_DIR+"basic/";
+        String[] args = {"-ast", "-outdir", outDir, "-format", "json", inputDir};
         Main.main(args);
         //
 
-        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {JAVA_SRC_DIR}, Execution.Languages.JAVA.suffix);
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {inputDir}, Execution.Languages.JAVA.suffix);
         String[] outFiles = FileUtils.listFilesWithSuffix(new String[] {outDir}, "-AST.json");
         assertEquals(testFiles.length, outFiles.length);
     }
@@ -218,10 +224,11 @@ public class BasicAnalysisTests {
     @Test
     public void javaCFGJsonTest() {
         String outDir = OUTPUT_DIR + "CFG/";
-        String[] args = {"-cfg", "-outdir", outDir, "-format", "json", JAVA_SRC_DIR};
+        String inputDir=JAVA_DIR+"basic/";
+        String[] args = {"-cfg", "-outdir", outDir, "-format", "json", inputDir};
         Main.main(args);
         //
-        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {JAVA_SRC_DIR}, Execution.Languages.JAVA.suffix);
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {inputDir}, Execution.Languages.JAVA.suffix);
         String[] outFiles = FileUtils.listFilesWithSuffix(new String[] {outDir}, "-CFG.json");
         assertEquals(testFiles.length, outFiles.length);
     }
@@ -229,10 +236,11 @@ public class BasicAnalysisTests {
     @Test
     public void javaPDGJsonTest() {
         String outDir = OUTPUT_DIR + "PDG/";
-        String[] args = {"-pdg", "-outdir", outDir, "-format", "json", JAVA_SRC_DIR};
+        String inputDir=JAVA_DIR+"basic/";
+        String[] args = {"-pdg", "-outdir", outDir, "-format", "json", inputDir};
         Main.main(args);
         //
-        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {JAVA_SRC_DIR}, Execution.Languages.JAVA.suffix);
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {inputDir}, Execution.Languages.JAVA.suffix);
         String[] outDataFiles = FileUtils.listFilesWithSuffix(new String[] {outDir}, "-PDG-DATA.json");
         String[] outCtrlFiles = FileUtils.listFilesWithSuffix(new String[] {outDir}, "-PDG-CTRL.json");
         assertEquals(testFiles.length, outDataFiles.length);
@@ -242,11 +250,12 @@ public class BasicAnalysisTests {
     @Test
     public void cppASTreeJsonTest() {
         String outDir = CPP_OUTPUT_DIR + "AST/";
-        String[] args = {"-ast", "-outdir", outDir, "-format", "json","-lang","cpp", CPP_SRC_DIR};
+        String inputDir=CPP_DIR+"basic/";
+        String[] args = {"-ast", "-outdir", outDir, "-format", "json","-lang","cpp", inputDir};
         Main.main(args);
         //
 
-        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {CPP_SRC_DIR}, Execution.Languages.CPP.suffix);
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {inputDir}, Execution.Languages.CPP.suffix);
         String[] outFiles = FileUtils.listFilesWithSuffix(new String[] {outDir}, "-AST.json");
         assertEquals(testFiles.length, outFiles.length);
     }
@@ -254,10 +263,11 @@ public class BasicAnalysisTests {
     @Test
     public void cppCFGJsonTest() {
         String outDir = CPP_OUTPUT_DIR + "CFG/";
-        String[] args = {"-cfg", "-outdir", outDir, "-format", "json", "-lang","cpp",CPP_SRC_DIR};
+        String inputDir=CPP_DIR+"basic/";
+        String[] args = {"-cfg", "-outdir", outDir, "-format", "json", "-lang","cpp",inputDir};
         Main.main(args);
         //
-        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {CPP_SRC_DIR}, Execution.Languages.CPP.suffix);
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {inputDir}, Execution.Languages.CPP.suffix);
         String[] outFiles = FileUtils.listFilesWithSuffix(new String[] {outDir}, "-CFG.json");
         assertEquals(testFiles.length, outFiles.length);
     }
@@ -265,11 +275,12 @@ public class BasicAnalysisTests {
     @Test
     public void cppDDGJsonTest() {
         String outDir = CPP_OUTPUT_DIR + "DDG/";
+        String inputDir=CPP_DIR+"basic/";
         //String CPP_SRC_DIR="src/test/resources/cpp/test/";
-        String[] args = {"-ddg", "-outdir", outDir, "-format", "json", "-lang","cpp",CPP_SRC_DIR};
+        String[] args = {"-ddg", "-outdir", outDir, "-format", "json", "-lang","cpp",inputDir};
         Main.main(args);
         //
-        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {CPP_SRC_DIR}, Execution.Languages.CPP.suffix);
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {inputDir}, Execution.Languages.CPP.suffix);
         String[] outFiles = FileUtils.listFilesWithSuffix(new String[] {outDir}, "-PDG-DATA.json");
         assertEquals(testFiles.length, outFiles.length);
     }
@@ -277,11 +288,12 @@ public class BasicAnalysisTests {
     @Test
     public void jsASTreeJsonTest() {
         String outDir = JS_OUTPUT_DIR + "AST/";
-        String[] args = {"-ast", "-outdir", outDir, "-format", "json","-lang","js", JS_SRC_DIR};
+        String inputDir=JS_DIR+"basic/";
+        String[] args = {"-ast", "-outdir", outDir, "-format", "json","-lang","js", inputDir};
         Main.main(args);
         //
 
-        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {JS_SRC_DIR}, Execution.Languages.JAVASCRIPT.suffix);
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {inputDir}, Execution.Languages.JAVASCRIPT.suffix);
         String[] outFiles = FileUtils.listFilesWithSuffix(new String[] {outDir}, "-AST.json");
         assertEquals(testFiles.length, outFiles.length);
     }
@@ -289,10 +301,11 @@ public class BasicAnalysisTests {
     @Test
     public void jsCFGJsonTest() {
         String outDir = JS_OUTPUT_DIR + "CFG/";
-        String[] args = {"-cfg", "-outdir", outDir, "-format", "json", "-lang","js",JS_SRC_DIR};
+        String inputDir=JS_DIR+"basic/";
+        String[] args = {"-cfg", "-outdir", outDir, "-format", "json", "-lang","js",inputDir};
         Main.main(args);
         //
-        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {JS_SRC_DIR}, Execution.Languages.JAVASCRIPT.suffix);
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {inputDir}, Execution.Languages.JAVASCRIPT.suffix);
         String[] outFiles = FileUtils.listFilesWithSuffix(new String[] {outDir}, "-CFG.json");
         assertEquals(testFiles.length, outFiles.length);
     }
@@ -300,10 +313,11 @@ public class BasicAnalysisTests {
     @Test
     public void jsDDGJsonTest() {
         String outDir = JS_OUTPUT_DIR + "DDG/";
-        String[] args = {"-ddg", "-outdir", outDir, "-format", "json", "-lang","js",JS_SRC_DIR};
+        String inputDir=JS_DIR+"basic/";
+        String[] args = {"-ddg", "-outdir", outDir, "-format", "json", "-lang","js",inputDir};
         Main.main(args);
         //
-        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {JS_SRC_DIR}, Execution.Languages.JAVASCRIPT.suffix);
+        String[] testFiles = FileUtils.listFilesWithSuffix(new String[] {inputDir}, Execution.Languages.JAVASCRIPT.suffix);
         String[] outFiles = FileUtils.listFilesWithSuffix(new String[] {outDir}, "-PDG-DATA.json");
         assertEquals(testFiles.length, outFiles.length);
     }
