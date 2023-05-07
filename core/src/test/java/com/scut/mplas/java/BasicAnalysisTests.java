@@ -91,19 +91,19 @@ public class BasicAnalysisTests {
         // 指定源代码文件的后缀名
         String suffix="";
 
-        String lang="cpp";
-        //String lang="java";
+        //String lang="cpp";
+        String lang="java";
         //String lang="js";
         //String lang="ruby";
         switch(lang)
         {
             case "cpp":
-                inputDir=CPP_DIR+"basic/";
+                inputDir=CPP_DIR+"test/ZIToolKit/";
                 outDir=CPP_JSONL_DIR;
                 suffix=CPP_SUFFIX;
                 break;
             case "java":
-                inputDir=JAVA_SRC_DIR;
+                inputDir=JAVA_DIR+"basic/";
                 outDir=JAVA_JSONL_DIR;
                 suffix=JAVA_SUFFIX;
                 break;
@@ -121,7 +121,7 @@ public class BasicAnalysisTests {
         String[] filePaths=new String[0];
         filePaths=FileUtils.listFilesWithSuffix(new String[]{inputDir},suffix);
         // 设置输出的jsonl文件的名字：outDir + jsonl文件名
-        String outputName=outDir+lang+"Test.jsonl";
+        String outputName=outDir+"basic.jsonl";
         File outputFile=new File(outputName);
         FileWriter writer=new FileWriter(outputFile);
 

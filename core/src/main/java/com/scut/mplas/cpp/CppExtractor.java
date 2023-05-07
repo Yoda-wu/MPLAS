@@ -3,6 +3,7 @@ package com.scut.mplas.cpp;
 import com.scut.mplas.cpp.parser.CppBaseVisitor;
 import com.scut.mplas.cpp.parser.CppLexer;
 import com.scut.mplas.cpp.parser.CppParser;
+import ghaffarian.nanologger.Logger;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -1557,8 +1558,20 @@ public class CppExtractor {
                 funcRet = "";
             }
 
+            CppParser.ParametersAndQualifiersContext paCtx=null;
+            if(ctx.declarator().trailingReturnType()!=null)
+            {
+                // 函数参数列表后指出函数返回类型的方式
+                funcRet=getOriginalCodeText(ctx.declarator().trailingReturnType().trailingTypeSpecifierSeq());
+                paCtx=ctx.declarator().parametersAndQualifiers();
+            }
+            else
+            {
+                CppParser.NoPointerDeclaratorContext npdCtx = ctx.declarator().pointerDeclarator().noPointerDeclarator();
+                paCtx=npdCtx.parametersAndQualifiers();
+            }
 
-            CppParser.NoPointerDeclaratorContext npdCtx = ctx.declarator().pointerDeclarator().noPointerDeclarator();
+
             //parametersAndQualifiers:
             //	LeftParen parameterDeclarationClause? RightParen cvqualifierseq? refqualifier?
             //		exceptionSpecification? attributeSpecifierSeq?;
@@ -1566,10 +1579,10 @@ public class CppExtractor {
             //parameterDeclarationClause:
             //	parameterDeclarationList (Comma? Ellipsis)?;
             List<String> argsList = new ArrayList<>();
-            if (npdCtx.parametersAndQualifiers().parameterDeclarationClause() != null) {
+            if (paCtx.parameterDeclarationClause() != null) {
                 //parameterDeclarationList:
                 //	parameterDeclaration (Comma parameterDeclaration)*;
-                for (CppParser.ParameterDeclarationContext parmCtx : npdCtx.parametersAndQualifiers()
+                for (CppParser.ParameterDeclarationContext parmCtx : paCtx
                         .parameterDeclarationClause()
                         .parameterDeclarationList()
                         .parameterDeclaration()) {
@@ -1581,7 +1594,11 @@ public class CppExtractor {
                     //	);
                     parseDeclSpecifierSeq(parmCtx.declSpecifierSeq());
                     String argRet = type;
-
+                    if(parmCtx.declarator()==null)
+                    {
+                        // 函数参数应该（void）
+                        break;
+                    }
                     parseDeclarator(parmCtx.declarator());
                     argRet += pointOp;
                     argsList.add(argRet);
@@ -2327,29 +2344,86 @@ public class CppExtractor {
             //
             //pointerDeclarator: (pointerOperator Const?)* noPointerDeclarator;
             clearFlags();
-            CppParser.PointerDeclaratorContext pdCtx = ctx.pointerDeclarator();
             pointOp = "";
-            if (pdCtx.pointerOperator() != null) {
-                for (int i = 0; i < pdCtx.pointerOperator().size(); ++i) {
-                    pointOp += getOriginalCodeText(pdCtx.pointerOperator(i));
-                    if (pdCtx.Const(i) != null)
-                        pointOp += pdCtx.Const(i).getText();
+            CppParser.DeclaratoridContext decIdCtx=null;
+            if(ctx.trailingReturnType()!=null)
+            {
+                decIdCtx=ctx.noPointerDeclarator().declaratorid();
+            }
+            else
+            {
+                CppParser.PointerDeclaratorContext pdCtx = ctx.pointerDeclarator();
+                if (pdCtx.pointerOperator() != null) {
+                    for (int i = 0; i < pdCtx.pointerOperator().size(); ++i) {
+                        pointOp += getOriginalCodeText(pdCtx.pointerOperator(i));
+                        if (pdCtx.Const(i) != null)
+                            pointOp += pdCtx.Const(i).getText();
+                    }
                 }
+
+                //noPointerDeclarator:
+                //	declaratorid attributeSpecifierSeq?
+                //	| noPointerDeclarator (
+                //		parametersAndQualifiers
+                //		| LeftBracket constantExpression? RightBracket attributeSpecifierSeq?
+                //	)
+                //	| LeftParen pointerDeclarator RightParen;
+                if (pdCtx.noPointerDeclarator().LeftParen() != null) {
+                    //	| LeftParen pointerDeclarator RightParen;
+                    nestedName = "";
+                    varName = "";
+                    return;
+                }
+
+                if (pdCtx.noPointerDeclarator().parametersAndQualifiers() != null || pdCtx.noPointerDeclarator().LeftParen() != null) {
+                    if(pdCtx.noPointerDeclarator().parametersAndQualifiers() != null && pdCtx.noPointerDeclarator().noPointerDeclarator().LeftParen()!=null)
+                    {
+                        // 可能函数签名
+                        CppParser.PointerDeclaratorContext tmpPdCtx=pdCtx.noPointerDeclarator().noPointerDeclarator().pointerDeclarator();
+                        decIdCtx=tmpPdCtx.noPointerDeclarator().declaratorid();
+                        if (tmpPdCtx.pointerOperator() != null) {
+                            for (int i = 0; i < tmpPdCtx.pointerOperator().size(); ++i) {
+                                pointOp += getOriginalCodeText(tmpPdCtx.pointerOperator(i));
+                                if (tmpPdCtx.Const(i) != null)
+                                    pointOp += tmpPdCtx.Const(i).getText();
+                            }
+                        }
+                        pointOp+=getOriginalCodeText(pdCtx.noPointerDeclarator().parametersAndQualifiers());
+
+                    }
+                    else
+                    {
+                        CppParser.NoPointerDeclaratorContext npdCtx = pdCtx.noPointerDeclarator().noPointerDeclarator();
+                        while (npdCtx.LeftParen() != null) {
+                            //noPointerDeclarator:
+                            //	| LeftParen pointerDeclarator RightParen;
+                            npdCtx = npdCtx.pointerDeclarator().noPointerDeclarator();
+                        }
+                        decIdCtx = npdCtx.declaratorid();
+                    }
+                }
+                else if(pdCtx.noPointerDeclarator().LeftBracket()!=null)
+                {
+                    CppParser.NoPointerDeclaratorContext npdCtx = pdCtx.noPointerDeclarator().noPointerDeclarator();
+                    while (npdCtx.LeftBracket() != null) {
+                        //noPointerDeclarator:
+                        //  noPointerDeclarator
+                        //		 LeftBracket constantExpression? RightBracket attributeSpecifierSeq?
+                        npdCtx = npdCtx.noPointerDeclarator();
+                    }
+                    decIdCtx = npdCtx.declaratorid();
+                }else
+                    decIdCtx = pdCtx.noPointerDeclarator().declaratorid();
             }
 
-            //noPointerDeclarator:
-            //	declaratorid attributeSpecifierSeq?
-            //	| noPointerDeclarator (
-            //		parametersAndQualifiers
-            //		| LeftBracket constantExpression? RightBracket attributeSpecifierSeq?
-            //	)
-            //	| LeftParen pointerDeclarator RightParen;
 
-            CppParser.DeclaratoridContext decIdCtx;
-            if (pdCtx.noPointerDeclarator().parametersAndQualifiers() != null || pdCtx.noPointerDeclarator().LeftBracket() != null) {
-                decIdCtx = pdCtx.noPointerDeclarator().noPointerDeclarator().declaratorid();
-            } else
-                decIdCtx = pdCtx.noPointerDeclarator().declaratorid();
+
+            if(decIdCtx==null)
+            {
+                Logger.error("decIdCtx==null");
+                Logger.error(filePath+" line : "+ctx.getStart().getLine());
+                Logger.error("code : "+getOriginalCodeText(ctx));
+            }
 
             //declaratorid: Ellipsis? idExpression;
             //

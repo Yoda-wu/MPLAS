@@ -94,7 +94,7 @@ public class CppDDGBuilder {
 
     public static DataDependenceGraph buildForOne(String fileName, InputStream inputStream) throws IOException {
         // Parse all Java source files
-        Logger.info("Parsing one source file ... ");
+        Logger.info("Parsing source file : "+fileName);
         InputStream inFile = inputStream;
         ANTLRInputStream input = new ANTLRInputStream(inFile);
         CppLexer lexer = new CppLexer(input);
@@ -130,6 +130,7 @@ public class CppDDGBuilder {
                               DataDependenceGraph ddg,
                               Map<ParserRuleContext, Object> pdNodes) throws IOException {
         // Extract the information of all given Cpp classes and NonClass Function
+        Logger.info("\nstart to def-use analyse file : "+file.getName());
         Logger.info("\nExtracting class-infos and nonClass-Func-infos ... ");
         allClassInfos = new HashMap<>();
         allNonClassFunctionInfos = new HashMap<>();
@@ -939,6 +940,22 @@ public class CppDDGBuilder {
                     useList.add(var);
                 return "";
             }
+            else if(analysisVisit && ctx.postfixExpression()!=null && ctx.LeftParen()!=null)
+            {
+                //	| postfixExpression LeftParen expressionList? RightParen
+                // 可能是函数调用，或者构造匿名对象，或者是构造函数调用
+
+                if(ctx.postfixExpression().primaryExpression()==null)
+                {
+                    // 可能是某个对象的函数， var->func();
+                    visit(ctx.postfixExpression());
+                }
+
+
+                if(ctx.expressionList()!=null)
+                    visit(ctx.expressionList());
+                return "";
+            }
             return visitChildren(ctx);
         }
 
@@ -1445,9 +1462,9 @@ public class CppDDGBuilder {
                         forRangeNode.setLineOfCode(ctx.getStart().getLine());
                         forRangeNode.setCode("For (" + getOriginalCodeText(ctx.forRangeDeclaration()) + ":" + getOriginalCodeText(ctx.forRangeInitializer()) + ")");
                         ddg.addVertex(forRangeNode);
-                        pdNodes.put(ctx, forRangeNode);
+                        pdNodes.put(ctx.forRangeDeclaration(), forRangeNode);
                     } else
-                        forRangeNode = (PDNode) pdNodes.get(ctx);
+                        forRangeNode = (PDNode) pdNodes.get(ctx.forRangeDeclaration());
                     int entrySize = localVars.size();
                     analyseDefUse(forRangeNode, ctx.forRangeDeclaration());
                     analyseDefUse(forRangeNode, ctx.forRangeInitializer());
@@ -2548,6 +2565,18 @@ public class CppDDGBuilder {
                     nested = type;
                     funcRet = "";
                 }
+                CppParser.ParametersAndQualifiersContext paCtx=null;
+                if(ctx.declarator().trailingReturnType()!=null)
+                {
+                    // 函数参数列表后指出函数返回类型的方式
+                    funcRet=getOriginalCodeText(ctx.declarator().trailingReturnType().trailingTypeSpecifierSeq());
+                    paCtx=ctx.declarator().parametersAndQualifiers();
+                }
+                else
+                {
+                    CppParser.NoPointerDeclaratorContext npdCtx = ctx.declarator().pointerDeclarator().noPointerDeclarator();
+                    paCtx=npdCtx.parametersAndQualifiers();
+                }
 
                 entry.setProperty("name", funcName);
                 entry.setProperty("type", funcRet);
@@ -2555,7 +2584,6 @@ public class CppDDGBuilder {
                 ddg.addVertex(entry);
                 pdNodes.put(ctx, entry);
 
-                CppParser.NoPointerDeclaratorContext npdCtx = ctx.declarator().pointerDeclarator().noPointerDeclarator();
                 //parametersAndQualifiers:
                 //	LeftParen parameterDeclarationClause? RightParen cvqualifierseq? refqualifier?
                 //		exceptionSpecification? attributeSpecifierSeq?;
@@ -2564,10 +2592,10 @@ public class CppDDGBuilder {
                 //	parameterDeclarationList (Comma? Ellipsis)?;
                 List<String> argsList = new ArrayList<>();
                 List<String> argsNameList = new ArrayList<>();
-                if (npdCtx.parametersAndQualifiers().parameterDeclarationClause() != null) {
+                if (paCtx.parameterDeclarationClause() != null) {
                     //parameterDeclarationList:
                     //	parameterDeclaration (Comma parameterDeclaration)*;
-                    for (CppParser.ParameterDeclarationContext parmCtx : npdCtx.parametersAndQualifiers()
+                    for (CppParser.ParameterDeclarationContext parmCtx : paCtx
                             .parameterDeclarationClause()
                             .parameterDeclarationList()
                             .parameterDeclaration()) {
@@ -2579,7 +2607,11 @@ public class CppDDGBuilder {
                         //	);
                         parseDeclSpecifierSeq(parmCtx.declSpecifierSeq());
                         String argRet = type;
-
+                        if(parmCtx.declarator()==null)
+                        {
+                            // 函数参数应该（void）
+                            break;
+                        }
                         parseDeclarator(parmCtx.declarator());
                         argRet += pointOp;
                         String argName = varName;
@@ -2615,6 +2647,8 @@ public class CppDDGBuilder {
             if (methodDefInfo == null) {
                 Logger.error("Method NOT FOUND!");
                 Logger.error("NAME = " + (String) entry.getProperty("name"));
+                if(className!=null)
+                    Logger.error("CLASS = " + className);
                 Logger.error("TYPE = " + (String) entry.getProperty("type"));
                 Logger.error("PARAMS = " + Arrays.toString(methodParams));
                 List list = methodDEFs.get((String) entry.getProperty("name"));
@@ -3250,6 +3284,8 @@ public class CppDDGBuilder {
             //		| abstractDeclarator
             //	)?
             //	| Ellipsis;
+            if(ctx.Ellipsis()!=null)
+                return "";
             if (ctx.declarator() != null) {
                 // 变量名在ctx.declarator()中
                 // ctx.typeSpecifierSeq()只有变量类型
@@ -3390,42 +3426,88 @@ public class CppDDGBuilder {
             //
             //pointerDeclarator: (pointerOperator Const?)* noPointerDeclarator;
             clearAllFlags();
-            CppParser.PointerDeclaratorContext pdCtx = ctx.pointerDeclarator();
             pointOp = "";
-            if (pdCtx.pointerOperator() != null) {
-                for (int i = 0; i < pdCtx.pointerOperator().size(); ++i) {
-                    pointOp += getOriginalCodeText(pdCtx.pointerOperator(i));
-                    if (pdCtx.Const(i) != null)
-                        pointOp += pdCtx.Const(i).getText();
-                }
+            CppParser.DeclaratoridContext decIdCtx=null;
+            if(ctx.trailingReturnType()!=null)
+            {
+                decIdCtx=ctx.noPointerDeclarator().declaratorid();
             }
-            //noPointerDeclarator:
-            //	declaratorid attributeSpecifierSeq?
-            //	| noPointerDeclarator (
-            //		parametersAndQualifiers
-            //		| LeftBracket constantExpression? RightBracket attributeSpecifierSeq?
-            //	)
-            //	| LeftParen pointerDeclarator RightParen;
-            if (pdCtx.noPointerDeclarator().LeftParen() != null) {
+            else
+            {
+                CppParser.PointerDeclaratorContext pdCtx = ctx.pointerDeclarator();
+                if (pdCtx.pointerOperator() != null) {
+                    for (int i = 0; i < pdCtx.pointerOperator().size(); ++i) {
+                        pointOp += getOriginalCodeText(pdCtx.pointerOperator(i));
+                        if (pdCtx.Const(i) != null)
+                            pointOp += pdCtx.Const(i).getText();
+                    }
+                }
+
+                //noPointerDeclarator:
+                //	declaratorid attributeSpecifierSeq?
+                //	| noPointerDeclarator (
+                //		parametersAndQualifiers
+                //		| LeftBracket constantExpression? RightBracket attributeSpecifierSeq?
+                //	)
                 //	| LeftParen pointerDeclarator RightParen;
-                nestedName = "";
-                varName = "";
-                isOnlyPointerDecl = true;
-                return;
+                if (pdCtx.noPointerDeclarator().LeftParen() != null) {
+                    //	| LeftParen pointerDeclarator RightParen;
+                    nestedName = "";
+                    varName = "";
+                    isOnlyPointerDecl=true;
+                    return;
+                }
+
+                if (pdCtx.noPointerDeclarator().parametersAndQualifiers() != null || pdCtx.noPointerDeclarator().LeftParen() != null) {
+                    isHasParameters=true;
+                    if(pdCtx.noPointerDeclarator().parametersAndQualifiers() != null && pdCtx.noPointerDeclarator().noPointerDeclarator().LeftParen()!=null)
+                    {
+                        // 可能函数签名
+                        CppParser.PointerDeclaratorContext tmpPdCtx=pdCtx.noPointerDeclarator().noPointerDeclarator().pointerDeclarator();
+                        decIdCtx=tmpPdCtx.noPointerDeclarator().declaratorid();
+                        if (tmpPdCtx.pointerOperator() != null) {
+                            for (int i = 0; i < tmpPdCtx.pointerOperator().size(); ++i) {
+                                pointOp += getOriginalCodeText(tmpPdCtx.pointerOperator(i));
+                                if (tmpPdCtx.Const(i) != null)
+                                    pointOp += tmpPdCtx.Const(i).getText();
+                            }
+                        }
+                        pointOp+=getOriginalCodeText(pdCtx.noPointerDeclarator().parametersAndQualifiers());
+
+                    }
+                    else
+                    {
+                        CppParser.NoPointerDeclaratorContext npdCtx = pdCtx.noPointerDeclarator().noPointerDeclarator();
+                        while (npdCtx.LeftParen() != null) {
+                            //noPointerDeclarator:
+                            //	| LeftParen pointerDeclarator RightParen;
+                            npdCtx = npdCtx.pointerDeclarator().noPointerDeclarator();
+                        }
+                        decIdCtx = npdCtx.declaratorid();
+                    }
+                }
+                else if(pdCtx.noPointerDeclarator().LeftBracket()!=null)
+                {
+                    CppParser.NoPointerDeclaratorContext npdCtx = pdCtx.noPointerDeclarator().noPointerDeclarator();
+                    while (npdCtx.LeftBracket() != null) {
+                        //noPointerDeclarator:
+                        //  noPointerDeclarator
+                        //		 LeftBracket constantExpression? RightBracket attributeSpecifierSeq?
+                        npdCtx = npdCtx.noPointerDeclarator();
+                    }
+                    decIdCtx = npdCtx.declaratorid();
+                }else
+                    decIdCtx = pdCtx.noPointerDeclarator().declaratorid();
             }
 
-            CppParser.DeclaratoridContext decIdCtx;
-            if (pdCtx.noPointerDeclarator().parametersAndQualifiers() != null || pdCtx.noPointerDeclarator().LeftBracket() != null) {
-                isHasParameters = true;
-                CppParser.NoPointerDeclaratorContext npdCtx = pdCtx.noPointerDeclarator().noPointerDeclarator();
-                while (npdCtx.LeftParen() != null) {
-                    //noPointerDeclarator:
-                    //	| LeftParen pointerDeclarator RightParen;
-                    npdCtx = npdCtx.pointerDeclarator().noPointerDeclarator();
-                }
-                decIdCtx = npdCtx.declaratorid();
-            } else
-                decIdCtx = pdCtx.noPointerDeclarator().declaratorid();
+
+
+            if(decIdCtx==null)
+            {
+                Logger.error("decIdCtx==null");
+                Logger.error(currentFile+" line : "+ctx.getStart().getLine());
+                Logger.error("code : "+getOriginalCodeText(ctx));
+            }
 
             //declaratorid: Ellipsis? idExpression;
             //
@@ -3436,7 +3518,6 @@ public class CppDDGBuilder {
                 // 存在嵌套名，当前只允许有一个
                 varName = getOriginalCodeText(decIdCtx.idExpression().qualifiedId().unqualifiedId());
                 nestedName = getOriginalCodeText(decIdCtx.idExpression().qualifiedId().nestedNameSpecifier().theTypeName());
-                // 这个用于判断这个嵌套名是否只有::,目前这个的作用主要是为了区分出存在作用域声明的函数调用和变量声明
                 if (nestedName == "")
                     isGlobal = true;
             } else
