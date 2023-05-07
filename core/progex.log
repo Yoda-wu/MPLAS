@@ -1,148 +1,39 @@
-======= LOG CREATED on 周日 2023/5月/07 16:50:33:406 =======
+======= LOG CREATED on 周日 2023/5月/07 19:41:55:795 =======
 
 PROGEX (Program Graph Extractor)  [ v3.4.5 ]
 Visit project website @ https://github.com/ghaffarian/progex
 
 PROGEX execution config:
-  Language = Cpp
+  Language = Java
   Output format = JSON
-  Output directory = ../generate/cpp/basic/DDG/\
-  Analysis types = [DDG]
+  Output directory = ../generate/java/basic/PDG/\
+  Analysis types = [PDG]
   File name = 
   Input paths = 
-        src/test/resources/cpp/basic/
+        src/test/resources/java/basic/
 
 
-# Cpp source files = 11
+# Java source files = 10
 
 
-Data-Dependence Analysis
-=====================
+Program-Dependence Analysis
+===========================
 Parsing all source files ... 
 Done.
 
-begin ddg build for each file ... 
-
-start to def-use analyse file : and_keyword.cpp
-
-Extracting class-infos and nonClass-Func-infos ... 
+Extracting class-infos ... 
 Done.
 
 Initializing method-DEF infos ... 
 Done.
 
-Iterative DEF-USE analysis ... 
+Extracting & Parsing imports ... 
 Done.
 
-start to def-use analyse file : class_test.cpp
-
-Extracting class-infos and nonClass-Func-infos ... 
-Done.
-
-Initializing method-DEF infos ... 
+Analyzing imports DEF-USE ... 
 Done.
 
 Iterative DEF-USE analysis ... 
-Done.
-
-start to def-use analyse file : exception_test.cpp
-
-Extracting class-infos and nonClass-Func-infos ... 
-Done.
-
-Initializing method-DEF infos ... 
-Done.
-
-Iterative DEF-USE analysis ... 
-Done.
-
-start to def-use analyse file : for_if_test.cpp
-
-Extracting class-infos and nonClass-Func-infos ... 
-Done.
-
-Initializing method-DEF infos ... 
-Done.
-
-Iterative DEF-USE analysis ... 
-Done.
-
-start to def-use analyse file : function_and_struct_definations_test.cpp
-
-Extracting class-infos and nonClass-Func-infos ... 
-Done.
-
-Initializing method-DEF infos ... 
-Done.
-
-Iterative DEF-USE analysis ... 
-Done.
-
-start to def-use analyse file : function_Declarations_and_integers.cpp
-
-Extracting class-infos and nonClass-Func-infos ... 
-Done.
-
-Initializing method-DEF infos ... 
-Done.
-
-Iterative DEF-USE analysis ... 
-Done.
-
-start to def-use analyse file : goto_test.cpp
-
-Extracting class-infos and nonClass-Func-infos ... 
-Done.
-
-Initializing method-DEF infos ... 
-Done.
-
-Iterative DEF-USE analysis ... 
-Done.
-
-start to def-use analyse file : iteration_test.cpp
-
-Extracting class-infos and nonClass-Func-infos ... 
-Done.
-
-Initializing method-DEF infos ... 
-Done.
-
-Iterative DEF-USE analysis ... 
-Done.
-
-start to def-use analyse file : switch_test.cpp
-
-Extracting class-infos and nonClass-Func-infos ... 
-Done.
-
-Initializing method-DEF infos ... 
-Done.
-
-Iterative DEF-USE analysis ... 
-Done.
-
-start to def-use analyse file : template_args_test.cpp
-
-Extracting class-infos and nonClass-Func-infos ... 
-Done.
-
-Initializing method-DEF infos ... 
-Done.
-
-Iterative DEF-USE analysis ... 
-Done.
-
-start to def-use analyse file : test1.cpp
-
-Extracting class-infos and nonClass-Func-infos ... 
-Done.
-
-Initializing method-DEF infos ... 
-Done.
-
-Iterative DEF-USE analysis ... 
-Done.
 Done.
 
 Extracting CFGs ... 
@@ -151,14 +42,23 @@ Done.
 Adding data-flow edges ... 
 Done.
 
-DDS of PDG exported to: ../generate/cpp/basic/DDG/\and_keyword-PDG-DATA.json
-DDS of PDG exported to: ../generate/cpp/basic/DDG/\class_test-PDG-DATA.json
-DDS of PDG exported to: ../generate/cpp/basic/DDG/\exception_test-PDG-DATA.json
-DDS of PDG exported to: ../generate/cpp/basic/DDG/\for_if_test-PDG-DATA.json
-DDS of PDG exported to: ../generate/cpp/basic/DDG/\function_and_struct_definations_test-PDG-DATA.json
-DDS of PDG exported to: ../generate/cpp/basic/DDG/\function_Declarations_and_integers-PDG-DATA.json
-DDS of PDG exported to: ../generate/cpp/basic/DDG/\goto_test-PDG-DATA.json
-DDS of PDG exported to: ../generate/cpp/basic/DDG/\iteration_test-PDG-DATA.json
-DDS of PDG exported to: ../generate/cpp/basic/DDG/\switch_test-PDG-DATA.json
-DDS of PDG exported to: ../generate/cpp/basic/DDG/\template_args_test-PDG-DATA.json
-DDS of PDG exported to: ../generate/cpp/basic/DDG/\test1-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test1-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test1-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\test10-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\test10-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test2-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test2-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test3-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test3-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test4-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test4-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test5-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test5-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test6-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test6-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test7-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test7-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test8-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test8-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test9-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test9-PDG-DATA.json

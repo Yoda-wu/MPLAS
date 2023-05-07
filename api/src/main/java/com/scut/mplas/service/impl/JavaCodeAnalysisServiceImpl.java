@@ -33,7 +33,6 @@ public class JavaCodeAnalysisServiceImpl implements CodeAnalysisService {
                 String fileName = srcFile.getString("text");
                 // 这个是从json记录中获取源代码数据，key取决于json文件中哪个关键字是表示源代码数据的
                 String src = srcFile.getString("code");
-
                 InputStream stream = new ByteArrayInputStream(src.getBytes(StandardCharsets.UTF_8));
                 String dataStr = new API(analysisArgsBuilder.
                         setFileName(fileName).
