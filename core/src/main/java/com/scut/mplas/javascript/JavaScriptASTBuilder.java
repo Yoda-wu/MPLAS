@@ -242,7 +242,25 @@ public class JavaScriptASTBuilder {
             if (ctx == null) {
                 return "";
             }
-            //Import importFromBlock
+            //importStatement
+            //    : Import importFromBlock
+            //    ;
+            //importFromBlock
+            //    : importDefault? (importNamespace | moduleItems) importFrom eos
+            //    | StringLiteral eos
+            //    ;
+            //moduleItems
+            //    : '{' (aliasName ',')* (aliasName ','?)? '}'
+            //    ;
+            //importDefault
+            //    : aliasName ','
+            //    ;
+            //importNamespace
+            //  : ('*' | identifierName) (As identifierName)?
+            //   ;
+            //importFrom
+            //    : From StringLiteral
+            //    ;
             ASNode node = new ASNode(ASNode.Type.IMPORT);
             node.setLineOfCode(ctx.getStart().getLine());
             node.setCode(getOriginalCodeText(ctx.importFromBlock()));
@@ -259,9 +277,6 @@ public class JavaScriptASTBuilder {
             if (ctx == null) {
                 return "";
             }
-            System.out.println("default:" + ctx.importDefault());
-            System.out.println("namespace:" + ctx.importNamespace());
-            System.out.println("importFrom:" + ctx.importFrom());
             //importDefault? (importNamespace | moduleItems) importFrom eos
             //    | StringLiteral eos
             ASNode node = new ASNode(ASNode.Type.IMPORTFROMBLOCK);
@@ -375,12 +390,12 @@ public class JavaScriptASTBuilder {
             parentStack.add(exportNode);
             String res = "";
             if (ctx.exportFromBlock() != null && !ctx.exportFromBlock().isEmpty()) {
-                res = ctx.Export().getText() + " " + visitExportFromBlock(ctx.exportFromBlock()) + " " + visitEos(ctx.eos());
+                visit(ctx.exportFromBlock());
             } else {
-                res = ctx.Export().getText() + " " + visitDeclaration(ctx.declaration()) + " " + visitEos(ctx.eos());
+                visit(ctx.declaration());
             }
             parentStack.pop();
-            return res;
+            return "";
         }
 
         @Override public String visitExportDefaultDeclaration(JavaScriptParser.ExportDefaultDeclarationContext ctx) {
@@ -1336,13 +1351,12 @@ public class JavaScriptASTBuilder {
             if (ctx == null || ctx.isEmpty()) {
                 return "";
             }
-            StringBuffer stringBuffer = new StringBuffer();
             if (ctx.sourceElement() != null && ctx.sourceElement().size() > 0) {
                 for (JavaScriptParser.SourceElementContext sourceContext : ctx.sourceElement()) {
-                    stringBuffer.append(visitSourceElement(sourceContext) + " ");
+                    visitSourceElement(sourceContext);
                 }
             }
-            return stringBuffer.toString();
+            return "";
         }
 
         @Override public String visitArrayLiteral(JavaScriptParser.ArrayLiteralContext ctx) {
@@ -2044,18 +2058,24 @@ public class JavaScriptASTBuilder {
             if (ctx == null || ctx.isEmpty()) {
                 return "";
             }
-            //TODO
-            //    : {this.n("get")}? identifier propertyName
-            return visitIdentifier(ctx.identifier()) + " " + visitPropertyName(ctx.propertyName());
+            if (ctx.identifier()==null||ctx.identifier().Identifier()==null){
+                visitStatement(ctx,null);
+            }else{
+                visitStatement(ctx,ctx.propertyName().getText());
+            }
+            return "";
         }
 
         @Override public String visitSetter(JavaScriptParser.SetterContext ctx) {
             if (ctx == null || ctx.isEmpty()) {
                 return "";
             }
-            //TODO
-            //       : {this.n("set")}? identifier propertyName
-            return visitIdentifier(ctx.identifier()) + " " + visitPropertyName(ctx.propertyName());
+            if (ctx.identifier()==null||ctx.identifier().Identifier()==null){
+                visitStatement(ctx,null);
+            }else{
+                visitStatement(ctx,ctx.propertyName().getText());
+            }
+            return "";
         }
 
         @Override public String visitIdentifierName(JavaScriptParser.IdentifierNameContext ctx) {
