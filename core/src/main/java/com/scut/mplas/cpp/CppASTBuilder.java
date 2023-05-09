@@ -1324,9 +1324,11 @@ public class CppASTBuilder {
 
             ASNode nameNode=new ASNode(ASNode.Type.NAME);
             nameNode.setLineOfCode(ctx.getStart().getLine());
-            String spaceName=ctx.Identifier().getText();
+            String spaceName="";
             if (ctx.originalNamespaceName() != null)
-                spaceName = ctx.originalNamespaceName().getText();
+                spaceName = getOriginalCodeText(ctx.originalNamespaceName());
+            else if(ctx.Identifier()!=null)
+                spaceName=ctx.Identifier().getText();
             nameNode.setCode(spaceName);
             AST.addVertex(nameNode);
             AST.addEdge(namespaceNode,nameNode);
@@ -1571,6 +1573,11 @@ public class CppASTBuilder {
             pointerOp = "";
             varName = "";
             CppParser.PointerDeclaratorContext pdCtx = ctx.pointerDeclarator();
+            if(pdCtx==null)
+            {
+                Logger.error("line : "+ ctx.getStart().getLine());
+                Logger.error("code : "+ getOriginalCodeText(ctx));
+            }
             if(pdCtx.pointerOperator()!=null)
             {
                 for(int i=0;i<pdCtx.pointerOperator().size();++i)
@@ -1842,15 +1849,22 @@ public class CppASTBuilder {
             //	 | noPointerDeclarator parametersAndQualifiers trailingReturnType;
             //
             // pointerDeclarator: (pointerOperator Const?)* noPointerDeclarator;
-            CppParser.PointerDeclaratorContext pdCtx=ctx.declarator().pointerDeclarator();
-            if (pdCtx.pointerOperator() != null) {
-                for (int i = 0; i < pdCtx.pointerOperator().size(); ++i) {
-                    type += getOriginalCodeText(pdCtx.pointerOperator(i));
-                    if (pdCtx.Const(i) != null)
-                        type += pdCtx.Const(i).getText();
+            CppParser.PointerDeclaratorContext pdCtx=null;
+            if(ctx.declarator().trailingReturnType()!=null)
+            {
+                type=getOriginalCodeText(ctx.declarator().trailingReturnType().trailingTypeSpecifierSeq());
+            }
+            else
+            {
+                pdCtx=ctx.declarator().pointerDeclarator();
+                if (pdCtx.pointerOperator() != null) {
+                    for (int i = 0; i < pdCtx.pointerOperator().size(); ++i) {
+                        type += getOriginalCodeText(pdCtx.pointerOperator(i));
+                        if (pdCtx.Const(i) != null)
+                            type += pdCtx.Const(i).getText();
+                    }
                 }
             }
-
             if (type != "") {
                 ASNode retNode = new ASNode(ASNode.Type.RETURN);
                 retNode.setLineOfCode(ctx.getStart().getLine());
@@ -1868,12 +1882,19 @@ public class CppASTBuilder {
             //		| LeftBracket constantExpression? RightBracket attributeSpecifierSeq?
             //	)
             //	| LeftParen pointerDeclarator RightParen;
-            CppParser.NoPointerDeclaratorContext npdCtx = pdCtx.noPointerDeclarator();
+            CppParser.NoPointerDeclaratorContext npdCtx;
+            if(ctx.declarator().pointerDeclarator()!=null)
+                npdCtx=pdCtx.noPointerDeclarator();
+            else
+                npdCtx=ctx.declarator().noPointerDeclarator();
             ++methodsCounter;
             String normalized = "$METHOD_" + methodsCounter;
             ASNode nameNode = new ASNode(ASNode.Type.NAME);
             nameNode.setLineOfCode(npdCtx.getStart().getLine());
-            nameNode.setCode(getOriginalCodeText(npdCtx.noPointerDeclarator().declaratorid()));
+            if(npdCtx.noPointerDeclarator()==null)
+                nameNode.setCode(getOriginalCodeText(npdCtx.declaratorid()));
+            else
+                nameNode.setCode(getOriginalCodeText(npdCtx.noPointerDeclarator().declaratorid()));
             nameNode.setNormalizedCode(normalized);
             AST.addVertex(nameNode);
             AST.addEdge(parentStack.peek(), nameNode);
@@ -1882,7 +1903,11 @@ public class CppASTBuilder {
             // parametersAndQualifiers:
             //	    LeftParen parameterDeclarationClause? RightParen cvqualifierseq? refqualifier?
             //		    exceptionSpecification? attributeSpecifierSeq?;
-            CppParser.ParametersAndQualifiersContext parmCtx=npdCtx.parametersAndQualifiers();
+            CppParser.ParametersAndQualifiersContext parmCtx;
+            if(ctx.declarator().pointerDeclarator()==null)
+                parmCtx=ctx.declarator().parametersAndQualifiers();
+            else
+                parmCtx=npdCtx.parametersAndQualifiers();
             if(parmCtx.parameterDeclarationClause()!=null) {
                 CppParser.ParameterDeclarationListContext parmListCtx = parmCtx.parameterDeclarationClause().parameterDeclarationList();
                 ASNode parmNode = new ASNode(ASNode.Type.PARAMS);
@@ -1895,7 +1920,8 @@ public class CppASTBuilder {
                     varNode.setLineOfCode(parmDeclCtx.getStart().getLine());
                     AST.addVertex(varNode);
                     AST.addEdge(parmNode, varNode);
-
+                    if(parmDeclCtx.declarator()==null)
+                        continue;
                     CppParser.PointerDeclaratorContext tmpPdCtx = parmDeclCtx.declarator().pointerDeclarator();
                     String tmpOp = "";
                     if (tmpPdCtx.pointerOperator() != null) {

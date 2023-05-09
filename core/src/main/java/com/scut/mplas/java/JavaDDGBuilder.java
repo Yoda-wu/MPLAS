@@ -15,6 +15,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +30,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
+
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -54,6 +58,106 @@ public class JavaDDGBuilder {
 	private static Map<String, JavaClass> allClassInfos;
 
     private static Map<String, List<MethodDefInfo>> methodDEFs;
+
+	public static DataDependenceGraph buildForOne(String fileName,InputStream inputStream) throws IOException {
+		DataDependenceGraph[] ddgs=buildForAll(fileName,inputStream);
+		return ddgs[0];
+	}
+
+	public static DataDependenceGraph[] buildForAll(String fileName,InputStream inputStream) throws IOException {
+		// 无意义，只是为了将files.length设置为1
+		int[] files=new int[1];
+		// Parse all Java source files
+		Logger.info("Parsing all source files ... ");
+		ParseTree[] parseTrees = new ParseTree[files.length];
+		for (int i = 0; i < files.length; ++i) {
+			InputStream inFile = inputStream;
+			ANTLRInputStream input = new ANTLRInputStream(inFile);
+			JavaLexer lexer = new JavaLexer(input);
+			CommonTokenStream tokens = new CommonTokenStream(lexer);
+			JavaParser parser = new JavaParser(tokens);
+			parseTrees[i] = parser.compilationUnit();
+		}
+		Logger.info("Done.");
+
+		// Extract the information of all given Java classes
+		Logger.info("\nExtracting class-infos ... ");
+		allClassInfos = new HashMap<>();
+		List<JavaClass[]> filesClasses = new ArrayList<>();
+		for (int i = 0; i < files.length; ++i) {
+			List<JavaClass> classesList = JavaClassExtractor.extractInfo(fileName, parseTrees[i]);
+			filesClasses.add(classesList.toArray(new JavaClass[classesList.size()]));
+			for (JavaClass cls: classesList)
+				allClassInfos.put(cls.NAME, cls);
+		}
+		Logger.info("Done.");
+
+		// Initialize method DEF information
+		Logger.info("\nInitializing method-DEF infos ... ");
+		methodDEFs = new HashMap<>();
+		for (JavaClass[] classArray: filesClasses) {
+			for (JavaClass cls : classArray) {
+				for (JavaMethod mtd : cls.getAllMethods()) {
+					List<MethodDefInfo> list = methodDEFs.get(mtd.NAME);
+					if (list == null) {
+						list = new ArrayList<>();
+						list.add(new MethodDefInfo(mtd.RET_TYPE, mtd.NAME, cls.PACKAGE, cls.NAME, mtd.ARG_TYPES));
+						methodDEFs.put(mtd.NAME, list);
+					} else {
+						list.add(new MethodDefInfo(mtd.RET_TYPE, mtd.NAME, cls.PACKAGE, cls.NAME, mtd.ARG_TYPES));
+						// no need to do 'methodDEFs.put(...)' again
+					}
+				}
+			}
+		}
+		Logger.info("Done.");
+
+		// Analyze method DEF information for imported libraries
+		analyzeImportsDEF(filesClasses);
+
+		// Iteratively, extract USE-DEF info for all program statements ...
+		DataDependenceGraph[] ddgs = new DataDependenceGraph[files.length];
+		for (int i = 0; i < ddgs.length; ++i)
+			ddgs[i] = new DataDependenceGraph(fileName);
+		//
+		Map<ParserRuleContext, Object>[] pdNodes = new Map[parseTrees.length];
+		for (int i = 0; i < parseTrees.length; ++i)
+			pdNodes[i] = new IdentityHashMap<>();
+		//
+		Logger.info("\nIterative DEF-USE analysis ... ");
+		boolean changed;
+		int iteration = 0;
+		do {
+			++iteration;
+			changed = false;
+			for (int i = 0; i < files.length; ++i) {
+				currentFile = fileName;
+				DefUseVisitor defUse = new DefUseVisitor(iteration, filesClasses.get(i), ddgs[i], pdNodes[i]);
+				defUse.visit(parseTrees[i]);
+				changed |= defUse.changed;
+			}
+			Logger.debug("Iteration #" + iteration + ": " + (changed ? "CHANGED" : "NO-CHANGE"));
+			Logger.debug("\n========================================\n");
+		} while (changed);
+		Logger.info("Done.");
+
+		// Build control-flow graphs for all Java files including the extracted DEF-USE info ...
+		Logger.info("\nExtracting CFGs ... ");
+		ControlFlowGraph[] cfgs = new ControlFlowGraph[files.length];
+		for (int i = 0; i < files.length; ++i)
+			cfgs[i] = JavaCFGBuilder.build(fileName, parseTrees[i], "pdnode", pdNodes[i]);
+		Logger.info("Done.");
+
+		// Finally, traverse all control-flow paths and draw data-flow dependency edges ...
+		Logger.info("\nAdding data-flow edges ... ");
+		for (int i = 0; i < files.length; ++i) {
+			addDataFlowEdges(cfgs[i], ddgs[i]);
+			ddgs[i].attachCFG(cfgs[i]);
+		}
+		Logger.info("Done.\n");
+
+		return ddgs;
+	}
 	
 	public static DataDependenceGraph[] buildForAll(File[] files) throws IOException {
 		// Parse all Java source files
@@ -164,7 +268,8 @@ public class JavaDDGBuilder {
 		//       so, we need to extract specific ZIP-entries for all imports.
 		// For each import find the ZIP-entries, 
 		// and extract the ParseTree and JavaClass[] infos
-		ZipFile zip = new ZipFile("res/jdk7-src.zip");
+		//System.out.println(System.getProperty("user.dir")+"/res/jdk7-src.zip");
+		ZipFile zip = new ZipFile(System.getProperty("user.dir")+"/res/jdk7-src.zip");
 		Set<String> imports = new LinkedHashSet<>();
 		List<ParseTree> importsParseTrees = new ArrayList<>();
 		List<JavaClass[]> importsClassInfos = new ArrayList<>();

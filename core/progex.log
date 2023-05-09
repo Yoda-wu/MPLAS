@@ -1,27 +1,64 @@
-======= LOG CREATED on 周四 2023/5月/04 15:16:55:185 =======
+======= LOG CREATED on 周二 2023/5月/09 13:31:11:395 =======
 
 PROGEX (Program Graph Extractor)  [ v3.4.5 ]
 Visit project website @ https://github.com/ghaffarian/progex
 
 PROGEX execution config:
-  Language = Cpp
+  Language = Java
   Output format = JSON
-  Output directory = ../generate/cpp/basic/AST/\
-  Analysis types = [AST]
+  Output directory = ../generate/java/basic/PDG/\
+  Analysis types = [PDG]
   File name = 
   Input paths = 
-        src/test/resources/cpp/basic/
+        src/test/resources/java/basic/
 
 
-# Cpp source files = 11
+# Java source files = 10
 
 
-Abstract Syntax Analysis
-========================
-AST exported to: ../generate/cpp/basic/AST/\and_keyword-AST.json
-{
-  "directed": true,  "label": "AST of and_keyword.cpp",  "type": "Abstract Syntax Tree (AST)",  "file": "and_keyword.cpp",
-  "nodes": [    {      "id": 0,      "line": 0,      "type": "ROOT",      "label": "and_keyword.cpp",      "normalized": "and_keyword.cpp"    },    {      "id": 1,      "line": 3,      "type": "USING",      "label": "using namespace std;",      "normalized": "using namespace std;"    },    {      "id": 2,      "line": 5,      "type": "FUNCTION",      "label": "FUNCTION",      "normalized": "FUNCTION"    },    {      "id": 3,      "line": 5,      "type": "RETURN",      "label": "int ",      "normalized": "int "    },    {      "id": 4,      "line": 5,      "type": "NAME",      "label": "main",      "normalized": "$METHOD_1"    },    {      "id": 5,      "line": 5,      "type": "BLOCK",      "label": "BLOCK",      "normalized": "BLOCK"    },    {      "id": 6,      "line": 7,      "type": "IF",      "label": "IF",      "normalized": "IF"    },    {      "id": 7,      "line": 7,      "type": "COND",      "label": "true && true",      "normalized": "true && true"    },    {      "id": 8,      "line": 7,      "type": "THEN",      "label": "THEN",      "normalized": "THEN"    },    {      "id": 9,      "line": 8,      "type": "",      "label": "cout << 'Hello World!';",      "normalized": "cout << 'Hello World!'"    },    {      "id": 10,      "line": 10,      "type": "",      "label": "return 0;",      "normalized": "return 0;"    }  ],
+Program-Dependence Analysis
+===========================
+Parsing all source files ... 
+Done.
 
-  "edges": [    {      "id": 0,      "source": 0,      "target": 1,      "label": ""    },    {      "id": 1,      "source": 0,      "target": 2,      "label": ""    },    {      "id": 2,      "source": 2,      "target": 3,      "label": ""    },    {      "id": 3,      "source": 2,      "target": 4,      "label": ""    },    {      "id": 4,      "source": 2,      "target": 5,      "label": ""    },    {      "id": 5,      "source": 5,      "target": 6,      "label": ""    },    {      "id": 6,      "source": 6,      "target": 7,      "label": ""    },    {      "id": 7,      "source": 6,      "target": 8,      "label": ""    },    {      "id": 8,      "source": 8,      "target": 9,      "label": ""    },    {      "id": 9,      "source": 5,      "target": 10,      "label": ""    }  ]
-}
+Extracting class-infos ... 
+Done.
+
+Initializing method-DEF infos ... 
+Done.
+
+Extracting & Parsing imports ... 
+Done.
+
+Analyzing imports DEF-USE ... 
+Done.
+
+Iterative DEF-USE analysis ... 
+Done.
+
+Extracting CFGs ... 
+Done.
+
+Adding data-flow edges ... 
+Done.
+
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test1-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test1-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\test10-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\test10-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test2-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test2-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test3-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test3-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test4-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test4-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test5-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test5-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test6-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test6-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test7-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test7-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test8-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test8-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test9-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test9-PDG-DATA.json
