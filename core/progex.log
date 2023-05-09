@@ -1,29 +1,64 @@
-======= LOG CREATED on 周五 2023/5月/05 20:49:05:001 =======
+======= LOG CREATED on 周二 2023/5月/09 13:31:11:395 =======
 
 PROGEX (Program Graph Extractor)  [ v3.4.5 ]
 Visit project website @ https://github.com/ghaffarian/progex
 
 PROGEX execution config:
   Language = Java
-  Output format = GML
-  Output directory = ../generate/java/basic/AST/\
-  Analysis types = [AST]
+  Output format = JSON
+  Output directory = ../generate/java/basic/PDG/\
+  Analysis types = [PDG]
   File name = 
   Input paths = 
         src/test/resources/java/basic/
 
 
-# Java source files = 9
+# Java source files = 10
 
 
-Abstract Syntax Analysis
-========================
-AST exported to: ../generate/java/basic/AST/\Test1-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test2-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test3-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test4-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test5-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test6-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test7-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test8-AST.gml
-AST exported to: ../generate/java/basic/AST/\Test9-AST.gml
+Program-Dependence Analysis
+===========================
+Parsing all source files ... 
+Done.
+
+Extracting class-infos ... 
+Done.
+
+Initializing method-DEF infos ... 
+Done.
+
+Extracting & Parsing imports ... 
+Done.
+
+Analyzing imports DEF-USE ... 
+Done.
+
+Iterative DEF-USE analysis ... 
+Done.
+
+Extracting CFGs ... 
+Done.
+
+Adding data-flow edges ... 
+Done.
+
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test1-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test1-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\test10-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\test10-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test2-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test2-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test3-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test3-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test4-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test4-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test5-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test5-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test6-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test6-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test7-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test7-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test8-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test8-PDG-DATA.json
+CDS of PDG exported to: ../generate/java/basic/PDG/\Test9-PDG-CTRL.json
+DDS of PDG exported to: ../generate/java/basic/PDG/\Test9-PDG-DATA.json

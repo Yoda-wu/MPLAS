@@ -8,6 +8,7 @@ import java.io.InputStream;
 import com.scut.mplas.graphs.pdg.ControlDependenceGraph;
 import com.scut.mplas.graphs.pdg.DataDependenceGraph;
 import com.scut.mplas.graphs.pdg.ProgramDependeceGraph;
+import ghaffarian.nanologger.Logger;
 
 /**
  * Program Dependence Graph (PDG) builder for Java programs.
@@ -57,7 +58,6 @@ public class JavaPDGBuilder {
 		//
 		// Join the subgraphs into PDGs
 		ProgramDependeceGraph pdgArray = new ProgramDependeceGraph(fileName, null, dataSubgraphs);
-
 		return pdgArray;
 	}
 }

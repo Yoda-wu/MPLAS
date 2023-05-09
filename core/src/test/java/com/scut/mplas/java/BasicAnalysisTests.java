@@ -1,22 +1,21 @@
 /*** In The Name of Allah ***/
 package com.scut.mplas.java;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
+import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scut.mplas.API;
 import com.scut.mplas.Execution;
 import com.scut.mplas.Main;
 import com.scut.mplas.utils.FileUtils;
+import com.scut.mplas.utils.SystemUtils;
+import ghaffarian.nanologger.Logger;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -91,19 +90,19 @@ public class BasicAnalysisTests {
         // 指定源代码文件的后缀名
         String suffix="";
 
-        String lang="cpp";
-        //String lang="java";
+        //String lang="cpp";
+        String lang="java";
         //String lang="js";
         //String lang="ruby";
         switch(lang)
         {
             case "cpp":
-                inputDir=CPP_DIR+"basic/";
+                inputDir=CPP_DIR+"test/ZIToolKit/";
                 outDir=CPP_JSONL_DIR;
                 suffix=CPP_SUFFIX;
                 break;
             case "java":
-                inputDir=JAVA_SRC_DIR;
+                inputDir=JAVA_DIR+"basic/";
                 outDir=JAVA_JSONL_DIR;
                 suffix=JAVA_SUFFIX;
                 break;
@@ -121,7 +120,7 @@ public class BasicAnalysisTests {
         String[] filePaths=new String[0];
         filePaths=FileUtils.listFilesWithSuffix(new String[]{inputDir},suffix);
         // 设置输出的jsonl文件的名字：outDir + jsonl文件名
-        String outputName=outDir+lang+"Test.jsonl";
+        String outputName=outDir+"basic.jsonl";
         File outputFile=new File(outputName);
         FileWriter writer=new FileWriter(outputFile);
 

@@ -15,6 +15,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +30,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
+
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -264,7 +268,8 @@ public class JavaDDGBuilder {
 		//       so, we need to extract specific ZIP-entries for all imports.
 		// For each import find the ZIP-entries, 
 		// and extract the ParseTree and JavaClass[] infos
-		ZipFile zip = new ZipFile("res/jdk7-src.zip");
+		//System.out.println(System.getProperty("user.dir")+"/res/jdk7-src.zip");
+		ZipFile zip = new ZipFile(System.getProperty("user.dir")+"/res/jdk7-src.zip");
 		Set<String> imports = new LinkedHashSet<>();
 		List<ParseTree> importsParseTrees = new ArrayList<>();
 		List<JavaClass[]> importsClassInfos = new ArrayList<>();
