@@ -1301,27 +1301,56 @@ public class JavaScriptASTBuilder {
             if (ctx == null || ctx.isEmpty()) {
                 return "";
             }
-            if (ctx.propertyName() != null && !ctx.propertyName().isEmpty()) {
-                return "*#" + visitPropertyName(ctx.propertyName()) + " (" + visitFormalParameterList(ctx.formalParameterList()) + ")" + visitFunctionBody(ctx.functionBody());
-            } else if (ctx.getter() != null && !ctx.getter().isEmpty()) {
-                return "*#" + visitGetter(ctx.getter()) + "()" + visitFunctionBody(ctx.functionBody());
+            ASNode methodNode=new ASNode(ASNode.Type.METHOD);
+            methodNode.setLineOfCode(ctx.getStart().getLine());
+            methodNode.setNormalizedCode("$LABEL method");
+            methodNode.setCode(getOriginalCodeText(ctx));
+            AST.addVertex(methodNode);
+            AST.addEdge(parentStack.peek(),methodNode);
+            parentStack.add(methodNode);
+            if (ctx.propertyName()!=null){
+                visitPropertyName(ctx.propertyName());
+                visitFormalParameterList(ctx.formalParameterList());
+                visitFunctionBody(ctx.functionBody());
             }
-            return "*#" + visitSetter(ctx.setter()) + " (" + visitFormalParameterList(ctx.formalParameterList()) + ")" + visitFunctionBody(ctx.functionBody());
+            if(ctx.getter()!=null){
+                visitGetter(ctx.getter());
+                visitFunctionBody(ctx.functionBody());
+            }
+            if (ctx.setter()!=null){
+                visitSetter(ctx.setter());
+                visitFormalParameterList(ctx.formalParameterList());
+                visitFunctionBody(ctx.functionBody());
+            }
+            parentStack.pop();
+            return "";
         }
 
         @Override public String visitFormalParameterList(JavaScriptParser.FormalParameterListContext ctx) {
-            if (ctx.formalParameterArg()!=null&&!ctx.formalParameterArg().isEmpty()){
-                StringBuffer stringBuffer=new StringBuffer();
-                stringBuffer.append(ctx.formalParameterArg(0));
-                for(int i=1;i<ctx.formalParameterArg().size();i++){
-                    stringBuffer.append(",");
-                    stringBuffer.append(visitFormalParameterArg(ctx.formalParameterArg(i)));
+            ASNode parameterListNode=new ASNode(ASNode.Type.PARAMETERLIST);
+            parameterListNode.setLineOfCode(ctx.getStart().getLine());
+            parameterListNode.setCode(getOriginalCodeText(ctx));
+            AST.addVertex(parameterListNode);
+            AST.addEdge(parentStack.peek(),parameterListNode);
+            parentStack.add(parameterListNode);
+            if (ctx.formalParameterArg()!=null&&ctx.formalParameterArg().size()>0){
+                for (JavaScriptParser.FormalParameterArgContext argCtx : ctx.formalParameterArg()) {
+                    ASNode argNode=new ASNode(ASNode.Type.PARAMETERARG);
+                    argNode.setLineOfCode(argCtx.getStart().getLine());
+                    argNode.setCode(getOriginalCodeText(argCtx));
+                    AST.addVertex(argNode);
+                    AST.addEdge(parentStack.peek(),argNode);
                 }
-                stringBuffer.append(",");
-                stringBuffer.append(visitLastFormalParameterArg(ctx.lastFormalParameterArg()));
-                return stringBuffer.toString();
             }
-           return visitLastFormalParameterArg(ctx.lastFormalParameterArg());
+            if (ctx.lastFormalParameterArg()!=null){
+                ASNode argNode=new ASNode(ASNode.Type.PARAMETERARG);
+                argNode.setLineOfCode(ctx.lastFormalParameterArg().getStart().getLine());
+                argNode.setCode(getOriginalCodeText(ctx.lastFormalParameterArg()));
+                AST.addVertex(argNode);
+                AST.addEdge(parentStack.peek(),argNode);
+            }
+            parentStack.pop();
+            return null;
         }
 
         @Override public String visitFormalParameterArg(JavaScriptParser.FormalParameterArgContext ctx) {
@@ -1456,13 +1485,34 @@ public class JavaScriptASTBuilder {
                 return "";
             }
             if (ctx.identifierName() != null) {
-                return visitIdentifierName(ctx.identifierName());
-            } else if (ctx.numericLiteral() != null) {
-                return visitNumericLiteral(ctx.numericLiteral());
-            } else if (ctx.StringLiteral() != null) {
-                return ctx.StringLiteral().toString();
+                ASNode node=new ASNode(ASNode.Type.STATEMENT);
+                node.setLineOfCode(ctx.identifierName().getStart().getLine());
+                node.setCode(getOriginalCodeText(ctx.identifierName()));
+                AST.addVertex(node);
+                AST.addEdge(parentStack.peek(),node);
             }
-            return "[" + visit(ctx.singleExpression()) + "]";
+            if (ctx.numericLiteral() != null) {
+                ASNode node=new ASNode(ASNode.Type.STATEMENT);
+                node.setLineOfCode(ctx.numericLiteral().getStart().getLine());
+                node.setCode(getOriginalCodeText(ctx.numericLiteral()));
+                AST.addVertex(node);
+                AST.addEdge(parentStack.peek(),node);
+            }
+            if (ctx.StringLiteral() != null) {
+                ASNode node=new ASNode(ASNode.Type.STATEMENT);
+                node.setLineOfCode(0);
+                node.setCode(ctx.StringLiteral().getText());
+                AST.addVertex(node);
+                AST.addEdge(parentStack.peek(),node);
+            }
+            if (ctx.singleExpression()!=null){
+                ASNode node=new ASNode(ASNode.Type.STATEMENT);
+                node.setLineOfCode(ctx.singleExpression().getStart().getLine());
+                node.setCode("["+getOriginalCodeText(ctx.singleExpression())+"]");
+                AST.addVertex(node);
+                AST.addEdge(parentStack.peek(),node);
+            }
+            return "";
         }
 
         @Override public String visitArguments(JavaScriptParser.ArgumentsContext ctx) {

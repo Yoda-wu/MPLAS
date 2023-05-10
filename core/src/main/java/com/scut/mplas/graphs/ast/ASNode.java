@@ -77,6 +77,8 @@ public class ASNode {
         ALIASNAME   ("ALIASNAME"),
         STATEMENTLIST("STATEMENTLIST"),
         THROW       ("THROW"),
+        PARAMETERLIST("PARAMETERLIST"),
+        PARAMETERARG("PARAMETERARG"),
 
 
         //C++的相关关键字
