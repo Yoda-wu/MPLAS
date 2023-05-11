@@ -64,6 +64,7 @@ public class BasicAnalysisTests {
         dir.delete();
     }
 
+
     // 将指定的目录下的所有代码文件，转换为一个jsonl，每一个源代码文件对应生成的jsonl文件中的一条json对象
     // 每一个代码文件都会转换为一个json对象,json对象格式如下：
     // { test：“文件名”，code：“源代码文件里的文本”}
