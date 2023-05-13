@@ -90,9 +90,7 @@ public class JavaScriptASTBuilder {
             JavaScriptParser.ProgramContext rootCntx = (JavaScriptParser.ProgramContext) tree;
             AST.root.setCode(new File(AST.filePath).getName());
             parentStack.push(AST.root);
-            System.out.println(rootCntx.EOF());
             if (rootCntx.sourceElements() != null) {
-                System.out.println("sourceElement:" + rootCntx.sourceElements());
                 visit(rootCntx.sourceElements());
             }
             parentStack.pop();
@@ -137,81 +135,73 @@ public class JavaScriptASTBuilder {
             if (ctx == null || ctx.isEmpty()) {
                 return "";
             }
-            ASNode node = new ASNode(ASNode.Type.SOURCEELEMENT);
-            node.setLineOfCode(ctx.getStart().getLine());
-            node.setCode(ctx.statement().getText());
-            AST.addVertex(node);
-            AST.addEdge(parentStack.peek(), node);
-            parentStack.add(node);
-            String res = visitStatement(ctx.statement());
-            parentStack.peek();
-            return res;
+            return visitStatement(ctx.statement());
         }
 
         @Override public String visitStatement(JavaScriptParser.StatementContext ctx) {
-            if (ctx == null || ctx.isEmpty()) {
-                return "";
-            }
-            ASNode node = new ASNode(ASNode.Type.STATEMENT);
-            node.setLineOfCode(ctx.getStart().getLine());
-            AST.addVertex(node);
-            AST.addEdge(parentStack.peek(), node);
-            parentStack.add(node);
-            String res = null;
-            if (ctx.block() != null && !ctx.block().isEmpty()) {
-                res = visitBlock(ctx.block());
-            } else if (ctx.importStatement() != null && !ctx.importStatement().isEmpty()) {
-                res = visitImportStatement(ctx.importStatement());
-            } else if (ctx.variableStatement() != null && !ctx.variableStatement().isEmpty()) {
-                res = visitVariableStatement(ctx.variableStatement());
-            } else if (ctx.exportStatement() != null && !ctx.exportStatement().isEmpty()) {
-                res = visitExpressionStatement(ctx.expressionStatement());
-            } else if (ctx.emptyStatement_() != null && !ctx.emptyStatement_().isEmpty()) {
-                res = visitEmptyStatement_(ctx.emptyStatement_());
-            } else if (ctx.classDeclaration() != null && !ctx.classDeclaration().isEmpty()) {
-                res = visitClassDeclaration(ctx.classDeclaration());
-            } else if (ctx.expressionStatement() != null && !ctx.expressionStatement().isEmpty()) {
-                res = visitExpressionStatement(ctx.expressionStatement());
-            } else if (ctx.ifStatement() != null && !ctx.ifStatement().isEmpty()) {
-                res = visitIfStatement(ctx.ifStatement());
-            } else if (ctx.iterationStatement() != null && !ctx.iterationStatement().isEmpty()) {
-                res= visitIterationStatement(ctx.iterationStatement());
-            }else if (ctx.continueStatement()!=null&&!ctx.continueStatement().isEmpty()){
-                res= visitContinueStatement(ctx.continueStatement());
-            }else if (ctx.breakStatement()!=null&&!ctx.breakStatement().isEmpty()){
-                res= visitBreakStatement(ctx.breakStatement());
-            }else if (ctx.returnStatement()!=null&&!ctx.returnStatement().isEmpty()){
-                res= visitReturnStatement(ctx.returnStatement());
-            }else if (ctx.yieldStatement()!=null&&!ctx.yieldStatement().isEmpty()){
-                res= visitYieldStatement(ctx.yieldStatement());
-            }else if (ctx.withStatement()!=null&&!ctx.withStatement().isEmpty()){
-                res= visitWithStatement(ctx.withStatement());
-            }else if (ctx.labelledStatement()!=null&&!ctx.labelledStatement().isEmpty()){
-                res= visitLabelledStatement(ctx.labelledStatement());
-            }else if (ctx.switchStatement()!=null&&!ctx.switchStatement().isEmpty()){
-                res= visitSwitchStatement(ctx.switchStatement());
-            }else if (ctx.throwStatement()!=null&&!ctx.throwStatement().isEmpty()){
-                res= visitThrowStatement(ctx.throwStatement());
-            }else if (ctx.tryStatement()!=null&&!ctx.tryStatement().isEmpty()){
-                res= visitTryStatement(ctx.tryStatement());
-            }else if (ctx.debuggerStatement()!=null&&!ctx.debuggerStatement().isEmpty()){
-                res= visitDebuggerStatement(ctx.debuggerStatement());
-            }else{
-                res=visitFunctionDeclaration(ctx.functionDeclaration());
-            }
-            parentStack.pop();
-            return res;
-        }
-
-        private String visitIterationStatement(JavaScriptParser.IterationStatementContext iterationStatement) {
-            //TODO
-            // : Do statement While '(' expressionSequence ')' eos                                                                       # DoStatement
-            //    | While '(' expressionSequence ')' statement                                                                              # WhileStatement
-            //    | For '(' (expressionSequence | variableDeclarationList)? ';' expressionSequence? ';' expressionSequence? ')' statement   # ForStatement
-            //    | For '(' (singleExpression | variableDeclarationList) In expressionSequence ')' statement                                # ForInStatement
-            //    // strange, 'of' is an identifier. and this.p("of") not work in sometime.
-            //    | For Await? '(' (singleExpression | variableDeclarationList) identifier{this.p("of")}? expressionSequence ')' statement  # ForOfStatement
+            //statement
+            //    : block
+            //    | variableStatement
+            //    | importStatement
+            //    | exportStatement
+            //    | emptyStatement_
+            //    | classDeclaration
+            //    | expressionStatement
+            //    | ifStatement
+            //    | iterationStatement
+            //    | continueStatement
+            //    | breakStatement
+            //    | returnStatement
+            //    | yieldStatement
+            //    | withStatement
+            //    | labelledStatement
+            //    | switchStatement
+            //    | throwStatement
+            //    | tryStatement
+            //    | debuggerStatement
+            //    | functionDeclaration
             //    ;
+            if (ctx.block() != null && !ctx.block().isEmpty()) {
+                visitStatement(ctx,visit(ctx.block()));
+            } else if (ctx.importStatement() != null && !ctx.importStatement().isEmpty()) {
+                visitStatement(ctx,visit(ctx.importStatement()));
+            } else if (ctx.variableStatement() != null && !ctx.variableStatement().isEmpty()) {
+                visitStatement(ctx,visit(ctx.variableStatement()));
+            } else if (ctx.exportStatement() != null && !ctx.exportStatement().isEmpty()) {
+                visitStatement(ctx,visit(ctx.exportStatement()));
+            } else if (ctx.emptyStatement_() != null && !ctx.emptyStatement_().isEmpty()) {
+                visitStatement(ctx,visit(ctx.emptyStatement_()));
+            } else if (ctx.classDeclaration() != null && !ctx.classDeclaration().isEmpty()) {
+                visitStatement(ctx,visit(ctx.classDeclaration()));
+            } else if (ctx.expressionStatement() != null && !ctx.expressionStatement().isEmpty()) {
+                visitStatement(ctx,visit(ctx.expressionStatement()));
+            } else if (ctx.ifStatement() != null && !ctx.ifStatement().isEmpty()) {
+                visitStatement(ctx,visit(ctx.ifStatement()));
+            } else if (ctx.iterationStatement() != null && !ctx.iterationStatement().isEmpty()) {
+                visitStatement(ctx,visit(ctx.iterationStatement()));
+            }else if (ctx.continueStatement()!=null&&!ctx.continueStatement().isEmpty()){
+                visitStatement(ctx,visit(ctx.continueStatement()));
+            }else if (ctx.breakStatement()!=null&&!ctx.breakStatement().isEmpty()){
+                visitStatement(ctx,visit(ctx.breakStatement()));
+            }else if (ctx.returnStatement()!=null&&!ctx.returnStatement().isEmpty()){
+                visitStatement(ctx,visit(ctx.returnStatement()));
+            }else if (ctx.yieldStatement()!=null&&!ctx.yieldStatement().isEmpty()){
+                visitStatement(ctx,visit(ctx.yieldStatement()));
+            }else if (ctx.withStatement()!=null&&!ctx.withStatement().isEmpty()){
+                visitStatement(ctx,visit(ctx.withStatement()));
+            }else if (ctx.labelledStatement()!=null&&!ctx.labelledStatement().isEmpty()){
+                visitStatement(ctx,visit(ctx.labelledStatement()));
+            }else if (ctx.switchStatement()!=null&&!ctx.switchStatement().isEmpty()){
+                visitStatement(ctx,visit(ctx.switchStatement()));
+            }else if (ctx.throwStatement()!=null&&!ctx.throwStatement().isEmpty()){
+                visitStatement(ctx,visit(ctx.throwStatement()));
+            }else if (ctx.tryStatement()!=null&&!ctx.tryStatement().isEmpty()){
+                visitStatement(ctx,visit(ctx.tryStatement()));
+            }else if (ctx.debuggerStatement()!=null&&!ctx.debuggerStatement().isEmpty()){
+                visitStatement(ctx,visit(ctx.debuggerStatement()));
+            }else{
+                visitStatement(ctx,visit(ctx.functionDeclaration()));
+            }
             return "";
         }
 
@@ -239,37 +229,54 @@ public class JavaScriptASTBuilder {
             AST.addVertex(node);
             AST.addEdge(parentStack.peek(), node);
             parentStack.add(node);
-            StringBuffer stringBuffer = new StringBuffer();
+//            StringBuffer stringBuffer = new StringBuffer();
             for (int i = 0; i < ctx.statement().size(); i++) {
-                stringBuffer.append(visitStatement(ctx.statement(i)));
+//                stringBuffer.append(visitStatement(ctx.statement(i)));
+                visitStatement(ctx.statement(i));
             }
             parentStack.pop();
-            return stringBuffer.toString();
+            return "";
         }
 
         @Override public String visitImportStatement(JavaScriptParser.ImportStatementContext ctx) {
             if (ctx == null) {
                 return "";
             }
-            //Import importFromBlock
+            //importStatement
+            //    : Import importFromBlock
+            //    ;
+            //importFromBlock
+            //    : importDefault? (importNamespace | moduleItems) importFrom eos
+            //    | StringLiteral eos
+            //    ;
+            //moduleItems
+            //    : '{' (aliasName ',')* (aliasName ','?)? '}'
+            //    ;
+            //importDefault
+            //    : aliasName ','
+            //    ;
+            //importNamespace
+            //  : ('*' | identifierName) (As identifierName)?
+            //   ;
+            //importFrom
+            //    : From StringLiteral
+            //    ;
             ASNode node = new ASNode(ASNode.Type.IMPORT);
             node.setLineOfCode(ctx.getStart().getLine());
-            node.setCode(ctx.Import().getText());
+            node.setCode(getOriginalCodeText(ctx.importFromBlock()));
+            Logger.debug("Adding import "+getOriginalCodeText(ctx.importFromBlock()));
             AST.addVertex(node);
             AST.addEdge(parentStack.peek(), node);
-            parentStack.push(node);
-            String res = visit(ctx.Import()) + " " + visit(ctx.importFromBlock());
-            parentStack.pop();
-            return res;
+//            parentStack.push(node);
+//            String res = visit(ctx.Import()) + " " + visit(ctx.importFromBlock());
+//            parentStack.pop();
+            return "";
         }
 
         @Override public String visitImportFromBlock(JavaScriptParser.ImportFromBlockContext ctx) {
             if (ctx == null) {
                 return "";
             }
-            System.out.println("default:" + ctx.importDefault());
-            System.out.println("namespace:" + ctx.importNamespace());
-            System.out.println("importFrom:" + ctx.importFrom());
             //importDefault? (importNamespace | moduleItems) importFrom eos
             //    | StringLiteral eos
             ASNode node = new ASNode(ASNode.Type.IMPORTFROMBLOCK);
@@ -383,12 +390,12 @@ public class JavaScriptASTBuilder {
             parentStack.add(exportNode);
             String res = "";
             if (ctx.exportFromBlock() != null && !ctx.exportFromBlock().isEmpty()) {
-                res = ctx.Export().getText() + " " + visitExportFromBlock(ctx.exportFromBlock()) + " " + visitEos(ctx.eos());
+                visit(ctx.exportFromBlock());
             } else {
-                res = ctx.Export().getText() + " " + visitDeclaration(ctx.declaration()) + " " + visitEos(ctx.eos());
+                visit(ctx.declaration());
             }
             parentStack.pop();
-            return res;
+            return "";
         }
 
         @Override public String visitExportDefaultDeclaration(JavaScriptParser.ExportDefaultDeclarationContext ctx) {
@@ -768,55 +775,29 @@ public class JavaScriptASTBuilder {
         }
 
         @Override public String visitBreakStatement(JavaScriptParser.BreakStatementContext ctx) {
-            //:    : Break ({this.notLineTerminator()}? identifier)? eos
-            if (ctx == null || ctx.isEmpty()) {
-                return "";
-            }
-            ASNode node = new ASNode(ASNode.Type.BREAK);
-            node.setLineOfCode(ctx.getStart().getLine());
-            AST.addVertex(node);
-            AST.addEdge(parentStack.peek(), node);
-            if (ctx.Break() == null) {
-                visit(ctx.eos());
-                return "";
-            }
-            visitStatement(ctx.identifier(), "continue $LABEL");
+           //    : Break ({this.notLineTerminator()}? identifier)? eos
+            if (ctx.identifier()==null||ctx.identifier().Identifier() == null)
+                visitStatement(ctx, null);
+            else
+                visitStatement(ctx, "break $LABEL");
             return "";
         }
 
         @Override public String visitReturnStatement(JavaScriptParser.ReturnStatementContext ctx) {
             //:        : Return ({this.notLineTerminator()}? expressionSequence)? eos
-            if (ctx == null || ctx.isEmpty()) {
-                return "";
-            }
-            ASNode node = new ASNode(ASNode.Type.RETURN);
-            node.setLineOfCode(ctx.getStart().getLine());
-            AST.addVertex(node);
-            AST.addEdge(parentStack.peek(), node);
-            if (ctx.Return() == null) {
-                visit(ctx.eos());
-                return "";
-            }
-
-            visitStatement(ctx, "return " + visit(ctx.expressionSequence()));
+            if (ctx.expressionSequence() == null)
+                visitStatement(ctx, null);
+            else
+                visitStatement(ctx, "return " + visit(ctx.expressionSequence()));
             return "";
         }
 
         @Override public String visitYieldStatement(JavaScriptParser.YieldStatementContext ctx) {
             //:         : Yield ({this.notLineTerminator()}? expressionSequence)? eos
-            if (ctx == null || ctx.isEmpty()) {
-                return "";
-            }
-            ASNode node = new ASNode(ASNode.Type.YIELD);
-            node.setLineOfCode(ctx.getStart().getLine());
-            AST.addVertex(node);
-            AST.addEdge(parentStack.peek(), node);
-            if (ctx.Yield() == null) {
-                visit(ctx.eos());
-                return "";
-            }
-
-            visitStatement(ctx, "yield " + visit(ctx.expressionSequence()));
+            if (ctx.expressionSequence() == null)
+                visitStatement(ctx, null);
+            else
+                visitStatement(ctx, "return " + visit(ctx.expressionSequence()));
             return "";
         }
 
@@ -840,17 +821,6 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitSwitchStatement(JavaScriptParser.SwitchStatementContext ctx) {
             //    : Switch '(' expressionSequence ')' caseBlock
-//            ASNode switchNode=new ASNode(ASNode.Type.SWITCH);
-//            switchNode.setCode(getOriginalCodeText(ctx.expressionSequence()));
-//            switchNode.setNormalizedCode(visit(ctx.expressionSequence()));
-//            switchNode.setLineOfCode(ctx.expressionSequence().getStart().getLine());
-//            AST.addVertex(switchNode);
-//            ASNode caseBlockNode=new ASNode(ASNode.Type.CASEBLOCK);
-//            caseBlockNode.setLineOfCode(ctx.caseBlock().getStart().getLine());
-//            caseBlockNode.setCode(ctx.caseBlock().getText());
-//            AST.addVertex(caseBlockNode);
-//            AST.addEdge(switchNode,caseBlockNode);
-//            return "";
             if (ctx == null || ctx.isEmpty()) {
                 return "";
             }
@@ -865,14 +835,69 @@ public class JavaScriptASTBuilder {
             statementNode.setLineOfCode(ctx.expressionSequence().getStart().getLine());
             AST.addVertex(statementNode);
             AST.addEdge(switchNode, statementNode);
+            //    : '{' caseClauses? (defaultClause caseClauses?)? '}'
             if (ctx.caseBlock().caseClauses()!=null){
-                ASNode caseBlockNode=new ASNode(ASNode.Type.CASEBLOCK);
-                caseBlockNode.setCode(getOriginalCodeText(ctx.caseBlock()));
-                caseBlockNode.setNormalizedCode(visit(ctx.caseBlock()));
-                caseBlockNode.setLineOfCode(ctx.caseBlock().getStart().getLine());
-                AST.addVertex(caseBlockNode);
-                AST.addEdge(switchNode, caseBlockNode);
+                //caseClauses
+                //    : caseClause+
+                for (JavaScriptParser.CaseClausesContext caseClausesContext : ctx.caseBlock().caseClauses()) {
+                    ASNode caseBlockNode=new ASNode(ASNode.Type.CASEBLOCK);
+                    caseBlockNode.setCode("");
+                    caseBlockNode.setLineOfCode(ctx.caseBlock().getStart().getLine());
+                    AST.addVertex(caseBlockNode);
+                    AST.addEdge(switchNode,caseBlockNode);
+                    if(caseClausesContext.caseClause()!=null){
+                        for (JavaScriptParser.CaseClauseContext clauseContext : caseClausesContext.caseClause()) {
+                            // : Case expressionSequence ':' statementList?
+                            ASNode caseNode = new ASNode(ASNode.Type.CASE);
+                            caseNode.setLineOfCode(ctx.getStart().getLine());
+                            caseNode.setCode(ctx.getText());
+                            AST.addVertex(caseNode);
+                            AST.addEdge(caseBlockNode, caseNode);
+                            ASNode exprNode = new ASNode(ASNode.Type.STATEMENT);
+                            exprNode.setCode(ctx.expressionSequence().getText());
+                            exprNode.setLineOfCode(ctx.expressionSequence().getStart().getLine());
+                            exprNode.setNormalizedCode(visit(ctx.expressionSequence()));
+                            AST.addVertex(exprNode);
+                            AST.addEdge(caseNode,exprNode);
+                            visitStatementList(exprNode,clauseContext.statementList());
+                        }
+                    }
+                }
+//                ASNode caseBlockNode=new ASNode(ASNode.Type.CASEBLOCK);
+//                caseBlockNode.setCode(getOriginalCodeText(ctx.caseBlock()));
+//                caseBlockNode.setNormalizedCode(visit(ctx.caseBlock()));
+//                caseBlockNode.setLineOfCode(ctx.caseBlock().getStart().getLine());
+//                AST.addVertex(caseBlockNode);
+//                AST.addEdge(switchNode, caseBlockNode);
             }
+            if (ctx.caseBlock().defaultClause()!=null){
+                JavaScriptParser.DefaultClauseContext defaultClauseCtx = ctx.caseBlock().defaultClause();
+                if (defaultClauseCtx.Default() != null) {
+                    ASNode caseNode = new ASNode(ASNode.Type.CASE);
+                    caseNode.setLineOfCode(ctx.getStart().getLine());
+                    caseNode.setCode(ctx.getText());
+                    AST.addVertex(caseNode);
+                    AST.addEdge(switchNode, caseNode);
+                }
+            }
+            return "";
+        }
+
+        public String visitStatementList(ASNode exprNode, JavaScriptParser.StatementListContext ctx){
+            if (ctx == null) {
+                return "";
+            }
+            ASNode node = new ASNode(ASNode.Type.STATEMENTLIST);
+            node.setLineOfCode(ctx.getStart().getLine());
+            AST.addVertex(node);
+            AST.addEdge(exprNode, node);
+            parentStack.add(node);
+//            StringBuffer stringBuffer = new StringBuffer();
+            for (int i = 0; i < ctx.statement().size(); i++) {
+//                stringBuffer.append(visitStatement(ctx.statement(i)));
+                visitStatement(ctx.statement(i));
+            }
+            parentStack.pop();
             return "";
         }
 
@@ -980,17 +1005,6 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitThrowStatement(JavaScriptParser.ThrowStatementContext ctx) {
             //:      : Throw {this.notLineTerminator()}? expressionSequence eos
-            if (ctx == null || ctx.isEmpty()) {
-                return "";
-            }
-            ASNode node = new ASNode(ASNode.Type.THROW);
-            node.setLineOfCode(ctx.getStart().getLine());
-            AST.addVertex(node);
-            AST.addEdge(parentStack.peek(), node);
-            if (ctx.Throw() == null) {
-                visit(ctx.eos());
-                return "";
-            }
             visitStatement(ctx, "throw " + visit(ctx.expressionSequence()));
             return "";
         }
@@ -1117,15 +1131,15 @@ public class JavaScriptASTBuilder {
             Logger.debug("Adding method modifier");
             AST.addVertex(modifierNode);
             AST.addEdge(parentStack.peek(), modifierNode);
-            //
-            ASNode retNode = new ASNode(ASNode.Type.RETURN);
-            retNode.setCode(ctx.getChild(0).getText());
-            retNode.setLineOfCode(ctx.getStart().getLine());
-            Logger.debug("Adding method type");
-            AST.addVertex(retNode);
-            AST.addEdge(parentStack.peek(), retNode);
-            //
-            ++methodsCounter;
+            //javaScript有返回值，但不需要像java一样显示声明出来
+//            ASNode retNode = new ASNode(ASNode.Type.RETURN);
+//            retNode.setCode(ctx.getChild(0).getText());
+//            retNode.setLineOfCode(ctx.getStart().getLine());
+//            Logger.debug("Adding method type");
+//            AST.addVertex(retNode);
+//            AST.addEdge(parentStack.peek(), retNode);
+//            //
+//            ++methodsCounter;
             ASNode nameNode = new ASNode(ASNode.Type.NAME);
             String methodName = ctx.identifier().Identifier().getText();
             String normalized = "$METHOD_" + methodsCounter;
@@ -1186,12 +1200,13 @@ public class JavaScriptASTBuilder {
                 AST.addVertex(functionBody);
                 AST.addEdge(parentStack.peek(), functionBody);
                 parentStack.push(functionBody);
-                visitChildren(ctx.functionBody());
+                visitChildren(ctx.functionBody().sourceElements());
                 parentStack.pop();
                 resetLocalVars();
             }
             return "";
         }
+
 
         private void resetLocalVars() {
             vars.clear();
@@ -1223,33 +1238,7 @@ public class JavaScriptASTBuilder {
             Logger.debug("Adding class name: " + className);
             AST.addVertex(nameNode);
             AST.addEdge(classNode, nameNode);
-//            //TODO js中有type吗？
-//            if (ctx.typeType() != null) {
-//                ASNode extendsNode = new ASNode(ASNode.Type.EXTENDS);
-//                extendsNode.setCode(ctx.typeType().getText());
-//                extendsNode.setLineOfCode(ctx.typeType().getStart().getLine());
-//                Logger.debug("Adding extends " + ctx.typeType().getText());
-//                AST.addVertex(extendsNode);
-//                AST.addEdge(classNode, extendsNode);
-//            }
-//            //
-//            if (ctx.typeList() != null) {
-//                ASNode implementsNode = new ASNode(ASNode.Type.IMPLEMENTS);
-//                implementsNode.setLineOfCode(ctx.typeList().getStart().getLine());
-//                Logger.debug("Adding implements node ");
-//                AST.addVertex(implementsNode);
-//                AST.addEdge(classNode, implementsNode);
-//                for (JavaParser.TypeTypeContext type : ctx.typeList().typeType()) {
-//                    ASNode node = new ASNode(ASNode.Type.INTERFACE);
-//                    node.setCode(type.getText());
-//                    node.setLineOfCode(type.getStart().getLine());
-//                    Logger.debug("Adding interface " + type.getText());
-//                    AST.addVertex(node);
-//                    AST.addEdge(implementsNode, node);
-//                }
-//            }
             parentStack.push(classNode);
-
             visit(ctx.classTail());
             parentStack.pop();
             return "";
@@ -1262,7 +1251,7 @@ public class JavaScriptASTBuilder {
             }
             if (ctx.Extends() != null) {
                 ASNode extendsNode = new ASNode(ASNode.Type.EXTENDS);
-                extendsNode.setCode(ctx.singleExpression().getText());
+                extendsNode.setCode(getOriginalCodeText(ctx.singleExpression()));
                 extendsNode.setLineOfCode(ctx.singleExpression().getStart().getLine());
                 Logger.debug("Adding extends " + ctx.singleExpression().getText());
                 AST.addVertex(extendsNode);
@@ -1312,27 +1301,56 @@ public class JavaScriptASTBuilder {
             if (ctx == null || ctx.isEmpty()) {
                 return "";
             }
-            if (ctx.propertyName() != null && !ctx.propertyName().isEmpty()) {
-                return "*#" + visitPropertyName(ctx.propertyName()) + " (" + visitFormalParameterList(ctx.formalParameterList()) + ")" + visitFunctionBody(ctx.functionBody());
-            } else if (ctx.getter() != null && !ctx.getter().isEmpty()) {
-                return "*#" + visitGetter(ctx.getter()) + "()" + visitFunctionBody(ctx.functionBody());
+            ASNode methodNode=new ASNode(ASNode.Type.METHOD);
+            methodNode.setLineOfCode(ctx.getStart().getLine());
+            methodNode.setNormalizedCode("$LABEL method");
+            methodNode.setCode(getOriginalCodeText(ctx));
+            AST.addVertex(methodNode);
+            AST.addEdge(parentStack.peek(),methodNode);
+            parentStack.add(methodNode);
+            if (ctx.propertyName()!=null){
+                visitPropertyName(ctx.propertyName());
+                visitFormalParameterList(ctx.formalParameterList());
+                visitFunctionBody(ctx.functionBody());
             }
-            return "*#" + visitSetter(ctx.setter()) + " (" + visitFormalParameterList(ctx.formalParameterList()) + ")" + visitFunctionBody(ctx.functionBody());
+            if(ctx.getter()!=null){
+                visitGetter(ctx.getter());
+                visitFunctionBody(ctx.functionBody());
+            }
+            if (ctx.setter()!=null){
+                visitSetter(ctx.setter());
+                visitFormalParameterList(ctx.formalParameterList());
+                visitFunctionBody(ctx.functionBody());
+            }
+            parentStack.pop();
+            return "";
         }
 
         @Override public String visitFormalParameterList(JavaScriptParser.FormalParameterListContext ctx) {
-            if (ctx.formalParameterArg()!=null&&!ctx.formalParameterArg().isEmpty()){
-                StringBuffer stringBuffer=new StringBuffer();
-                stringBuffer.append(ctx.formalParameterArg(0));
-                for(int i=1;i<ctx.formalParameterArg().size();i++){
-                    stringBuffer.append(",");
-                    stringBuffer.append(visitFormalParameterArg(ctx.formalParameterArg(i)));
+            ASNode parameterListNode=new ASNode(ASNode.Type.PARAMETERLIST);
+            parameterListNode.setLineOfCode(ctx.getStart().getLine());
+            parameterListNode.setCode(getOriginalCodeText(ctx));
+            AST.addVertex(parameterListNode);
+            AST.addEdge(parentStack.peek(),parameterListNode);
+            parentStack.add(parameterListNode);
+            if (ctx.formalParameterArg()!=null&&ctx.formalParameterArg().size()>0){
+                for (JavaScriptParser.FormalParameterArgContext argCtx : ctx.formalParameterArg()) {
+                    ASNode argNode=new ASNode(ASNode.Type.PARAMETERARG);
+                    argNode.setLineOfCode(argCtx.getStart().getLine());
+                    argNode.setCode(getOriginalCodeText(argCtx));
+                    AST.addVertex(argNode);
+                    AST.addEdge(parentStack.peek(),argNode);
                 }
-                stringBuffer.append(",");
-                stringBuffer.append(visitLastFormalParameterArg(ctx.lastFormalParameterArg()));
-                return stringBuffer.toString();
             }
-           return visitLastFormalParameterArg(ctx.lastFormalParameterArg());
+            if (ctx.lastFormalParameterArg()!=null){
+                ASNode argNode=new ASNode(ASNode.Type.PARAMETERARG);
+                argNode.setLineOfCode(ctx.lastFormalParameterArg().getStart().getLine());
+                argNode.setCode(getOriginalCodeText(ctx.lastFormalParameterArg()));
+                AST.addVertex(argNode);
+                AST.addEdge(parentStack.peek(),argNode);
+            }
+            parentStack.pop();
+            return null;
         }
 
         @Override public String visitFormalParameterArg(JavaScriptParser.FormalParameterArgContext ctx) {
@@ -1362,13 +1380,12 @@ public class JavaScriptASTBuilder {
             if (ctx == null || ctx.isEmpty()) {
                 return "";
             }
-            StringBuffer stringBuffer = new StringBuffer();
             if (ctx.sourceElement() != null && ctx.sourceElement().size() > 0) {
                 for (JavaScriptParser.SourceElementContext sourceContext : ctx.sourceElement()) {
-                    stringBuffer.append(visitSourceElement(sourceContext) + " ");
+                    visitSourceElement(sourceContext);
                 }
             }
-            return stringBuffer.toString();
+            return "";
         }
 
         @Override public String visitArrayLiteral(JavaScriptParser.ArrayLiteralContext ctx) {
@@ -1468,13 +1485,34 @@ public class JavaScriptASTBuilder {
                 return "";
             }
             if (ctx.identifierName() != null) {
-                return visitIdentifierName(ctx.identifierName());
-            } else if (ctx.numericLiteral() != null) {
-                return visitNumericLiteral(ctx.numericLiteral());
-            } else if (ctx.StringLiteral() != null) {
-                return ctx.StringLiteral().toString();
+                ASNode node=new ASNode(ASNode.Type.STATEMENT);
+                node.setLineOfCode(ctx.identifierName().getStart().getLine());
+                node.setCode(getOriginalCodeText(ctx.identifierName()));
+                AST.addVertex(node);
+                AST.addEdge(parentStack.peek(),node);
             }
-            return "[" + visit(ctx.singleExpression()) + "]";
+            if (ctx.numericLiteral() != null) {
+                ASNode node=new ASNode(ASNode.Type.STATEMENT);
+                node.setLineOfCode(ctx.numericLiteral().getStart().getLine());
+                node.setCode(getOriginalCodeText(ctx.numericLiteral()));
+                AST.addVertex(node);
+                AST.addEdge(parentStack.peek(),node);
+            }
+            if (ctx.StringLiteral() != null) {
+                ASNode node=new ASNode(ASNode.Type.STATEMENT);
+                node.setLineOfCode(0);
+                node.setCode(ctx.StringLiteral().getText());
+                AST.addVertex(node);
+                AST.addEdge(parentStack.peek(),node);
+            }
+            if (ctx.singleExpression()!=null){
+                ASNode node=new ASNode(ASNode.Type.STATEMENT);
+                node.setLineOfCode(ctx.singleExpression().getStart().getLine());
+                node.setCode("["+getOriginalCodeText(ctx.singleExpression())+"]");
+                AST.addVertex(node);
+                AST.addEdge(parentStack.peek(),node);
+            }
+            return "";
         }
 
         @Override public String visitArguments(JavaScriptParser.ArgumentsContext ctx) {
@@ -2070,18 +2108,24 @@ public class JavaScriptASTBuilder {
             if (ctx == null || ctx.isEmpty()) {
                 return "";
             }
-            //TODO
-            //    : {this.n("get")}? identifier propertyName
-            return visitIdentifier(ctx.identifier()) + " " + visitPropertyName(ctx.propertyName());
+            if (ctx.identifier()==null||ctx.identifier().Identifier()==null){
+                visitStatement(ctx,null);
+            }else{
+                visitStatement(ctx,ctx.propertyName().getText());
+            }
+            return "";
         }
 
         @Override public String visitSetter(JavaScriptParser.SetterContext ctx) {
             if (ctx == null || ctx.isEmpty()) {
                 return "";
             }
-            //TODO
-            //       : {this.n("set")}? identifier propertyName
-            return visitIdentifier(ctx.identifier()) + " " + visitPropertyName(ctx.propertyName());
+            if (ctx.identifier()==null||ctx.identifier().Identifier()==null){
+                visitStatement(ctx,null);
+            }else{
+                visitStatement(ctx,ctx.propertyName().getText());
+            }
+            return "";
         }
 
         @Override public String visitIdentifierName(JavaScriptParser.IdentifierNameContext ctx) {
@@ -2136,11 +2180,13 @@ public class JavaScriptASTBuilder {
             if (ctx == null || ctx.isEmpty()) {
                 return "";
             }
-//            if (ctx.NonStrictLet()!=null){
-//                return ctx.NonStrictLet().getText();
-//            }
+            if (ctx.NonStrictLet()==null){
+                visitStatement(ctx,null);
+            }else{
+                visitStatement(ctx,"let $LABEL");
+            }
 //            return ctx.StrictLet().getText();
-            return getOriginalCodeText(ctx);
+            return "";
         }
 
         @Override public String visitEos(JavaScriptParser.EosContext ctx) {
@@ -2149,9 +2195,9 @@ public class JavaScriptASTBuilder {
             }
 //            return "";
             if (ctx.SemiColon() != null) {
-                return ctx.SemiColon().getText();
+                visitStatement(ctx,"semiColon $LABEL");
             } else if (ctx.EOF() != null) {
-                return ctx.EOF().getText();
+                visitStatement(ctx,"eof $LABEL");
             }
             return "";
         }
