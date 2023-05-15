@@ -27,7 +27,8 @@ function transform(cfg){
 function mermaidCode(cfg) {
   
   let tran_cfg=transform(cfg);
-  let temp="flowchart TD;"+tran_cfg;
+  
+  let temp="%%{init: {'themeVariables': {'fontSize':'6px'}}}%%\nflowchart TD;"+tran_cfg;
   //let temp="flowchart TD;1-->2("+"\"This is the (text) in the box"+"\")";
   let n=`<div class="mermaid" id="mermaidChart">`+temp+`</div>`;
   return n;

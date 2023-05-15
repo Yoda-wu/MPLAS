@@ -1,8 +1,9 @@
 const { defineConfig } = require('@vue/cli-service')
 module.exports = defineConfig({
   transpileDependencies: true,
+  //publicPath:'./',
   devServer:{
-    port:7000,
+    //port:7000,
     proxy:{
       '/api': {
           target: 'http://43.139.104.217:8080/',// 后端接口
