@@ -72,6 +72,8 @@ public class JavaScriptASTBuilder {
         private Map<String, String> vars, fields, methods;
         private int varsCounter, fieldsCounter, methodsCounter;
         private Map<ParserRuleContext, Object> contexutalProperties;
+        //解决break多次重复的问题
+        private ASNode preBreak=null;
 
         public AbstractSyntaxVisitor(String filePath, String propKey, Map<ParserRuleContext, Object> ctxProps) {
             parentStack = new ArrayDeque<>();
@@ -163,6 +165,7 @@ public class JavaScriptASTBuilder {
             //    ;
             if (ctx.block() != null && !ctx.block().isEmpty()) {
                 visitStatement(ctx,visit(ctx.block()));
+                return "";
             } else if (ctx.importStatement() != null && !ctx.importStatement().isEmpty()) {
                 visitStatement(ctx,visit(ctx.importStatement()));
             } else if (ctx.variableStatement() != null && !ctx.variableStatement().isEmpty()) {
@@ -229,13 +232,13 @@ public class JavaScriptASTBuilder {
             AST.addVertex(node);
             AST.addEdge(parentStack.peek(), node);
             parentStack.add(node);
-//            StringBuffer stringBuffer = new StringBuffer();
+            StringBuffer stringBuffer = new StringBuffer();
             for (int i = 0; i < ctx.statement().size(); i++) {
-//                stringBuffer.append(visitStatement(ctx.statement(i)));
+                stringBuffer.append(visitStatement(ctx.statement(i)));
                 visitStatement(ctx.statement(i));
             }
             parentStack.pop();
-            return "";
+            return stringBuffer.toString();
         }
 
         @Override public String visitImportStatement(JavaScriptParser.ImportStatementContext ctx) {
@@ -776,10 +779,15 @@ public class JavaScriptASTBuilder {
 
         @Override public String visitBreakStatement(JavaScriptParser.BreakStatementContext ctx) {
            //    : Break ({this.notLineTerminator()}? identifier)? eos
-            if (ctx.identifier()==null||ctx.identifier().Identifier() == null)
-                visitStatement(ctx, null);
-            else
-                visitStatement(ctx, "break $LABEL");
+            ASNode breakNode=new ASNode(ASNode.Type.BREAK);
+            breakNode.setLineOfCode(ctx.getStart().getLine());
+            breakNode.setCode("break $LABEL");
+            if (preBreak!=null&&preBreak.getLineOfCode()==ctx.getStart().getLine()){
+                return "";
+            }
+            AST.addVertex(breakNode);
+            AST.addEdge(parentStack.peek(),breakNode);
+            preBreak=breakNode;
             return "";
         }
 
