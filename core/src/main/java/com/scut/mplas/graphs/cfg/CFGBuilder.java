@@ -54,6 +54,9 @@ public class CFGBuilder {
             case "Java":
                 return JavaCFGBuilder.build(fileName, inputStream);
             //
+            case "JavaScript":
+                return JavaScriptCFGBuilder.build(fileName, inputStream);
+            //
             case "Python":
                 return null;
             //
